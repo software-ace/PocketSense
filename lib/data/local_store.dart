@@ -1,0 +1,178 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart' as sq;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
+
+import 'outbox.dart';
+import 'sync_plan.dart';
+
+/// Local SQLite mirror of the four finance tables plus a mutation outbox and
+/// per-table sync watermarks. This is what makes the app offline-first: every
+/// read hits this store, every write lands here first and queues for push.
+class LocalStore implements Outbox, SyncStore {
+  static LocalStore? _instance;
+  static Future<LocalStore> instance() async => _instance ??= await _open();
+
+  final sq.Database db;
+  LocalStore._(this.db);
+
+  static const String kDbName = 'pocketsense.sqlite';
+
+  static Future<LocalStore> _open() async {
+    if (Platform.isLinux) {
+      ffi.sqfliteFfiInit();
+      final dir = ffi.databaseFactoryFfi.openDatabase(p.join(_linuxDataDir(), kDbName));
+      return LocalStore._(await dir);
+    }
+    // Android / mobile: standard plugin-backed factory.
+    final path = await sq.getDatabasesPath();
+    final dir = sq.databaseFactory.openDatabase(p.join(path, kDbName));
+    return LocalStore._(await dir);
+  }
+
+  static String _linuxDataDir() {
+    final home = Platform.environment['HOME'] ?? '.';
+    final dir = p.join(home, '.local', 'share', 'pocket_sense');
+    Directory(dir).createSync(recursive: true);
+    return dir;
+  }
+
+  /// Schema mirrors Postgres column-for-column so rows round-trip unchanged.
+  Future<void> initSchema() async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, type TEXT NOT NULL,
+        color TEXT NOT NULL, icon TEXT NOT NULL DEFAULT 'tag',
+        created_at TEXT, updated_at TEXT
+      );
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY, amount_cents INTEGER NOT NULL, type TEXT NOT NULL,
+        date TEXT NOT NULL, description TEXT NOT NULL, merchant TEXT,
+        category_id INTEGER REFERENCES categories(id), source TEXT NOT NULL DEFAULT 'manual',
+        reference TEXT, notes TEXT, created_at TEXT, updated_at TEXT
+      );
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS budgets (
+        id INTEGER PRIMARY KEY, category_id INTEGER NOT NULL REFERENCES categories(id),
+        limit_cents INTEGER NOT NULL, period TEXT NOT NULL DEFAULT 'monthly',
+        active INTEGER NOT NULL DEFAULT 1, created_at TEXT, updated_at TEXT
+      );
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS recurring_expenses (
+        id INTEGER PRIMARY KEY, description TEXT NOT NULL, amount_cents INTEGER NOT NULL,
+        frequency TEXT NOT NULL, anchor_date TEXT NOT NULL,
+        category_id INTEGER REFERENCES categories(id), merchant TEXT, notes TEXT,
+        active INTEGER NOT NULL DEFAULT 1, last_posted TEXT,
+        created_at TEXT, updated_at TEXT
+      );
+    ''');
+    // "table" is a reserved keyword in SQLite — quote it everywhere.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS outbox (
+        seq INTEGER PRIMARY KEY AUTOINCREMENT, "table" TEXT NOT NULL, op TEXT NOT NULL,
+        payload TEXT NOT NULL
+      );
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sync_watermarks (
+        "table" TEXT PRIMARY KEY, ts TEXT NOT NULL
+      );
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(date)');
+  }
+
+  // ── Generic row access (used by sync + repo reads) ────────────────────
+
+  @override
+  Future<Map<String, dynamic>> allRows(String table) async {
+    final rows = await db.query(table);
+    return {for (final r in rows) r['id'].toString(): r};
+  }
+
+  /// SQLite stores booleans as integers; PostgREST returns real bools.
+  static Object? _normalize(Object? v) => v is bool ? (v ? 1 : 0) : v;
+
+  @override
+  Future<void> upsertMany(String table, List<Map<String, dynamic>> rows) async {
+    final batch = db.batch();
+    for (final r in rows) {
+      batch.insert(table, {for (final e in r.entries) e.key: _normalize(e.value)},
+          conflictAlgorithm: sq.ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Map<String, dynamic>>?> selectRows(String table, {String? where, List<Object?>? whereArgs}) async {
+    final rows = await db.query(table, where: where, whereArgs: whereArgs);
+    return rows.isEmpty ? null : rows;
+  }
+
+  Future<int> insertRow(String table, Map<String, dynamic> values) async {
+    return db.insert(table, {for (final e in values.entries) e.key: _normalize(e.value)});
+  }
+
+  Future<int> updateRow(String table, int id, Map<String, dynamic> values) async {
+    return db.update(table, {for (final e in values.entries) e.key: _normalize(e.value)},
+        where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteRow(String table, int id) async {
+    return db.delete(table, where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Stamp a locally-authored row with a fresh updated_at before it is stored.
+  static String nowIso() => DateTime.now().toUtc().toIso8601String();
+
+  // ── Watermarks ────────────────────────────────────────────────────────
+
+  @override
+  String? watermarkFor(String table) {
+    // Synchronous read via a cached map refreshed on set; cheap enough.
+    return _wmCache[table];
+  }
+
+  final Map<String, String> _wmCache = {};
+
+  Future<void> loadWatermarks() async {
+    final rows = await db.query('sync_watermarks');
+    _wmCache.clear();
+    for (final r in rows) {
+      final table = r['"table"']?.toString() ?? '';
+      final ts = r['ts']?.toString() ?? '';
+      if (table.isNotEmpty && ts.isNotEmpty) {
+        _wmCache[table] = ts;
+      }
+    }
+  }
+
+  @override
+  Future<void> setWatermark(String table, DateTime ts) async {
+    final iso = ts.toUtc().toIso8601String();
+    _wmCache[table] = iso;
+    await db.insert('sync_watermarks', {'"table"': table, 'ts': iso},
+        conflictAlgorithm: sq.ConflictAlgorithm.replace);
+  }
+
+  // ── Outbox ────────────────────────────────────────────────────────────
+
+  @override
+  Future<int> append({required String table, required String op, required Map<String, dynamic> payload}) async {
+    return db.insert('outbox', {'"table"': table, 'op': op, 'payload': jsonEncode(payload)});
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> pending() async {
+    return db.query('outbox', orderBy: 'seq ASC');
+  }
+
+  @override
+  Future<void> ack(int seq) async {
+    await db.delete('outbox', where: 'seq = ?', whereArgs: [seq]);
+  }
+}

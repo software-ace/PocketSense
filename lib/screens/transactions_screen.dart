@@ -1,0 +1,401 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../data/repo.dart';
+import '../models/models.dart';
+import '../utils/format.dart';
+import '../utils/platform.dart';
+import '../widgets/state_views.dart';
+
+class TransactionsScreen extends StatefulWidget {
+  const TransactionsScreen({super.key});
+  @override
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends State<TransactionsScreen> {
+  final _repo = FinanceRepo();
+  final _searchCtrl = TextEditingController();
+  String? _typeFilter; // null=all, 'income', 'expense'
+  List<Transaction> _items = [];
+  Object? _error;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final items = await _repo.transactions(type: _typeFilter);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _addTransaction() async {
+    final draft = await _showForm(context, null);
+    if (draft == null || !mounted) return;
+    try {
+      await _repo.insertTransaction(
+        amountCents: draft.amountCents,
+        type: draft.type,
+        date: DateTime.now(),
+        description: draft.description,
+        merchant: draft.merchant,
+        categoryId: draft.categoryId,
+      );
+      await _load();
+    } catch (e) {
+      if (mounted) _toast('Failed to add: $e');
+    }
+  }
+
+  Future<void> _editTransaction(Transaction t) async {
+    final draft = await _showForm(context, t);
+    if (draft == null || !mounted) return;
+    try {
+      await _repo.updateTransaction(
+        t.id,
+        amountCents: draft.amountCents,
+        type: draft.type,
+        date: t.date,
+        description: draft.description,
+        merchant: draft.merchant,
+        categoryId: draft.categoryId,
+      );
+      await _load();
+    } catch (e) {
+      if (mounted) _toast('Failed to update: $e');
+    }
+  }
+
+  Future<void> _delete(Transaction t) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Delete transaction?'),
+        content: Text('${t.description} (${formatMoney(t.amountCents)})'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await _repo.deleteTransaction(t.id);
+    await _load();
+  }
+
+  void _toast(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final desktop = PlatformUi.isDesktop(context);
+
+    if (desktop) return _buildDesktop(theme);
+    return _buildMobile(theme);
+  }
+
+  Widget _buildDesktop(ThemeData theme) {
+    final pad = PlatformUi.hPadding(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Activity'),
+        actions: [
+          IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
+        ],
+      ),
+      body: Padding(
+        padding: EdgeInsets.fromLTRB(pad, 12, pad, 12),
+        child: Column(children: [
+          Row(children: [
+            Expanded(
+              flex: 3,
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(hintText: 'Search transactions…', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), isDense: true, prefixIcon: const Icon(Icons.search)),
+                onChanged: (_) => _applyFilters(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: '', label: Text('All')),
+                ButtonSegment(value: 'expense', label: Text('Expense')),
+                ButtonSegment(value: 'income', label: Text('Income')),
+              ],
+              selected: {_typeFilter ?? ''},
+              onSelectionChanged: (s) {
+                setState(() => _typeFilter = s.first.isEmpty ? null : s.first);
+                _load();
+              },
+            ),
+          ]),
+          const SizedBox(height: 16),
+          Expanded(child: _buildBody(theme, desktop: true)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildMobile(ThemeData theme) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Activity'),
+        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _addTransaction)],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addTransaction,
+        icon: const Icon(Icons.add),
+        label: const Text('Add'),
+      ),
+      body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(hintText: 'Search…', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, prefixIcon: const Icon(Icons.search)),
+            onChanged: (_) => _applyFilters(),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: '', label: Text('All')),
+              ButtonSegment(value: 'expense', label: Text('Expense')),
+              ButtonSegment(value: 'income', label: Text('Income')),
+            ],
+            selected: {_typeFilter ?? ''},
+            onSelectionChanged: (s) {
+              setState(() => _typeFilter = s.first.isEmpty ? null : s.first);
+              _load();
+            },
+          ),
+        ),
+        Expanded(child: _buildBody(theme, desktop: false)),
+      ]),
+    );
+  }
+
+  Widget _buildBody(ThemeData theme, {required bool desktop}) {
+    if (_loading) return const LoadingView();
+    if (_error != null) return ErrorView(message: _error.toString(), onRetry: _load);
+    if (_items.isEmpty) return const EmptyView(icon: Icons.receipt_long, title: 'No transactions yet', subtitle: 'Tap Add to record your first entry.');
+
+    if (desktop) return _dataTable(theme);
+    return _mobileList(theme);
+  }
+
+  Widget _dataTable(ThemeData theme) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: DataTable(
+          headingRowHeight: 44,
+          dataRowMinHeight: 48,
+          dataRowMaxHeight: 56,
+          columns: const [
+            DataColumn(label: Text('Date')),
+            DataColumn(label: Text('Description')),
+            DataColumn(label: Text('Category')),
+            DataColumn(label: Text('Merchant')),
+            DataColumn(label: Text('Type')),
+            DataColumn(label: Align(alignment: Alignment.centerRight, child: Text('Amount'))),
+            DataColumn(label: SizedBox(width: 72)),
+          ],
+          rows: _items.map((t) {
+            final fmt = DateFormat.yMMMd();
+            return DataRow(cells: [
+              DataCell(Text(fmt.format(t.date), style: const TextStyle(fontSize: 13))),
+              DataCell(Text(t.description.isNotEmpty ? t.description : (t.merchant ?? '—'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis, maxLines: 1)),
+              DataCell(Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: _catColor(t).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text(t.categoryName ?? '—', style: TextStyle(fontSize: 12, color: _catColor(t))))),
+              DataCell(Text(t.merchant ?? '—', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis, maxLines: 1)),
+              DataCell(Text(t.type, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Colors.green : Colors.redAccent))),
+              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(t.amountCents, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)))),
+              DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: 'Edit', onPressed: () => _editTransaction(t), visualDensity: VisualDensity.compact),
+                IconButton(icon: const Icon(Icons.delete_outline, size: 18), tooltip: 'Delete', onPressed: () => _delete(t), visualDensity: VisualDensity.compact),
+              ])),
+            ]);
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _mobileList(ThemeData theme) {
+    return ListView.builder(
+      itemCount: _items.length,
+      itemBuilder: (_, i) {
+        final t = _items[i];
+        return Dismissible(
+          key: ValueKey(t.id),
+          direction: DismissDirection.endToStart,
+          background: Container(color: Colors.red.shade400, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), child: const Icon(Icons.delete, color: Colors.white)),
+          onDismissed: (_) => _delete(t),
+          child: ListTile(
+            onTap: () => _editTransaction(t),
+            onLongPress: () => _mobileActionSheet(t),
+            leading: CircleAvatar(radius: 18, backgroundColor: _catColor(t).withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: _catColor(t)))),
+            title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? 'Transaction')),
+            subtitle: Text(formatDate(t.date)),
+            trailing: Text(formatMoney(t.amountCents, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)),
+          ),
+        );
+      },
+    );
+  }
+
+  void _mobileActionSheet(Transaction t) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('Edit'), onTap: () { Navigator.pop(ctx); _editTransaction(t); }),
+          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: const Text('Delete', style: TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(t); }),
+        ]),
+      ),
+    );
+  }
+
+  Color _catColor(Transaction t) {
+    if (t.categoryColor != null && t.categoryColor!.startsWith('#') && t.categoryColor!.length >= 7) {
+      return Color(int.parse('FF${t.categoryColor!.substring(1, 7)}', radix: 16));
+    }
+    return Theme.of(context).colorScheme.primary;
+  }
+
+  void _applyFilters() {
+    // Client-side search filter over already-loaded rows for responsiveness.
+    final q = _searchCtrl.text.trim().toLowerCase();
+    if (q.isEmpty) {
+      setState(() {});
+      return;
+    }
+    // Re-query server for accuracy when searching.
+    _repo.transactions(type: _typeFilter, q: q).then((items) {
+      if (mounted) setState(() => _items = items);
+    }).catchError((_) {});
+  }
+
+  Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing) async {
+    final result = await showModalBottomSheet<_TxDraft>(
+      context: context,
+      isScrollControlled: true,
+      builder: (c) => _TxFormSheet(existing: existing),
+    );
+    return result;
+  }
+}
+
+class _TxDraft {
+  final int amountCents;
+  final String type;
+  final String description;
+  final String? merchant;
+  final int? categoryId;
+  _TxDraft(this.amountCents, this.type, this.description, {this.merchant, this.categoryId});
+}
+
+class _TxFormSheet extends StatefulWidget {
+  final Transaction? existing;
+  const _TxFormSheet({this.existing});
+  @override
+  State<_TxFormSheet> createState() => _TxFormSheetState();
+}
+
+class _TxFormSheetState extends State<_TxFormSheet> {
+  late final _amtCtrl = TextEditingController(text: widget.existing != null ? (widget.existing!.amountCents / 100).toStringAsFixed(2) : '');
+  late final _descCtrl = TextEditingController(text: widget.existing?.description ?? '');
+  late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? '');
+  late String _type = widget.existing?.type ?? 'expense';
+  late int? _catId = widget.existing?.categoryId;
+  List<dynamic> _cats = [];
+
+  @override
+  void initState() {
+    super.initState();
+    FinanceRepo().categories().then((c) => setState(() => _cats = c)).catchError((_) {});
+  }
+
+  @override
+  void dispose() {
+    _amtCtrl.dispose();
+    _descCtrl.dispose();
+    _merchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cats = _cats.cast<Category>();
+    final isEdit = widget.existing != null;
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(isEdit ? 'Edit transaction' : 'New transaction', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 16),
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'expense', label: Text('Expense')),
+              ButtonSegment(value: 'income', label: Text('Income')),
+            ],
+            selected: {_type},
+            onSelectionChanged: (s) => setState(() => _type = s.first),
+          ),
+          const SizedBox(height: 16),
+          TextField(controller: _amtCtrl, keyboardType: TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$ ')),
+          const SizedBox(height: 12),
+          TextField(controller: _descCtrl, decoration: const InputDecoration(labelText: 'Description (optional)')),
+          const SizedBox(height: 12),
+          TextField(controller: _merchCtrl, decoration: const InputDecoration(labelText: 'Merchant (optional)')),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int>(
+            initialValue: _catId,
+            decoration: const InputDecoration(labelText: 'Category (optional)'),
+            items: cats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+            onChanged: (v) => setState(() => _catId = v),
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: () {
+              final amt = double.tryParse(_amtCtrl.text.replaceAll(',', '').trim()) ?? 0;
+              if (amt <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a positive amount.')));
+                return;
+              }
+              final desc = _descCtrl.text.trim();
+              final merch = _merchCtrl.text.trim();
+              final effectiveDesc = desc.isNotEmpty ? desc : (merch.isNotEmpty ? merch : 'Transaction');
+              Navigator.pop(context, _TxDraft((amt * 100).round(), _type, effectiveDesc, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
+            },
+            child: const Text('Save'),
+          ),
+        ]),
+      ),
+    );
+  }
+}
