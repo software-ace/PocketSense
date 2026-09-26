@@ -5,6 +5,7 @@ import 'screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
 import 'screens/recurring_screen.dart';
 import 'screens/categories_screen.dart';
+import 'screens/assistant_screen.dart';
 import 'utils/platform.dart';
 
 /// Root scaffold that adapts navigation to the viewport:
@@ -25,6 +26,7 @@ class _ShellState extends State<Shell> {
     TransactionsScreen(),
     BudgetsScreen(),
     RecurringScreen(),
+    AssistantScreen(),
     CategoriesScreen(),
   ];
 
@@ -34,6 +36,7 @@ class _ShellState extends State<Shell> {
     _Dest(Icons.swap_vert_rounded, 'Activity'),
     _Dest(Icons.price_change_rounded, 'Budgets'),
     _Dest(Icons.repeat_rounded, 'Recurring'),
+    _Dest(Icons.psychology_alt_rounded, 'Ask'),
     _Dest(Icons.category_rounded, 'Categories'),
   ];
 
