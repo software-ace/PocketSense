@@ -42,10 +42,13 @@ jobs:
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: PocketSense-${GITHUB_REF_NAME}.apk
-          generate_release_notes: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "Pocket Sense ${GITHUB_REF_NAME}" \
+            --notes "Built from tag ${GITHUB_REF_NAME}." \
+            "PocketSense-${GITHUB_REF_NAME}.apk"
 
       - name: Upload artifact (manual runs)
         if: "!startsWith(github.ref, 'refs/tags/')"
