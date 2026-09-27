@@ -2,6 +2,10 @@
     <!-- Required for Supabase REST calls; without it every network request
          fails silently on Android 9+ and the offline-first store stays empty. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Voice entry in Activity (speech_to_text). Asked for at first use, not
+         at install; Bluetooth permissions are omitted, so a headset mic is not
+         specifically requested, only whatever the recognizer uses. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="Pocket Sense"
         android:name="${applicationName}"
@@ -43,6 +47,11 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Android 11+ package visibility: lets the app find the system
+             speech recognizer. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
         </intent>
     </queries>
 </manifest>

@@ -7,6 +7,8 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/sync_indicator.dart';
+import '../utils/voice_parser.dart';
+import '../widgets/voice_entry_sheet.dart';
 import 'settings_screen.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -55,6 +57,34 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
 
   Future<void> _addTransaction() async {
     final draft = await _showForm(context, null);
+    if (draft == null || !mounted) return;
+    try {
+      await _repo.insertTransaction(
+        amountCents: draft.amountCents,
+        type: draft.type,
+        date: draft.date,
+        description: draft.description,
+        merchant: draft.merchant,
+        categoryId: draft.categoryId,
+      );
+      await _load();
+    } catch (e) {
+      if (mounted) _toast('Failed to add: $e');
+    }
+  }
+
+  /// Speak → parse → the normal form, pre-filled, so nothing is saved
+  /// without the user checking it.
+  Future<void> _addByVoice() async {
+    final heard = await showVoiceEntrySheet(context);
+    if (heard == null || !mounted) return;
+    final guess = parseVoiceEntry(heard, categories: await _repo.categories());
+    if (!mounted) return;
+    final draft = await showModalBottomSheet<_TxDraft>(
+      context: context,
+      isScrollControlled: true,
+      builder: (c) => _TxFormSheet(voice: guess, heard: heard),
+    );
     if (draft == null || !mounted) return;
     try {
       await _repo.insertTransaction(
@@ -126,6 +156,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
       appBar: AppBar(
         title: const Text('Activity'),
         actions: [
+          if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: 'Add by voice', onPressed: _addByVoice),
           IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
           const SyncIndicator(),
           const SettingsButton(),
@@ -168,7 +199,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
-        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _addTransaction), const SyncIndicator(), const SettingsButton()],
+        actions: [
+          if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: 'Add by voice', onPressed: _addByVoice),
+          IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
+          const SyncIndicator(),
+          const SettingsButton(),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addTransaction,
@@ -328,18 +364,21 @@ class _TxDraft {
 
 class _TxFormSheet extends StatefulWidget {
   final Transaction? existing;
-  const _TxFormSheet({this.existing});
+  final VoiceDraft? voice; // pre-fill from a spoken sentence
+  final String? heard;
+  const _TxFormSheet({this.existing, this.voice, this.heard});
   @override
   State<_TxFormSheet> createState() => _TxFormSheetState();
 }
 
 class _TxFormSheetState extends State<_TxFormSheet> {
-  late final _amtCtrl = TextEditingController(text: widget.existing != null ? (widget.existing!.amountCents / 100).toStringAsFixed(2) : '');
-  late final _descCtrl = TextEditingController(text: widget.existing?.description ?? '');
-  late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? '');
-  late String _type = widget.existing?.type ?? 'expense';
-  late int? _catId = widget.existing?.categoryId;
-  late DateTime _date = widget.existing?.date ?? _today();
+  late final int? _initialCents = widget.existing?.amountCents ?? widget.voice?.amountCents;
+  late final _amtCtrl = TextEditingController(text: _initialCents != null ? (_initialCents / 100).toStringAsFixed(2) : '');
+  late final _descCtrl = TextEditingController(text: widget.existing?.description ?? widget.voice?.description ?? '');
+  late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? widget.voice?.merchant ?? '');
+  late String _type = widget.existing?.type ?? widget.voice?.type ?? 'expense';
+  late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
+  late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
   List<dynamic> _cats = [];
 
   static DateTime _today() {
@@ -388,7 +427,15 @@ class _TxFormSheetState extends State<_TxFormSheet> {
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(isEdit ? 'Edit transaction' : 'New transaction', style: Theme.of(context).textTheme.titleLarge),
+          Text(isEdit ? 'Edit transaction' : (widget.heard != null ? 'Check and save' : 'New transaction'), style: Theme.of(context).textTheme.titleLarge),
+          if (widget.heard != null) ...[
+            const SizedBox(height: 8),
+            Row(children: [
+              Icon(Icons.mic_none, size: 16, color: Theme.of(context).colorScheme.outline),
+              const SizedBox(width: 6),
+              Expanded(child: Text('"${widget.heard}"', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic, color: Theme.of(context).colorScheme.outline))),
+            ]),
+          ],
           const SizedBox(height: 16),
           SegmentedButton<String>(
             segments: const [
@@ -415,7 +462,9 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           TextField(controller: _merchCtrl, decoration: const InputDecoration(labelText: 'Merchant (optional)')),
           const SizedBox(height: 12),
           DropdownButtonFormField<int>(
-            initialValue: _catId,
+            // Categories load async; only select once the item exists.
+            key: ValueKey(cats.length),
+            initialValue: cats.any((c) => c.id == _catId) ? _catId : null,
             decoration: const InputDecoration(labelText: 'Category (optional)'),
             items: cats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
