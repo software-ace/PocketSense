@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
 import '../models/models.dart';
@@ -268,7 +269,20 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   late String _freq = widget.existing?.frequency ?? 'monthly';
   late int? _catId = widget.existing?.categoryId;
   late bool _active = widget.existing?.active ?? true;
+  // Anchor date drives every future due date (weekday / day-of-month).
+  late DateTime _anchor = widget.existing?.anchorDate ?? DateTime.now();
   bool _saving = false;
+
+  Future<void> _pickAnchor() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _anchor,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'First due date',
+    );
+    if (picked != null) setState(() => _anchor = picked);
+  }
 
   @override
   void dispose() {
@@ -287,7 +301,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
     try {
       final repo = FinanceRepo();
       final cents = (amt * 100).round();
-      final anchor = widget.existing?.anchorDate ?? DateTime.now();
+      final anchor = DateTime(_anchor.year, _anchor.month, _anchor.day);
       final merch = _merchCtrl.text.trim().isEmpty ? null : _merchCtrl.text.trim();
       final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
       if (widget.existing == null) {
@@ -321,6 +335,15 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             decoration: const InputDecoration(labelText: 'Frequency'),
             items: _freqs.map((f) => DropdownMenuItem(value: f.$1, child: Text(f.$2))).toList(),
             onChanged: (v) => setState(() => _freq = v!),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: _pickAnchor,
+            borderRadius: BorderRadius.circular(4),
+            child: InputDecorator(
+              decoration: const InputDecoration(labelText: 'First due date', suffixIcon: Icon(Icons.calendar_today_outlined, size: 18)),
+              child: Text(DateFormat('MMM d, y').format(_anchor)),
+            ),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<int>(
