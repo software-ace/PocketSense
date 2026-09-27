@@ -38,6 +38,9 @@ class Transaction {
   final String? categoryName;
   final String? categoryColor;
   final String? categoryIcon;
+  /// When the entry was recorded (local time). [date] is date-only, so this
+  /// is the only source of a time of day. Null for legacy rows.
+  final DateTime? createdAt;
 
   Transaction({
     required this.id,
@@ -52,6 +55,7 @@ class Transaction {
     this.categoryName,
     this.categoryColor,
     this.categoryIcon,
+    this.createdAt,
   });
 
   factory Transaction.fromMap(Map<String, dynamic> m) => Transaction(
@@ -67,6 +71,7 @@ class Transaction {
         categoryName: m['category_name'] as String?,
         categoryColor: m['category_color'] as String?,
         categoryIcon: m['category_icon'] as String?,
+        createdAt: DateTime.tryParse(m['created_at']?.toString() ?? '')?.toLocal(),
       );
 }
 

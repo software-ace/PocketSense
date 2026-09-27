@@ -325,12 +325,22 @@ class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
     return const Color(0xFF9CA3AF);
   }
 
+  // `date` carries no time of day (formatting it always showed 00:00). Show the
+  // entry time only when it was recorded on that same day; a back-dated entry's
+  // creation time would be misleading.
+  String _when(Transaction t) {
+    final day = DateFormat.yMMMEd().format(t.date);
+    final c = t.createdAt;
+    final sameDay = c != null && c.year == t.date.year && c.month == t.date.month && c.day == t.date.day;
+    return sameDay ? '$day · ${DateFormat.Hm().format(c)}' : day;
+  }
+
   Widget _activityTile(ThemeData theme, Transaction t) {
     final color = _hex(t.categoryColor);
     return ListTile(
       leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: color, fontSize: 14))),
       title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? 'Transaction'), style: const TextStyle(fontSize: 14)),
-      subtitle: Text(DateFormat.yMMMEd().add_Hm().format(t.date), style: const TextStyle(fontSize: 12)),
+      subtitle: Text(_when(t), style: const TextStyle(fontSize: 12)),
       trailing: Text(formatMoney(t.amountCents, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: t.type == 'income' ? Colors.green : null)),
     );
   }

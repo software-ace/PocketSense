@@ -120,11 +120,12 @@ class FinanceRepo {
         categoryId: m['category_id'] as int?,
         source: m['source'] as String? ?? 'manual',
         notes: m['notes'] as String?,
+        createdAt: DateTime.tryParse(m['created_at']?.toString() ?? '')?.toLocal(),
       );
       final c = t.categoryId == null ? null : catById[t.categoryId];
       return _withCat(t, c);
     }).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+      ..sort(_newestFirst);
     return txs.take(limit).toList();
   }
 
@@ -141,7 +142,17 @@ class FinanceRepo {
         categoryName: c?.name,
         categoryColor: c?.color,
         categoryIcon: c?.icon,
+        createdAt: t.createdAt,
       );
+
+  // Same-day entries fall back to entry time; rows without one sort last.
+  static int _newestFirst(Transaction a, Transaction b) {
+    final byDate = b.date.compareTo(a.date);
+    if (byDate != 0) return byDate;
+    final ca = a.createdAt, cb = b.createdAt;
+    if (ca == null || cb == null) return (ca == null ? 1 : 0) - (cb == null ? 1 : 0);
+    return cb.compareTo(ca);
+  }
 
   Future<int> insertTransaction({
     required int amountCents,
@@ -162,6 +173,7 @@ class FinanceRepo {
       'date': _isoDate(date),
       'description': description,
       'source': source,
+      'created_at': LocalStore.nowIso(),
       'updated_at': LocalStore.nowIso(),
     };
     if (merchant != null) row['merchant'] = merchant;
@@ -341,6 +353,7 @@ class FinanceRepo {
       'date': _isoDate(today),
       'source': 'manual',
       'notes': 'Auto-posted from recurring expense #${r.id}',
+      'created_at': LocalStore.nowIso(),
       'updated_at': LocalStore.nowIso(),
     };
     if (r.categoryId != null) txRow['category_id'] = r.categoryId;
