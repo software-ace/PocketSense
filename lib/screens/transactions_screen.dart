@@ -60,7 +60,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
       await _repo.insertTransaction(
         amountCents: draft.amountCents,
         type: draft.type,
-        date: DateTime.now(),
+        date: draft.date,
         description: draft.description,
         merchant: draft.merchant,
         categoryId: draft.categoryId,
@@ -79,7 +79,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
         t.id,
         amountCents: draft.amountCents,
         type: draft.type,
-        date: t.date,
+        date: draft.date,
         description: draft.description,
         merchant: draft.merchant,
         categoryId: draft.categoryId,
@@ -322,7 +322,8 @@ class _TxDraft {
   final String description;
   final String? merchant;
   final int? categoryId;
-  _TxDraft(this.amountCents, this.type, this.description, {this.merchant, this.categoryId});
+  final DateTime date;
+  _TxDraft(this.amountCents, this.type, this.description, {required this.date, this.merchant, this.categoryId});
 }
 
 class _TxFormSheet extends StatefulWidget {
@@ -338,7 +339,31 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? '');
   late String _type = widget.existing?.type ?? 'expense';
   late int? _catId = widget.existing?.categoryId;
+  late DateTime _date = widget.existing?.date ?? _today();
   List<dynamic> _cats = [];
+
+  static DateTime _today() {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  Future<void> _pickDate() async {
+    final today = _today();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2000),
+      // A little ahead, for bills you already know are coming.
+      lastDate: DateTime(today.year + 1, today.month, today.day),
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  String _dateLabel() {
+    final diff = _date.difference(_today()).inDays;
+    final day = DateFormat('EEE, MMM d, y').format(_date);
+    return switch (diff) { 0 => 'Today · $day', -1 => 'Yesterday · $day', _ => day };
+  }
 
   @override
   void initState() {
@@ -376,6 +401,15 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 16),
           TextField(controller: _amtCtrl, keyboardType: TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$ ')),
           const SizedBox(height: 12),
+          InkWell(
+            onTap: _pickDate,
+            borderRadius: BorderRadius.circular(4),
+            child: InputDecorator(
+              decoration: const InputDecoration(labelText: 'Date', suffixIcon: Icon(Icons.calendar_today_outlined, size: 18)),
+              child: Text(_dateLabel()),
+            ),
+          ),
+          const SizedBox(height: 12),
           TextField(controller: _descCtrl, decoration: const InputDecoration(labelText: 'Description (optional)')),
           const SizedBox(height: 12),
           TextField(controller: _merchCtrl, decoration: const InputDecoration(labelText: 'Merchant (optional)')),
@@ -397,7 +431,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
               final desc = _descCtrl.text.trim();
               final merch = _merchCtrl.text.trim();
               final effectiveDesc = desc.isNotEmpty ? desc : (merch.isNotEmpty ? merch : 'Transaction');
-              Navigator.pop(context, _TxDraft((amt * 100).round(), _type, effectiveDesc, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
+              Navigator.pop(context, _TxDraft((amt * 100).round(), _type, effectiveDesc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
             },
             child: const Text('Save'),
           ),

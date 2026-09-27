@@ -10,12 +10,12 @@ A personal finance tracker for Android and Linux. It works offline first: every 
 - Recent activity with the time each entry was recorded.
 
 **Activity**
-- Add, edit and delete income and expense transactions, with merchant, category and notes.
+- Add, edit and delete income and expense transactions, with a date, merchant, category and notes.
 - Search by description or merchant, and filter by All, Expense or Income.
 - On mobile: swipe to delete, long-press for more actions.
 
 **Budgets**
-- A spending limit per expense category, with a progress bar, what's remaining, and an over-budget warning.
+- A weekly (Monday to Sunday) or monthly spending limit per expense category, with a progress bar, what's remaining, and an over-budget warning. Each card shows which week or month it covers.
 
 **Recurring**
 - Bills, subscriptions, salary and other recurring income or expenses, charged weekly, bi-weekly, monthly, quarterly or yearly from a first due date you choose.
@@ -114,8 +114,6 @@ test/                  unit and widget tests (sync, outbox, local store, repo, a
 
 ## Known limitations
 - One currency (US dollars). Amounts are stored as integer cents.
-- A budget's **Weekly** period is saved but not used yet: all budgets are measured against the current calendar month.
-- New transactions in Activity are dated today; there's no date picker yet. The assistant can set a date.
 - The assistant adds transactions without asking you to confirm first.
 - The assistant's chat history isn't saved.
 - Android and Linux only.
