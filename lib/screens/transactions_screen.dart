@@ -199,18 +199,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
-        actions: [
-          if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: 'Add by voice', onPressed: _addByVoice),
-          IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
-          const SyncIndicator(),
-          const SettingsButton(),
-        ],
+        actions: const [SyncIndicator(), SettingsButton()],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addTransaction,
-        icon: const Icon(Icons.add),
-        label: const Text('Add'),
-      ),
+      // Both ways to add sit in thumb reach; the app bar keeps only status.
+      floatingActionButton: voiceEntrySupported
+          ? _AddSplitFab(onVoice: _addByVoice, onAdd: _addTransaction)
+          : FloatingActionButton.extended(onPressed: _addTransaction, icon: const Icon(Icons.add), label: const Text('Add')),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -289,6 +283,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
 
   Widget _mobileList(ThemeData theme) {
     return ListView.builder(
+      // Room below the last row so the floating add button never covers it.
+      padding: const EdgeInsets.only(bottom: 88),
       itemCount: _items.length,
       itemBuilder: (_, i) {
         final t = _items[i];
@@ -349,6 +345,52 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
       builder: (c) => _TxFormSheet(existing: existing),
     );
     return result;
+  }
+}
+
+/// Extended-FAB-shaped pill split in two: [ 🎤 | + Add ].
+class _AddSplitFab extends StatelessWidget {
+  final VoidCallback onVoice;
+  final VoidCallback onAdd;
+  const _AddSplitFab({required this.onVoice, required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fg = scheme.onPrimaryContainer;
+    return Material(
+      color: scheme.primaryContainer,
+      elevation: 6,
+      shape: const StadiumBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: 56,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Tooltip(
+            message: 'Add by voice',
+            child: InkWell(
+              onTap: onVoice,
+              child: SizedBox(height: 56, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: Icon(Icons.mic_none, color: fg))),
+            ),
+          ),
+          VerticalDivider(width: 1, thickness: 1, indent: 14, endIndent: 14, color: fg.withValues(alpha: 0.3)),
+          InkWell(
+            onTap: onAdd,
+            child: SizedBox(
+              height: 56,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 20, 0),
+                child: Row(children: [
+                  Icon(Icons.add, color: fg),
+                  const SizedBox(width: 8),
+                  Text('Add', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg)),
+                ]),
+              ),
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 }
 
