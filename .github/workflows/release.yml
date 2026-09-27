@@ -110,12 +110,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Hand-written notes live in .github/release-notes/<tag>.md; without
+          # one, GitHub generates notes from the commits since the last tag.
+          notes=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then notes_args=(--notes-file "$notes"); else notes_args=(--generate-notes); fi
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" dist/*.apk --clobber
+            if [ -f "$notes" ]; then gh release edit "${GITHUB_REF_NAME}" --notes-file "$notes"; fi
           else
             gh release create "${GITHUB_REF_NAME}" \
               --title "Pocket Sense ${GITHUB_REF_NAME}" \
-              --generate-notes \
+              "${notes_args[@]}" \
               dist/*.apk
           fi
 
