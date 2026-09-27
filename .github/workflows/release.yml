@@ -6,6 +6,10 @@ on:
       - 'v*'
   workflow_dispatch: {}
 
+# Repo default GITHUB_TOKEN is read-only; creating a release needs contents: write.
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -55,4 +59,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PocketSense-apk
-          path: PocketSense-${GITHUB_REF_NAME:-main}.apk
+          path: PocketSense-${{ github.ref_name }}.apk
