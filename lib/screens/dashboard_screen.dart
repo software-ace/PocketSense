@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -220,27 +222,37 @@ class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
     if (_daily.isEmpty) return const Center(child: Text('No data'));
     final spots = List.generate(_daily.length, (i) => FlSpot(i.toDouble(), _daily[i].cents / 100));
     final maxCents = _daily.fold<int>(0, (a, b) => b.cents > a ? b.cents : a);
-    final maxY = (maxCents / 100) * 1.2;
+    // ~4 gridlines on a 1/2/5 step, with the top snapped to a step multiple.
+    // (A fixed interval of 1 drew one label per dollar — hundreds, overlapping.)
+    final step = _niceStep(maxCents > 0 ? maxCents / 100 / 4 : 2.5);
+    final maxY = ((maxCents / 100) * 1.1 / step).ceil().clamp(1, 1 << 30) * step;
+    final lastIdx = (_daily.length - 1).toDouble();
 
     return LineChart(
       LineChartData(
         minY: 0,
-        maxY: maxY > 0 ? maxY : 10,
+        maxY: maxY,
         lineTouchData: LineTouchData(enabled: true),
         gridData: FlGridData(
           drawVerticalLine: false,
+          horizontalInterval: step,
           getDrawingHorizontalLine: (v) => FlLine(color: const Color(0x1F000000), strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: true, interval: 1, reservedSize: 40,
-              getTitlesWidget: (v, meta) => Padding(padding: const EdgeInsets.only(right: 4), child: Text('\$${v.toInt()}'))),
+            sideTitles: SideTitles(showTitles: true, interval: step, reservedSize: 44,
+              getTitlesWidget: (v, meta) => Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Text(_compactMoney(v), style: const TextStyle(fontSize: 11), textAlign: TextAlign.right))),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: true, interval: 7, reservedSize: 24,
               getTitlesWidget: (v, meta) {
                 final idx = v.toInt();
                 if (idx < 0 || idx >= _daily.length) return const SizedBox.shrink();
+                // fl_chart always adds a label at the axis end; it collides with
+                // the last weekly tick one day earlier.
+                if (v == lastIdx && idx % 7 != 0) return const SizedBox.shrink();
                 return Padding(padding: const EdgeInsets.only(top: 4), child: Text(DateFormat.MMMd().format(_daily[idx].day)));
               }),
           ),
@@ -252,6 +264,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
           LineChartBarData(
             spots: spots,
             isCurved: true,
+            // Without this the spline dips below $0 next to a spike.
+            preventCurveOverShooting: true,
             color: const Color(0xFF4F46E5),
             barWidth: 3,
             dotData: FlDotData(show: false),
@@ -263,6 +277,21 @@ class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
         ],
       ),
     );
+  }
+
+  static double _niceStep(double raw) {
+    final mag = math.pow(10, (math.log(raw) / math.ln10).floor()).toDouble();
+    final norm = raw / mag;
+    final nice = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+    return nice * mag;
+  }
+
+  static String _compactMoney(double v) {
+    if (v >= 1000) {
+      final k = v / 1000;
+      return '\$${k == k.roundToDouble() ? k.toInt() : k.toStringAsFixed(1)}k';
+    }
+    return '\$${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(1)}';
   }
 
   Widget _buildPieChart() {
