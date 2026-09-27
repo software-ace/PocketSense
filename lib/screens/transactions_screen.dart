@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
+import '../widgets/sync_indicator.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -13,13 +14,16 @@ class TransactionsScreen extends StatefulWidget {
   State<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
-class _TransactionsScreenState extends State<TransactionsScreen> {
+class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware {
   final _repo = FinanceRepo();
   final _searchCtrl = TextEditingController();
   String? _typeFilter; // null=all, 'income', 'expense'
   List<Transaction> _items = [];
   Object? _error;
   bool _loading = true;
+
+  @override
+  void onDataChanged() => _load();
 
   @override
   void initState() {
@@ -122,6 +126,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         title: const Text('Activity'),
         actions: [
           IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
+          const SyncIndicator(),
         ],
       ),
       body: Padding(
@@ -161,7 +166,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
-        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _addTransaction)],
+        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _addTransaction), const SyncIndicator()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addTransaction,

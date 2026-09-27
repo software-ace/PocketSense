@@ -11,7 +11,7 @@ class OutboxEntry {
 
   factory OutboxEntry.fromRow(Map<String, dynamic> row) => OutboxEntry(
         seq: row['seq'] as int,
-        table: row['"table"'] as String,
+        table: row['table'] as String,
         op: row['op'] as String,
         payload: jsonDecode(row['payload'] as String) as Map<String, dynamic>,
       );
@@ -33,7 +33,8 @@ abstract class Outbox {
 class ReplayResult {
   final int pushed;
   final int? stoppedAt; // seq of the failed entry, null if all succeeded
-  ReplayResult(this.pushed, this.stoppedAt);
+  final Object? error; // why it failed, so callers can surface it
+  ReplayResult(this.pushed, this.stoppedAt, [this.error]);
 }
 
 /// Push queued mutations to [push] one at a time, in FIFO order. Stops at the
@@ -44,8 +45,8 @@ Future<ReplayResult> replayOutbox(Outbox ob, Future<void> Function(OutboxEntry) 
     final entry = OutboxEntry.fromRow(row);
     try {
       await push(entry);
-    } catch (_) {
-      return ReplayResult(pushed, entry.seq);
+    } catch (e) {
+      return ReplayResult(pushed, entry.seq, e);
     }
     await ob.ack(entry.seq);
     pushed += 1;

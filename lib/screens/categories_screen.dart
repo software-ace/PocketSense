@@ -4,6 +4,7 @@ import '../data/repo.dart';
 import '../models/models.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
+import '../widgets/sync_indicator.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -11,7 +12,7 @@ class CategoriesScreen extends StatefulWidget {
   State<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerProviderStateMixin {
+class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerProviderStateMixin, SyncAware {
   final _repo = FinanceRepo();
   List<Category> _cats = [];
   Object? _error;
@@ -28,6 +29,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6',
     '#3b82f6', '#a855f7',
   ];
+
+  @override
+  void onDataChanged() => _load();
 
   @override
   void initState() {
@@ -107,10 +111,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     final pad = PlatformUi.hPadding(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(title: const Text('Categories'), actions: const [SyncIndicator()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () => syncAndReload(_load),
         child: _loading
             ? const LoadingView()
             : _error != null

@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:math';
 
 import '../main.dart' show initialSyncDone;
 import '../models/models.dart';
@@ -8,6 +8,19 @@ DateTime _dateOnly(dynamic raw) {
   final s = raw.toString().substring(0, 10);
   final p = s.split('-');
   return DateTime(int.tryParse(p[0]) ?? 0, int.tryParse(p[1]) ?? 1, int.tryParse(p[2]) ?? 1);
+}
+
+// Ids are chosen on the device and sent with the insert. Previously the insert
+// payload dropped the id, so Postgres assigned a different one and every later
+// update/delete targeted a local id the server didn't have. Epoch-ms × 1000 +
+// random keeps ids unique across devices and far above the table's own
+// identity sequence, while staying below 2^53 for safe JSON round-trips.
+final _rng = Random();
+int _lastId = 0;
+int newRowId() {
+  final candidate = DateTime.now().millisecondsSinceEpoch * 1000 + _rng.nextInt(1000);
+  _lastId = candidate > _lastId ? candidate : _lastId + 1;
+  return _lastId;
 }
 
 String _isoDate(DateTime d) => d.toIso8601String().substring(0, 10);
@@ -39,10 +52,10 @@ class FinanceRepo {
 
   Future<int> insertCategory({required String name, required String type, required String color, String icon = 'tag'}) async {
     final store = await _db;
-    final id = await _nextId(store, 'categories');
+    final id = newRowId();
     final row = {'id': id, 'name': name, 'type': type, 'color': color, 'icon': icon, 'updated_at': LocalStore.nowIso()};
     await store.insertRow('categories', row);
-    await store.append(table: 'categories', op: 'insert', payload: {...row..remove('id')});
+    await store.append(table: 'categories', op: 'insert', payload: row);
     return id;
   }
 
@@ -141,7 +154,7 @@ class FinanceRepo {
     String source = 'manual',
   }) async {
     final store = await _db;
-    final id = await _nextId(store, 'transactions');
+    final id = newRowId();
     final row = <String, dynamic>{
       'id': id,
       'amount_cents': amountCents,
@@ -155,8 +168,7 @@ class FinanceRepo {
     if (categoryId != null) row['category_id'] = categoryId;
     if (notes != null) row['notes'] = notes;
     await store.insertRow('transactions', row);
-    final payload = Map.of(row)..remove('id');
-    await store.append(table: 'transactions', op: 'insert', payload: payload);
+    await store.append(table: 'transactions', op: 'insert', payload: row);
     return id;
   }
 
@@ -219,11 +231,10 @@ class FinanceRepo {
 
   Future<int> insertBudget({required int categoryId, required int limitCents, String period = 'monthly'}) async {
     final store = await _db;
-    final id = await _nextId(store, 'budgets');
+    final id = newRowId();
     final row = {'id': id, 'category_id': categoryId, 'limit_cents': limitCents, 'period': period, 'active': 1, 'updated_at': LocalStore.nowIso()};
     await store.insertRow('budgets', row);
-    final payload = Map.of(row)..remove('id');
-    await store.append(table: 'budgets', op: 'insert', payload: payload);
+    await store.append(table: 'budgets', op: 'insert', payload: row);
     return id;
   }
 
@@ -269,7 +280,7 @@ class FinanceRepo {
 
   Future<int> insertRecurring({required String description, required int amountCents, required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true}) async {
     final store = await _db;
-    final id = await _nextId(store, 'recurring_expenses');
+    final id = newRowId();
     final row = <String, dynamic>{
       'id': id,
       'description': description,
@@ -283,8 +294,7 @@ class FinanceRepo {
     if (merchant != null) row['merchant'] = merchant;
     if (notes != null) row['notes'] = notes;
     await store.insertRow('recurring_expenses', row);
-    final payload = Map.of(row)..remove('id');
-    await store.append(table: 'recurring_expenses', op: 'insert', payload: payload);
+    await store.append(table: 'recurring_expenses', op: 'insert', payload: row);
     return id;
   }
 
@@ -322,7 +332,7 @@ class FinanceRepo {
   Future<void> postRecurring(RecurringExpense r) async {
     final store = await _db;
     final today = DateTime.now();
-    final txId = await _nextId(store, 'transactions');
+    final txId = newRowId();
     final txRow = <String, dynamic>{
       'id': txId,
       'amount_cents': r.amountCents,
@@ -336,8 +346,7 @@ class FinanceRepo {
     if (r.categoryId != null) txRow['category_id'] = r.categoryId;
     if (r.merchant != null && r.merchant!.isNotEmpty) txRow['merchant'] = r.merchant;
     await store.insertRow('transactions', txRow);
-    final txPayload = Map.of(txRow)..remove('id');
-    await store.append(table: 'transactions', op: 'insert', payload: txPayload);
+    await store.append(table: 'transactions', op: 'insert', payload: txRow);
 
     final recValues = {'last_posted': _isoDate(today), 'updated_at': LocalStore.nowIso()};
     await store.updateRow('recurring_expenses', r.id, recValues);
@@ -413,20 +422,4 @@ class FinanceRepo {
     return result;
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────
-
-  /// Monotonic local id: max(existing local id, max(outbound queued ids)) + 1.
-  Future<int> _nextId(LocalStore store, String table) async {
-    final rows = await store.allRows(table);
-    final localMax = rows.values.fold<int>(0, (a, r) => (r['id'] as int) > a ? r['id'] as int : a);
-    final pendingIds = <int>[];
-    for (final e in await store.pending()) {
-      if (e['"table"'] != table) continue;
-      final payload = jsonDecode(e['payload'] as String) as Map<String, dynamic>;
-      final pid = payload['id'];
-      if (pid is int) pendingIds.add(pid);
-    }
-    final maxPending = pendingIds.fold<int>(0, (a, b) => b > a ? b : a);
-    return (localMax > maxPending ? localMax : maxPending) + 1;
-  }
 }

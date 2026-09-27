@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
+import '../widgets/sync_indicator.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -12,13 +13,16 @@ class BudgetsScreen extends StatefulWidget {
   State<BudgetsScreen> createState() => _BudgetsScreenState();
 }
 
-class _BudgetsScreenState extends State<BudgetsScreen> {
+class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
   final _repo = FinanceRepo();
   List<Budget> _budgets = [];
   Map<int, int> _spentByCat = {};
   List<Category> _cats = [];
   Object? _error;
   bool _loading = true;
+
+  @override
+  void onDataChanged() => _load();
 
   @override
   void initState() {
@@ -99,10 +103,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     final pad = PlatformUi.hPadding(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Budgets')),
+      appBar: AppBar(title: const Text('Budgets'), actions: const [SyncIndicator()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () => syncAndReload(_load),
         child: _loading
             ? const LoadingView()
             : _error != null

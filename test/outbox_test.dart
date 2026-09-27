@@ -18,7 +18,7 @@ class _MemoryOutbox implements Outbox {
     // Key matches the real SQLite column name ("table" is a reserved word).
     rows.add({
       'seq': _seq,
-      '"table"': table,
+      'table': table,
       'op': op,
       'payload': jsonEncode(payload),
     });
@@ -39,7 +39,7 @@ void main() {
       await ob.append(table: 'transactions', op: 'insert', payload: {'a': 1});
       await ob.append(table: 'categories', op: 'update', payload: {'b': 2});
       final p = await ob.pending();
-      expect(p.map((r) => r['"table"']), ['transactions', 'categories']);
+      expect(p.map((r) => r['table']), ['transactions', 'categories']);
     });
 
     test('ack removes only the acknowledged entry', () async {
@@ -87,6 +87,7 @@ void main() {
       expect(executed, ['ok', 'boom']);
       expect(result.pushed, 1);
       expect(result.stoppedAt, isNotNull);
+      expect(result.error.toString(), contains('offline'));
       final remaining = await ob.pending();
       expect(remaining, hasLength(2));
       expect(remaining.first['op'], 'insert');

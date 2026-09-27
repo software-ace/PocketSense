@@ -32,6 +32,15 @@ class LocalStore implements Outbox, SyncStore {
     return LocalStore._(await dir);
   }
 
+  /// Real SQLite in memory, for tests that must exercise sqflite's actual
+  /// row shape (a hand-written fake once hid a column-key mismatch).
+  static Future<LocalStore> openInMemoryForTest() async {
+    ffi.sqfliteFfiInit();
+    final store = LocalStore._(await ffi.databaseFactoryFfi.openDatabase(sq.inMemoryDatabasePath));
+    await store.initSchema();
+    return store;
+  }
+
   static String _linuxDataDir() {
     final home = Platform.environment['HOME'] ?? '.';
     final dir = p.join(home, '.local', 'share', 'pocket_sense');
@@ -126,6 +135,15 @@ class LocalStore implements Outbox, SyncStore {
     return db.delete(table, where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> deleteIds(String table, List<int> ids) async {
+    if (ids.isEmpty) return;
+    final batch = db.batch();
+    for (final id in ids) {
+      batch.delete(table, where: 'id = ?', whereArgs: [id]);
+    }
+    await batch.commit(noResult: true);
+  }
+
   /// Stamp a locally-authored row with a fresh updated_at before it is stored.
   static String nowIso() => DateTime.now().toUtc().toIso8601String();
 
@@ -143,7 +161,7 @@ class LocalStore implements Outbox, SyncStore {
     final rows = await db.query('sync_watermarks');
     _wmCache.clear();
     for (final r in rows) {
-      final table = r['"table"']?.toString() ?? '';
+      final table = r['table']?.toString() ?? '';
       final ts = r['ts']?.toString() ?? '';
       if (table.isNotEmpty && ts.isNotEmpty) {
         _wmCache[table] = ts;
@@ -161,9 +179,14 @@ class LocalStore implements Outbox, SyncStore {
 
   // ── Outbox ────────────────────────────────────────────────────────────
 
+  /// Fired after every queued mutation so the app can schedule a push.
+  void Function()? onAppend;
+
   @override
   Future<int> append({required String table, required String op, required Map<String, dynamic> payload}) async {
-    return db.insert('outbox', {'"table"': table, 'op': op, 'payload': jsonEncode(payload)});
+    final seq = await db.insert('outbox', {'"table"': table, 'op': op, 'payload': jsonEncode(payload)});
+    onAppend?.call();
+    return seq;
   }
 
   @override

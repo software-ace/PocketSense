@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config.dart';
 import 'data/local_store.dart';
+import 'data/sync_controller.dart';
 import 'data/sync_engine.dart';
 import 'shell.dart';
 
@@ -19,28 +20,30 @@ Future<void> main() async {
   await Supabase.initialize(url: Config.supabaseUrl, publishableKey: Config.supabasePublishableKey);
 
   // Offline-first spine: open the local mirror, seed it from remote once, then
-  // keep it fresh on connectivity changes. All failures are swallowed here —
-  // the app must boot and show cached data even fully offline.
+  // keep it fresh on every local write, app resume and connectivity change.
+  // Failures never block boot — the app must show cached data even offline;
+  // they surface through the sync indicator instead.
   final store = await LocalStore.instance();
   await store.initSchema();
   await store.loadWatermarks();
-  final engine = SyncEngine(store, Supabase.instance.client);
+  final sync = SyncController.instance..attach(SyncEngine(store, Supabase.instance.client));
+  store.onAppend = sync.onLocalWrite;
   unawaited(
-    engine.sync().whenComplete(() {
+    sync.syncNow().whenComplete(() {
       if (!initialSyncDone.isCompleted) initialSyncDone.complete();
     }),
   );
-  _watchConnectivity(engine);
+  _watchConnectivity(sync);
+  // Returning to the app is the moment the user expects fresh data.
+  AppLifecycleListener(onResume: () => unawaited(sync.syncNow()));
 
   runApp(const PocketSenseApp());
 }
 
-void _watchConnectivity(SyncEngine engine) {
+void _watchConnectivity(SyncController sync) {
   Connectivity().onConnectivityChanged.listen((results) {
     final online = results.any((r) => r != ConnectivityResult.none);
-    if (online) {
-      unawaited(engine.sync().catchError((_) {}));
-    }
+    if (online) unawaited(sync.syncNow());
   });
 }
 

@@ -7,6 +7,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/recurring.dart';
 import '../widgets/state_views.dart';
+import '../widgets/sync_indicator.dart';
 
 class RecurringScreen extends StatefulWidget {
   const RecurringScreen({super.key});
@@ -14,12 +15,15 @@ class RecurringScreen extends StatefulWidget {
   State<RecurringScreen> createState() => _RecurringScreenState();
 }
 
-class _RecurringScreenState extends State<RecurringScreen> {
+class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
   final _repo = FinanceRepo();
   List<RecurringExpense> _items = [];
   List<Category> _cats = [];
   Object? _error;
   bool _loading = true;
+
+  @override
+  void onDataChanged() => _load();
 
   @override
   void initState() {
@@ -97,10 +101,10 @@ class _RecurringScreenState extends State<RecurringScreen> {
     final desktop = PlatformUi.isDesktop(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recurring')),
+      appBar: AppBar(title: const Text('Recurring'), actions: const [SyncIndicator()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () => syncAndReload(_load),
         child: _loading
             ? const LoadingView()
             : _error != null

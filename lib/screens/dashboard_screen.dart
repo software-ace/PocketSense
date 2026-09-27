@@ -7,6 +7,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
+import '../widgets/sync_indicator.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,7 +16,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
   final _repo = FinanceRepo();
   bool _loading = true;
   Object? _error;
@@ -25,6 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Transaction> _recent = [];
   List<({String label, int cents, String? color})> _byCategory = [];
   List<({DateTime day, int cents})> _daily = [];
+
+  @override
+  void onDataChanged() => _load();
 
   @override
   void initState() {
@@ -75,9 +79,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final desktop = PlatformUi.isDesktop(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false),
+      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false, actions: const [SyncIndicator()]),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () => syncAndReload(_load),
         child: CustomScrollView(
           slivers: [
             if (_loading)
