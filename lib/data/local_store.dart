@@ -15,6 +15,10 @@ class LocalStore implements Outbox, SyncStore {
   static LocalStore? _instance;
   static Future<LocalStore> instance() async => _instance ??= await _open();
 
+  /// Point [instance] at [store] (e.g. [openInMemoryForTest]) so repo-level
+  /// tests run against real SQLite without touching the on-device database.
+  static void overrideInstanceForTest(LocalStore store) => _instance = store;
+
   final sq.Database db;
   LocalStore._(this.db);
 
@@ -36,7 +40,9 @@ class LocalStore implements Outbox, SyncStore {
   /// row shape (a hand-written fake once hid a column-key mismatch).
   static Future<LocalStore> openInMemoryForTest() async {
     ffi.sqfliteFfiInit();
-    final store = LocalStore._(await ffi.databaseFactoryFfi.openDatabase(sq.inMemoryDatabasePath));
+    // singleInstance: false → a fresh, isolated DB per call (the default reuses one).
+    final store = LocalStore._(await ffi.databaseFactoryFfi.openDatabase(sq.inMemoryDatabasePath,
+        options: sq.OpenDatabaseOptions(singleInstance: false)));
     await store.initSchema();
     return store;
   }
@@ -75,7 +81,7 @@ class LocalStore implements Outbox, SyncStore {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS recurring_expenses (
         id INTEGER PRIMARY KEY, description TEXT NOT NULL, amount_cents INTEGER NOT NULL,
-        frequency TEXT NOT NULL, anchor_date TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'expense', frequency TEXT NOT NULL, anchor_date TEXT NOT NULL,
         category_id INTEGER REFERENCES categories(id), merchant TEXT, notes TEXT,
         active INTEGER NOT NULL DEFAULT 1, last_posted TEXT,
         created_at TEXT, updated_at TEXT
@@ -94,6 +100,15 @@ class LocalStore implements Outbox, SyncStore {
       );
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(date)');
+    await _addColumnIfMissing('recurring_expenses', 'type', "TEXT NOT NULL DEFAULT 'expense'");
+  }
+
+  /// CREATE TABLE IF NOT EXISTS won't touch an existing table, so columns
+  /// added after first release have to be patched onto older installs.
+  Future<void> _addColumnIfMissing(String table, String column, String decl) async {
+    final cols = await db.rawQuery('PRAGMA table_info($table)');
+    if (cols.any((c) => c['name'] == column)) return;
+    await db.execute('ALTER TABLE $table ADD COLUMN $column $decl');
   }
 
   // ── Generic row access (used by sync + repo reads) ────────────────────

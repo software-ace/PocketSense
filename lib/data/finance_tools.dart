@@ -175,12 +175,13 @@ Rules:
   ToolDefinition get recurringList => ToolDefinition(
         name: 'recurring_expenses',
         description:
-            'Lists all recurring expenses (subscriptions, rent, etc.) with amount, frequency and next anchor date.',
+            'Lists all recurring items — expenses (subscriptions, rent, bills) and income (salary, etc.) — with type, amount, frequency and next anchor date.',
         parameters: [],
         handler: (p) async {
           final items = await _repo.recurring();
           return jsonEncode(items.map((r) => {
                 'description': r.description,
+                'type': r.type,
                 'amount_cents': r.amountCents,
                 'frequency': r.frequency,
                 'category': r.categoryName,

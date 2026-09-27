@@ -79,7 +79,7 @@ class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete "${r.description}"?'),
-        content: const Text('This recurring expense will be removed. This cannot be undone.'),
+        content: const Text('This recurring item will be removed. This cannot be undone.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
@@ -114,13 +114,13 @@ class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
                       Padding(
                         padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 8, PlatformUi.hPadding(context), 0),
                         child: Row(children: [
-                          Expanded(child: Text('${_items.length} active recurring expenses', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
-                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: const Text('New expense')),
+                          Expanded(child: Text('${_items.length} recurring items', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
+                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: const Text('New recurring')),
                         ]),
                       ),
                     Expanded(
                       child: _items.isEmpty
-                          ? Center(child: EmptyView(icon: Icons.repeat, title: 'No recurring expenses', subtitle: 'Add rent, subscriptions, and bills to see upcoming dues.'))
+                          ? Center(child: EmptyView(icon: Icons.repeat, title: 'No recurring items', subtitle: 'Add salary, rent, subscriptions, and bills to see what is coming up.'))
                           : desktop
                               ? _buildTable(theme)
                               : ListView.builder(
@@ -160,7 +160,7 @@ class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
               DataCell(Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
               DataCell(Text(formatFrequency(r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
-              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(r.amountCents), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)))),
+              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(r.amountCents, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
               DataCell(Text(r.active ? _fmtDate(next) : '—', style: const TextStyle(fontSize: 13))),
               DataCell(r.active
                   ? Container(
@@ -203,7 +203,7 @@ class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
         child: ListTile(
           onTap: () => _edit(r),
           onLongPress: () => _longPressSheet(r),
-          leading: CircleAvatar(child: Icon(Icons.event_repeat)),
+          leading: CircleAvatar(child: Icon(_isIncome(r) ? Icons.savings_outlined : Icons.event_repeat)),
           title: Row(children: [
             Expanded(child: Text(r.description)),
             if (!r.active) ...[
@@ -213,7 +213,7 @@ class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
           ]),
           subtitle: Text('${formatFrequency(r.frequency)} · ${r.categoryName ?? ''}'.trim()),
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(formatMoney(r.amountCents), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text(formatMoney(r.amountCents, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
             if (r.active)
               Text(
                 overdue ? 'Overdue by ${-days}d' : (days == 0 ? 'Due today' : 'Due in $days d'),
@@ -232,13 +232,15 @@ class _RecurringScreenState extends State<RecurringScreen> with SyncAware {
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(leading: const Icon(Icons.play_arrow_rounded), title: const Text('Post as transaction'), subtitle: const Text('Records this expense today in Activity'), onTap: () { Navigator.pop(ctx); _post(r); }),
+          ListTile(leading: const Icon(Icons.play_arrow_rounded), title: const Text('Post as transaction'), subtitle: const Text('Records it today in Activity'), onTap: () { Navigator.pop(ctx); _post(r); }),
           ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('Edit'), onTap: () { Navigator.pop(ctx); _edit(r); }),
           ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: const Text('Delete', style: TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(r); }),
         ]),
       ),
     );
   }
+
+  bool _isIncome(RecurringExpense r) => r.type == 'income';
 
   String _fmtDate(DateTime d) {
     final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -270,6 +272,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   late final _amtCtrl = TextEditingController(text: widget.existing != null ? (widget.existing!.amountCents / 100).toStringAsFixed(2) : '');
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? '');
   late final _notesCtrl = TextEditingController(text: widget.existing?.notes ?? '');
+  late String _type = widget.existing?.type ?? 'expense';
   late String _freq = widget.existing?.frequency ?? 'monthly';
   late int? _catId = widget.existing?.categoryId;
   late bool _active = widget.existing?.active ?? true;
@@ -309,9 +312,9 @@ class _RecurringDialogState extends State<_RecurringDialog> {
       final merch = _merchCtrl.text.trim().isEmpty ? null : _merchCtrl.text.trim();
       final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
       if (widget.existing == null) {
-        await repo.insertRecurring(description: desc, amountCents: cents, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.insertRecurring(description: desc, amountCents: cents, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
       } else {
-        await repo.updateRecurring(widget.existing!.id, description: desc, amountCents: cents, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.updateRecurring(widget.existing!.id, description: desc, amountCents: cents, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -325,11 +328,27 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final expenseCats = widget.cats.where((c) => c.type == 'expense').toList();
+    final typeCats = widget.cats.where((c) => c.type == _type).toList();
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New recurring expense' : 'Edit recurring expense'),
+      title: Text(widget.existing == null ? 'New recurring item' : 'Edit recurring item'),
       content: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'expense', label: Text('Expense'), icon: Icon(Icons.arrow_downward, size: 16)),
+                ButtonSegment(value: 'income', label: Text('Income'), icon: Icon(Icons.arrow_upward, size: 16)),
+              ],
+              selected: {_type},
+              onSelectionChanged: (sel) => setState(() {
+                _type = sel.first;
+                // Categories are typed; keep only one that matches the new type.
+                if (!widget.cats.any((c) => c.id == _catId && c.type == _type)) _catId = null;
+              }),
+            ),
+          ),
+          const SizedBox(height: 16),
           TextField(controller: _descCtrl, autofocus: widget.existing == null, decoration: const InputDecoration(labelText: 'Description'), onSubmitted: (_) => _save()),
           const SizedBox(height: 16),
           TextField(controller: _amtCtrl, keyboardType: TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$ ')),
@@ -351,9 +370,11 @@ class _RecurringDialogState extends State<_RecurringDialog> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<int>(
-            initialValue: _catId,
+            // Keyed by type so the field resets when the category list changes.
+            key: ValueKey(_type),
+            initialValue: typeCats.any((c) => c.id == _catId) ? _catId : null,
             decoration: const InputDecoration(labelText: 'Category (optional)'),
-            items: expenseCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+            items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 16),

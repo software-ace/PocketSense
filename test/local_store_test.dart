@@ -23,4 +23,18 @@ void main() {
     expect(store.watermarkFor('transactions'), '2026-09-01T00:00:00.000Z');
   });
 
+  test('initSchema adds recurring type to a pre-existing table', () async {
+    final store = await LocalStore.openInMemoryForTest();
+    // Simulate an install from before the column existed.
+    await store.db.execute('DROP TABLE recurring_expenses');
+    await store.db.execute('CREATE TABLE recurring_expenses (id INTEGER PRIMARY KEY, description TEXT NOT NULL, '
+        'amount_cents INTEGER NOT NULL, frequency TEXT NOT NULL, anchor_date TEXT NOT NULL, updated_at TEXT)');
+    await store.db.insert('recurring_expenses', {'id': 1, 'description': 'Rent', 'amount_cents': 100, 'frequency': 'monthly', 'anchor_date': '2026-09-01'});
+
+    await store.initSchema();
+    await store.initSchema(); // idempotent
+
+    final rows = await store.db.query('recurring_expenses');
+    expect(rows.single['type'], 'expense');
+  });
 }

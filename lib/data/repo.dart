@@ -274,6 +274,7 @@ class FinanceRepo {
           id: m['id'] as int,
           description: m['description'] as String? ?? '',
           amountCents: m['amount_cents'] as int,
+          type: m['type'] as String? ?? 'expense',
           frequency: m['frequency'] as String? ?? 'monthly',
           anchorDate: _dateOnly(m['anchor_date']),
           categoryId: m['category_id'] as int?,
@@ -290,13 +291,14 @@ class FinanceRepo {
     return list;
   }
 
-  Future<int> insertRecurring({required String description, required int amountCents, required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true}) async {
+  Future<int> insertRecurring({required String description, required int amountCents, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true}) async {
     final store = await _db;
     final id = newRowId();
     final row = <String, dynamic>{
       'id': id,
       'description': description,
       'amount_cents': amountCents,
+      'type': type,
       'frequency': frequency,
       'anchor_date': _isoDate(anchorDate),
       'active': active ? 1 : 0,
@@ -310,11 +312,12 @@ class FinanceRepo {
     return id;
   }
 
-  Future<void> updateRecurring(int id, {required String description, required int amountCents, required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active}) async {
+  Future<void> updateRecurring(int id, {required String description, required int amountCents, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active}) async {
     final store = await _db;
     final values = <String, dynamic>{
       'description': description,
       'amount_cents': amountCents,
+      'type': type,
       'frequency': frequency,
       'anchor_date': _isoDate(anchorDate),
       'updated_at': LocalStore.nowIso(),
@@ -348,11 +351,11 @@ class FinanceRepo {
     final txRow = <String, dynamic>{
       'id': txId,
       'amount_cents': r.amountCents,
-      'type': 'expense',
+      'type': r.type,
       'description': '${r.description} (recurring)',
       'date': _isoDate(today),
       'source': 'manual',
-      'notes': 'Auto-posted from recurring expense #${r.id}',
+      'notes': 'Auto-posted from recurring ${r.type} "${r.description}"',
       'created_at': LocalStore.nowIso(),
       'updated_at': LocalStore.nowIso(),
     };

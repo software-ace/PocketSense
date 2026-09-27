@@ -109,6 +109,7 @@ class RecurringExpense {
   final int id;
   final String description;
   final int amountCents;
+  final String type; // 'income' | 'expense'
   final String frequency; // 'weekly'|'biweekly'|'monthly'|'quarterly'|'yearly'
   final DateTime anchorDate;
   final int? categoryId;
@@ -122,6 +123,7 @@ class RecurringExpense {
     required this.id,
     required this.description,
     required this.amountCents,
+    this.type = 'expense',
     required this.frequency,
     required this.anchorDate,
     this.categoryId,
