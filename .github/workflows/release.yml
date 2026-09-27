@@ -38,21 +38,39 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
+      - name: Test
+        run: flutter test
+
+      # On tags, the tag is the version (v1.2.0 → 1.2.0) and the run number is
+      # the Android versionCode, so every release installs as an upgrade.
+      # Manual runs fall back to pubspec.yaml's version.
       - name: Build release APK
-        run: flutter build apk --release
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            flutter build apk --release --build-name="${GITHUB_REF_NAME#v}" --build-number="${GITHUB_RUN_NUMBER}"
+          else
+            flutter build apk --release
+          fi
 
       - name: Rename artifact
         run: mv build/app/outputs/flutter-apk/app-release.apk "PocketSense-${GITHUB_REF_NAME}.apk"
 
-      - name: Create GitHub Release
+      # A release for this tag may already exist (e.g. drafted by hand in the
+      # GitHub UI before pushing the tag). Attach the APK to it instead of
+      # failing; --clobber makes re-runs replace the asset.
+      - name: Publish APK to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "Pocket Sense ${GITHUB_REF_NAME}" \
-            --notes "Built from tag ${GITHUB_REF_NAME}." \
-            "PocketSense-${GITHUB_REF_NAME}.apk"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" "PocketSense-${GITHUB_REF_NAME}.apk" --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              --title "Pocket Sense ${GITHUB_REF_NAME}" \
+              --generate-notes \
+              "PocketSense-${GITHUB_REF_NAME}.apk"
+          fi
 
       - name: Upload artifact (manual runs)
         if: "!startsWith(github.ref, 'refs/tags/')"
