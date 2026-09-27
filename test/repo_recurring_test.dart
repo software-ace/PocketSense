@@ -3,16 +3,10 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
-import 'package:pocket_sense/main.dart' show initialSyncDone;
 
 void main() {
   late LocalStore store;
   final repo = FinanceRepo();
-
-  setUpAll(() {
-    // The repo gates reads on the first sync; there is no sync in tests.
-    if (!initialSyncDone.isCompleted) initialSyncDone.complete();
-  });
 
   setUp(() async {
     store = await LocalStore.openInMemoryForTest();

@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
-import '../main.dart' show initialSyncDone;
 import '../models/models.dart';
 import 'local_store.dart';
+import 'sync_controller.dart';
 
 DateTime _dateOnly(dynamic raw) {
   final s = raw.toString().substring(0, 10);
@@ -32,8 +33,10 @@ class FinanceRepo {
   /// Gates every read until the first sync round-trip completes (or times out),
   /// so screens never render an empty DB that is merely mid-seed.
   Future<LocalStore> get _db async {
-    if (!initialSyncDone.isCompleted) {
-      await initialSyncDone.future.timeout(const Duration(seconds: 15));
+    try {
+      await SyncController.instance.ready.timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      // Slow or offline first sync: show whatever is cached rather than an error.
     }
     return LocalStore.instance();
   }

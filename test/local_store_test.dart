@@ -37,4 +37,19 @@ void main() {
     final rows = await store.db.query('recurring_expenses');
     expect(rows.single['type'], 'expense');
   });
+
+  test('initSchema adds user_id to pre-auth tables', () async {
+    final store = await LocalStore.openInMemoryForTest();
+    await store.db.execute('DROP TABLE transactions');
+    await store.db.execute('CREATE TABLE transactions (id INTEGER PRIMARY KEY, amount_cents INTEGER NOT NULL, type TEXT NOT NULL, '
+        'date TEXT NOT NULL, description TEXT NOT NULL, updated_at TEXT)');
+
+    await store.initSchema();
+
+    // A pulled server row now includes its owner; storing it must not fail.
+    await store.upsertMany('transactions', [
+      {'id': 1, 'amount_cents': 5, 'type': 'expense', 'date': '2026-09-27', 'description': 'x', 'user_id': 'u-1'},
+    ]);
+    expect((await store.db.query('transactions')).single['user_id'], 'u-1');
+  });
 }

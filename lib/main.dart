@@ -5,34 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config.dart';
-import 'data/local_store.dart';
+import 'data/session.dart';
 import 'data/sync_controller.dart';
-import 'data/sync_engine.dart';
+import 'screens/auth_screen.dart';
 import 'shell.dart';
-
-/// Completes when the first sync round-trip finishes (or fails). Screens await
-/// this so they never render an empty DB that is merely mid-seed.
-final Completer<void> initialSyncDone = Completer<void>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Restores a saved session from device storage, so a signed-in user boots
+  // straight into their cached data even fully offline.
   await Supabase.initialize(url: Config.supabaseUrl, publishableKey: Config.supabasePublishableKey);
 
-  // Offline-first spine: open the local mirror, seed it from remote once, then
-  // keep it fresh on every local write, app resume and connectivity change.
-  // Failures never block boot — the app must show cached data even offline;
-  // they surface through the sync indicator instead.
-  final store = await LocalStore.instance();
-  await store.initSchema();
-  await store.loadWatermarks();
-  final sync = SyncController.instance..attach(SyncEngine(store, Supabase.instance.client));
-  store.onAppend = sync.onLocalWrite;
-  unawaited(
-    sync.syncNow().whenComplete(() {
-      if (!initialSyncDone.isCompleted) initialSyncDone.complete();
-    }),
-  );
+  // Offline-first spine: each account's local mirror syncs on every local
+  // write, app resume and connectivity change (see SyncController). Failures
+  // never block the UI; they surface through the sync indicator instead.
+  final sync = SyncController.instance;
   _watchConnectivity(sync);
   // Returning to the app is the moment the user expects fresh data.
   AppLifecycleListener(onResume: () => unawaited(sync.syncNow()));
@@ -66,52 +54,79 @@ class PocketSenseApp extends StatelessWidget {
         useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const SplashGate(),
+      home: const AuthGate(),
     );
   }
 }
 
-/// Shows a branded splash until the first sync completes, then transitions
-/// to the main shell. Matches the native Android splash background.
-class SplashGate extends StatefulWidget {
-  const SplashGate({super.key});
+/// Routes on auth state: signed out → [AuthScreen]; signed in → open that
+/// account's data, show the splash until its first sync (max 5 s), then the
+/// app. Keyed by user id so switching accounts rebuilds every screen.
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
 
   @override
-  State<SplashGate> createState() => _SplashGateState();
+  State<AuthGate> createState() => _AuthGateState();
 }
 
-class _SplashGateState extends State<SplashGate> {
+class _AuthGateState extends State<AuthGate> {
+  late final StreamSubscription<AuthState> _sub;
+  String? _userId = Supabase.instance.client.auth.currentUser?.id;
   bool _ready = false;
-
-  static const _bgColor = Color(0xFF000000);
 
   @override
   void initState() {
     super.initState();
-    _listenForReady();
+    _sub = Supabase.instance.client.auth.onAuthStateChange.listen((s) => _onUser(s.session?.user.id));
+    passwordResetInProgress.addListener(_rebuild);
+    // After the first frame: _onUser calls setState.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onUser(_userId));
   }
 
-  Future<void> _listenForReady() async {
-    try {
-      await initialSyncDone.future.timeout(const Duration(seconds: 5));
-    } catch (_) {
-      // Timeout or error — proceed anyway, app works offline.
+  @override
+  void dispose() {
+    _sub.cancel();
+    passwordResetInProgress.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() => setState(() {});
+
+  Future<void> _onUser(String? id) async {
+    if (!mounted || (id == DataSession.userId && (id == null || _ready))) return;
+    setState(() {
+      _userId = id;
+      _ready = false;
+    });
+    if (id == null) {
+      await DataSession.end();
+      return;
     }
-    if (mounted) setState(() => _ready = true);
+    await DataSession.start(id);
+    try {
+      await SyncController.instance.ready.timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Slow or offline: go in with cached data.
+    }
+    if (mounted && _userId == id) setState(() => _ready = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_ready) return const Shell();
-    return Scaffold(
-      backgroundColor: _bgColor,
-      body: Center(
-        child: Image.asset(
-          'assets/splash_icon.png',
-          width: 120,
-          height: 120,
-        ),
-      ),
-    );
+    final id = _userId;
+    if (id == null || passwordResetInProgress.value) return const AuthScreen();
+    if (!_ready) return const _Splash();
+    return Shell(key: ValueKey(id));
   }
+}
+
+/// Matches the native Android splash background.
+class _Splash extends StatelessWidget {
+  const _Splash();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xFF000000),
+        body: Center(child: Image.asset('assets/splash_icon.png', width: 120, height: 120)),
+      );
 }

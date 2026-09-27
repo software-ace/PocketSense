@@ -13,7 +13,15 @@ import 'sync_plan.dart';
 /// read hits this store, every write lands here first and queues for push.
 class LocalStore implements Outbox, SyncStore {
   static LocalStore? _instance;
-  static Future<LocalStore> instance() async => _instance ??= await _open();
+
+  /// The signed-in account's store. Opened by [openForUser] when a session
+  /// starts; there is deliberately no fallback, so nothing can read or write
+  /// data while signed out.
+  static Future<LocalStore> instance() async {
+    final s = _instance;
+    if (s == null) throw StateError('No signed-in session: local store is not open');
+    return s;
+  }
 
   /// Point [instance] at [store] (e.g. [openInMemoryForTest]) so repo-level
   /// tests run against real SQLite without touching the on-device database.
@@ -22,18 +30,32 @@ class LocalStore implements Outbox, SyncStore {
   final sq.Database db;
   LocalStore._(this.db);
 
-  static const String kDbName = 'pocketsense.sqlite';
+  /// One file per account, so switching accounts can never mix rows or push
+  /// one user's queued changes under another user's session. (The pre-auth
+  /// 'pocketsense.sqlite' is left untouched and no longer used.)
+  static String dbNameFor(String userId) => 'pocketsense_$userId.sqlite';
 
-  static Future<LocalStore> _open() async {
+  static Future<LocalStore> openForUser(String userId) async {
+    await closeCurrent();
+    final name = dbNameFor(userId);
+    final sq.Database db;
     if (Platform.isLinux) {
       ffi.sqfliteFfiInit();
-      final dir = ffi.databaseFactoryFfi.openDatabase(p.join(_linuxDataDir(), kDbName));
-      return LocalStore._(await dir);
+      db = await ffi.databaseFactoryFfi.openDatabase(p.join(_linuxDataDir(), name));
+    } else {
+      // Android / mobile: standard plugin-backed factory.
+      db = await sq.databaseFactory.openDatabase(p.join(await sq.getDatabasesPath(), name));
     }
-    // Android / mobile: standard plugin-backed factory.
-    final path = await sq.getDatabasesPath();
-    final dir = sq.databaseFactory.openDatabase(p.join(path, kDbName));
-    return LocalStore._(await dir);
+    final store = LocalStore._(db);
+    await store.initSchema();
+    await store.loadWatermarks();
+    return _instance = store;
+  }
+
+  static Future<void> closeCurrent() async {
+    final s = _instance;
+    _instance = null;
+    await s?.db.close();
   }
 
   /// Real SQLite in memory, for tests that must exercise sqflite's actual
@@ -101,6 +123,10 @@ class LocalStore implements Outbox, SyncStore {
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(date)');
     await _addColumnIfMissing('recurring_expenses', 'type', "TEXT NOT NULL DEFAULT 'expense'");
+    // Server rows now carry their owner; the mirror must accept the column.
+    for (final t in const ['categories', 'transactions', 'budgets', 'recurring_expenses']) {
+      await _addColumnIfMissing(t, 'user_id', 'TEXT');
+    }
   }
 
   /// CREATE TABLE IF NOT EXISTS won't touch an existing table, so columns

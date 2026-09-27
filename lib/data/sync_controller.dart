@@ -46,7 +46,31 @@ class SyncController {
   /// listen to this to stay current.
   final ValueNotifier<int> dataChanged = ValueNotifier(0);
 
-  void attach(SyncEngine engine) => _engine = engine;
+  // Completed while detached so nothing waits on a sync that will never run.
+  Completer<void> _firstSync = Completer<void>()..complete();
+
+  /// Completes once the session's first sync finishes (or fails). Reads wait
+  /// on it so a fresh install doesn't flash empty screens mid-download.
+  Future<void> get ready => _firstSync.future;
+
+  void attach(SyncEngine engine) {
+    _engine = engine;
+    _firstSync = Completer<void>();
+    status.value = const SyncStatus();
+  }
+
+  /// End the session: stop timers and wait for any in-flight run, so the
+  /// store can be closed safely afterwards.
+  Future<void> detach() async {
+    _timer?.cancel();
+    _rerun = false;
+    final running = _running;
+    if (running != null) await running;
+    _timer?.cancel(); // the finished run may have scheduled an offline retry
+    _engine = null;
+    if (!_firstSync.isCompleted) _firstSync.complete();
+    status.value = const SyncStatus();
+  }
 
   /// Called by the store each time a mutation is queued.
   void onLocalWrite() {
@@ -94,6 +118,7 @@ class SyncController {
       status.value = status.value.copyWith(state: offline ? SyncState.offline : SyncState.error, error: e.toString());
       if (offline) schedule(_offlineRetry);
     } finally {
+      if (!_firstSync.isCompleted) _firstSync.complete();
       await _refreshPending();
     }
   }
