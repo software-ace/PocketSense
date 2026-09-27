@@ -44,16 +44,25 @@ jobs:
       # On tags, the tag is the version (v1.2.0 → 1.2.0) and the run number is
       # the Android versionCode, so every release installs as an upgrade.
       # Manual runs fall back to pubspec.yaml's version.
-      - name: Build release APK
+      # --split-per-abi: one APK per CPU type, each about half the universal
+      # size (most phones need arm64-v8a).
+      - name: Build release APKs
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            flutter build apk --release --build-name="${GITHUB_REF_NAME#v}" --build-number="${GITHUB_RUN_NUMBER}"
+            flutter build apk --release --split-per-abi --build-name="${GITHUB_REF_NAME#v}" --build-number="${GITHUB_RUN_NUMBER}"
           else
-            flutter build apk --release
+            flutter build apk --release --split-per-abi
           fi
 
-      - name: Rename artifact
-        run: mv build/app/outputs/flutter-apk/app-release.apk "PocketSense-${GITHUB_REF_NAME}.apk"
+      # app-arm64-v8a-release.apk → PocketSense-v1.2.1-arm64-v8a.apk
+      - name: Rename artifacts
+        run: |
+          mkdir -p dist
+          for f in build/app/outputs/flutter-apk/app-*-release.apk; do
+            abi=$(basename "$f" | sed -E 's/^app-(.+)-release\.apk$/\1/')
+            mv "$f" "dist/PocketSense-${GITHUB_REF_NAME}-${abi}.apk"
+          done
+          ls -lh dist
 
       # A release for this tag may already exist (e.g. drafted by hand in the
       # GitHub UI before pushing the tag). Attach the APK to it instead of
@@ -64,17 +73,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
-            gh release upload "${GITHUB_REF_NAME}" "PocketSense-${GITHUB_REF_NAME}.apk" --clobber
+            gh release upload "${GITHUB_REF_NAME}" dist/*.apk --clobber
           else
             gh release create "${GITHUB_REF_NAME}" \
               --title "Pocket Sense ${GITHUB_REF_NAME}" \
               --generate-notes \
-              "PocketSense-${GITHUB_REF_NAME}.apk"
+              dist/*.apk
           fi
 
       - name: Upload artifact (manual runs)
         if: "!startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v4
         with:
-          name: PocketSense-apk
-          path: PocketSense-${{ github.ref_name }}.apk
+          name: PocketSense-apks
+          path: dist/*.apk
