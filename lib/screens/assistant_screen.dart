@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../ai/on_device_llm.dart';
+import 'settings_screen.dart';
 
 class _Bubble {
   final int index;
@@ -154,6 +155,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
                     });
                   },
           ),
+          const SettingsButton(),
         ],
       ),
       body: Column(

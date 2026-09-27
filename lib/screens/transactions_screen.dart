@@ -7,6 +7,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/sync_indicator.dart';
+import 'settings_screen.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -127,6 +128,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
         actions: [
           IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
           const SyncIndicator(),
+          const SettingsButton(),
         ],
       ),
       body: Padding(
@@ -166,7 +168,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
-        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _addTransaction), const SyncIndicator()],
+        actions: [IconButton(icon: const Icon(Icons.add), onPressed: _addTransaction), const SyncIndicator(), const SettingsButton()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addTransaction,

@@ -6,6 +6,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/sync_indicator.dart';
+import 'settings_screen.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -103,7 +104,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
     final pad = PlatformUi.hPadding(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Budgets'), actions: const [SyncIndicator()]),
+      appBar: AppBar(title: const Text('Budgets'), actions: const [SyncIndicator(), SettingsButton()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
       body: RefreshIndicator(
         onRefresh: () => syncAndReload(_load),

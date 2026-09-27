@@ -10,6 +10,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/sync_indicator.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -81,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
     final desktop = PlatformUi.isDesktop(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false, actions: const [SyncIndicator()]),
+      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false, actions: const [SyncIndicator(), SettingsButton()]),
       body: RefreshIndicator(
         onRefresh: () => syncAndReload(_load),
         child: CustomScrollView(
