@@ -11,6 +11,7 @@ A personal finance tracker for Android and Linux. It works offline first: every 
 
 **Activity**
 - Add, edit and delete income and expense transactions, with a date, merchant, category and notes.
+- **Add by voice:** tap 🎤 and say *"Spent 12.50 on lunch at Subway yesterday"*. The form opens filled in (amount, type, merchant, category, date) for you to check and save. It uses the phone's speech recognizer (Android only), and the sentence is interpreted on the device.
 - Search by description or merchant, and filter by All, Expense or Income.
 - On mobile: swipe to delete, long-press for more actions.
 
