@@ -41,12 +41,33 @@ jobs:
       - name: Test
         run: flutter test
 
+      # All releases must share one signing key, or Android won't install an
+      # update over the existing app. Tag builds refuse to fall back to debug.
+      - name: Set up release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+              echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing; refusing to publish a debug-signed release."
+              exit 1
+            fi
+            echo "No release key configured; this manual build will be debug-signed."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
       # On tags, the tag is the version (v1.2.0 → 1.2.0) and the run number is
       # the Android versionCode, so every release installs as an upgrade.
       # Manual runs fall back to pubspec.yaml's version.
       # --split-per-abi: one APK per CPU type, each about half the universal
       # size (most phones need arm64-v8a).
       - name: Build release APKs
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             flutter build apk --release --split-per-abi --build-name="${GITHUB_REF_NAME#v}" --build-number="${GITHUB_RUN_NUMBER}"
@@ -63,6 +84,23 @@ jobs:
             mv "$f" "dist/PocketSense-${GITHUB_REF_NAME}-${abi}.apk"
           done
           ls -lh dist
+
+      # Guard against a silently wrong key: the certificate must match the
+      # release key's public fingerprint (safe to publish; it's in every APK).
+      - name: Verify APK signatures
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          EXPECTED_CERT_SHA256: 511ce20e8711c8d4001d9be45c8ec3b7c81969afdce062425b440f2abd6f0daa
+        run: |
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          for f in dist/*.apk; do
+            got=$("$apksigner" verify --print-certs "$f" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+            if [ "$got" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$f is signed with $got, expected $EXPECTED_CERT_SHA256"
+              exit 1
+            fi
+            echo "OK  $f"
+          done
 
       # A release for this tag may already exist (e.g. drafted by hand in the
       # GitHub UI before pushing the tag). Attach the APK to it instead of
