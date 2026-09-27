@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
 import '../models/models.dart';
@@ -16,8 +17,7 @@ class BudgetsScreen extends StatefulWidget {
 
 class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
   final _repo = FinanceRepo();
-  List<Budget> _budgets = [];
-  Map<int, int> _spentByCat = {};
+  List<({Budget budget, int spentCents, DateTime start, DateTime end})> _budgets = [];
   List<Category> _cats = [];
   Object? _error;
   bool _loading = true;
@@ -31,32 +31,22 @@ class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
     _load();
   }
 
+  // "This week · Sep 22 – 28" / "This month · September"
+  static String _periodLabel(String period, DateTime start, DateTime end) => period == 'weekly'
+      ? 'This week · ${DateFormat.MMMd().format(start)} – ${start.month == end.month ? end.day : DateFormat.MMMd().format(end)}'
+      : 'This month · ${DateFormat.MMMM().format(start)}';
+
   Future<void> _load() async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final now = DateTime.now();
-      final monthStart = DateTime(now.year, now.month, 1);
-      final results = await Future.wait([
-        _repo.budgets(),
-        _repo.transactions(from: monthStart, to: now, type: 'expense', limit: 2000),
-        _repo.categories(),
-      ]);
+      final results = await Future.wait([_repo.budgetProgress(), _repo.categories()]);
       if (!mounted) return;
-      final budgets = (results[0] as List<Budget>).where((x) => x.active).toList();
-      final txs = results[1] as List<Transaction>;
-      final spent = <int, int>{};
-      for (final t in txs) {
-        if (t.categoryId != null) {
-          spent[t.categoryId!] = (spent[t.categoryId!] ?? 0) + t.amountCents;
-        }
-      }
       setState(() {
-        _budgets = budgets;
-        _spentByCat = spent;
-        _cats = results[2] as List<Category>;
+        _budgets = results[0] as List<({Budget budget, int spentCents, DateTime start, DateTime end})>;
+        _cats = results[1] as List<Category>;
         _loading = false;
       });
     } catch (e) {
@@ -128,9 +118,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
                               padding: EdgeInsets.symmetric(horizontal: pad, vertical: 8),
                               itemCount: _budgets.length,
                               itemBuilder: (_, i) {
-                                final b = _budgets[i];
+                                final p = _budgets[i];
+                                final b = p.budget;
                                 final color = _hex(b.categoryColor, theme.colorScheme.primary);
-                                final spent = _spentByCat[b.categoryId] ?? 0;
+                                final spent = p.spentCents;
                                 final ratio = b.limitCents > 0 ? (spent / b.limitCents).clamp(0.0, 1.5) : 0.0;
                                 final over = spent > b.limitCents;
 
@@ -146,7 +137,12 @@ class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
                                         Row(children: [
                                           CircleAvatar(radius: desktop ? 16 : 14, backgroundColor: color.withValues(alpha: 0.15), child: Icon(Icons.tag, size: 14, color: color)),
                                           const SizedBox(width: 10),
-                                          Expanded(child: Text(b.categoryName ?? 'Category', style: theme.textTheme.titleSmall)),
+                                          Expanded(
+                                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                              Text(b.categoryName ?? 'Category', style: theme.textTheme.titleSmall),
+                                              Text(_periodLabel(p.budget.period, p.start, p.end), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                                            ]),
+                                          ),
                                           Text('${formatMoney(spent)} / ${formatMoney(b.limitCents)}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: over ? const Color(0xFFFF5252) : null)),
                                           if (desktop) ...[
                                             const SizedBox(width: 4),
@@ -252,7 +248,7 @@ class _BudgetDialogState extends State<_BudgetDialog> {
             controller: _amtCtrl,
             autofocus: widget.existing == null,
             keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Monthly limit', prefixText: '\$ '),
+            decoration: InputDecoration(labelText: _period == 'weekly' ? 'Weekly limit' : 'Monthly limit', prefixText: '\$ '),
             onSubmitted: (_) => _save(),
           ),
           const SizedBox(height: 16),

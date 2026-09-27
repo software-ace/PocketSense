@@ -149,25 +149,21 @@ Rules:
   ToolDefinition get budgetsStatus => ToolDefinition(
         name: 'budget_status',
         description:
-            'All active budgets with their limit, and how much has been spent in each category this calendar month.',
+            'All active budgets with their limit and how much has been spent in their category during the current period '
+            '(this week, Monday to Sunday, for weekly budgets; this calendar month for monthly ones).',
         parameters: [],
         handler: (p) async {
-          final now = DateTime.now();
-          final monthStart = DateTime(now.year, now.month, 1);
-          final budgets = await _repo.budgets();
-          final spend = await _repo.spendingByCategory(
-              monthStart, now.subtract(const Duration(milliseconds: 1)));
-          final spendByName = {for (final s in spend) s.label: s.cents};
-          return jsonEncode(budgets.where((b) => b.active).map((b) {
-                final catName = b.categoryName ?? '?';
-                final used = spendByName[catName] ?? 0;
-                return {
-                  'category': catName,
-                  'limit_cents': b.limitCents,
-                  'spent_cents_this_month': used,
-                  'remaining_cents': b.limitCents - used,
-                  'over_budget': used > b.limitCents,
-                };
+          String iso(DateTime d) => d.toIso8601String().substring(0, 10);
+          final progress = await _repo.budgetProgress();
+          return jsonEncode(progress.map((x) => {
+                'category': x.budget.categoryName ?? '?',
+                'period': x.budget.period,
+                'period_start': iso(x.start),
+                'period_end': iso(x.end),
+                'limit_cents': x.budget.limitCents,
+                'spent_cents': x.spentCents,
+                'remaining_cents': x.budget.limitCents - x.spentCents,
+                'over_budget': x.spentCents > x.budget.limitCents,
               }).toList());
         },
       );

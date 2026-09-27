@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import '../models/models.dart';
+import '../utils/budget_period.dart';
 import 'local_store.dart';
 import 'sync_controller.dart';
 
@@ -242,6 +243,31 @@ class FinanceRepo {
         categoryColor: c?.color,
       );
     }).toList();
+  }
+
+  /// Active budgets with what has been spent in their category during their
+  /// own current period (this week for weekly, this month for monthly).
+  /// The screen and the assistant both use this, so they always agree.
+  Future<List<({Budget budget, int spentCents, DateTime start, DateTime end})>> budgetProgress({DateTime? now}) async {
+    final at = now ?? DateTime.now();
+    final active = (await budgets()).where((b) => b.active).toList();
+    if (active.isEmpty) return [];
+    final windows = {for (final b in active) b.id: budgetPeriod(b.period, at)};
+    // One query covering every window, then bucket per budget.
+    final from = windows.values.map((w) => w.start).reduce((a, b) => a.isBefore(b) ? a : b);
+    final to = windows.values.map((w) => w.end).reduce((a, b) => a.isAfter(b) ? a : b);
+    final txs = await transactions(from: from, to: to, type: 'expense', limit: 1 << 30);
+    return [
+      for (final b in active)
+        (
+          budget: b,
+          spentCents: txs
+              .where((t) => t.categoryId == b.categoryId && !t.date.isBefore(windows[b.id]!.start) && !t.date.isAfter(windows[b.id]!.end))
+              .fold(0, (sum, t) => sum + t.amountCents),
+          start: windows[b.id]!.start,
+          end: windows[b.id]!.end,
+        ),
+    ];
   }
 
   Future<int> insertBudget({required int categoryId, required int limitCents, String period = 'monthly'}) async {
