@@ -46,7 +46,7 @@ Download the APK for your phone from the [latest release](../../releases/latest)
 | File | For |
 |---|---|
 | `PocketSense-<version>-arm64-v8a.apk` | Almost all modern Android phones |
-| `PocketSense-<version>-armeabi-v7a.apk` | Older 32-bit phones |
+| `PocketSense-<version>-armeabi-v7a.apk` | Older 32-bit phones (everything except the Ask assistant, which needs a 64-bit phone) |
 | `PocketSense-<version>-x86_64.apk` | Emulators and Chromebooks |
 
 Requires Android 7.0 (API 24) or later. The assistant needs about 3 GB of free RAM.
