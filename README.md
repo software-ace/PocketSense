@@ -37,7 +37,9 @@ A personal finance tracker for Android and Linux. It works offline first: every 
 
 ## Install
 
-Download the APK for your phone from the [latest release](../../releases/latest):
+Download from the [latest release](../../releases/latest).
+
+**Android:** pick the APK for your phone.
 
 | File | For |
 |---|---|
@@ -46,6 +48,15 @@ Download the APK for your phone from the [latest release](../../releases/latest)
 | `PocketSense-<version>-x86_64.apk` | Emulators and Chromebooks |
 
 Requires Android 7.0 (API 24) or later.
+
+**Linux (x86_64):** download `PocketSense-<version>-linux-x64.tar.gz`, then:
+
+```sh
+tar -xzf PocketSense-<version>-linux-x64.tar.gz
+./PocketSense/pocket_sense
+```
+
+It needs GTK 3 (installed on most desktops). It's built on Ubuntu 22.04, so it runs on distros with glibc 2.35 or newer.
 
 ## Development
 
@@ -87,7 +98,10 @@ Pushing a tag like `v1.2.1` runs `.github/workflows/release.yml`, which:
 1. runs `flutter analyze` and `flutter test`,
 2. builds one APK per CPU type, with the version taken from the tag and the build number from the CI run number,
 3. signs the APKs with the release key and checks each signature against the key's fingerprint,
-4. publishes a GitHub Release using the notes in `.github/release-notes/<tag>.md`, or generated notes if that file is missing.
+4. publishes a GitHub Release using the notes in `.github/release-notes/<tag>.md`, or generated notes if that file is missing,
+5. then builds the Linux bundle on Ubuntu 22.04 and attaches it to that release as `PocketSense-<tag>-linux-x64.tar.gz`.
+
+A manual run (Actions → Release → Run workflow) builds everything and uploads the files as workflow artifacts instead of publishing a release.
 
 **Signing:** every release must use the same key, or Android won't install an update over the existing app.
 - Local builds read `android/key.properties`. It's gitignored and points to the keystore.

@@ -1,4 +1,4 @@
-name: Release APK
+name: Release
 
 on:
   push:
@@ -128,3 +128,53 @@ jobs:
         with:
           name: PocketSense-apks
           path: dist/*.apk
+
+  # Runs after build-apk so it only ships code that passed analyze + test, and
+  # so the release it attaches to already exists.
+  build-linux:
+    needs: build-apk
+    # The oldest supported runner: the binary links against this glibc (2.35),
+    # so building here lets it run on more distros than ubuntu-latest would.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Linux toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - name: Build Linux bundle
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            flutter build linux --release --build-name="${GITHUB_REF_NAME#v}" --build-number="${GITHUB_RUN_NUMBER}"
+          else
+            flutter build linux --release
+          fi
+
+      # The bundle is self-contained (engine, plugins and libsqlite3 are in
+      # bundle/lib); users only need GTK 3. Unpacks to PocketSense/.
+      - name: Package
+        run: |
+          mkdir -p dist
+          tar -C build/linux/x64/release -czf "dist/PocketSense-${GITHUB_REF_NAME}-linux-x64.tar.gz" \
+            --transform 's,^bundle,PocketSense,' bundle
+          ls -lh dist
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/*.tar.gz --clobber
+
+      - name: Upload artifact (manual runs)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: PocketSense-linux
+          path: dist/*.tar.gz
