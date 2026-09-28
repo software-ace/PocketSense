@@ -33,8 +33,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      # llama.cpp (via llamadart) ships prebuilt native libs for common ABIs,
-      # so no NDK build step is needed here.
       - name: Analyze
         run: flutter analyze
 

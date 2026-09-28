@@ -33,7 +33,8 @@ android {
         applicationId = "ace.software.pocketsense"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // 24 required by llama.cpp runtime (llamadart); default flutter.minSdkVersion is 21.
+        // Was raised to 24 for the removed on-device assistant (llama.cpp); left
+        // there so the supported-device range does not change silently.
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION

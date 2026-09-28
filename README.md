@@ -1,6 +1,6 @@
 # Pocket Sense
 
-A personal finance tracker for Android and Linux. It works offline first: every screen reads a local database, and changes sync to Supabase whenever you're online. It also has a private AI assistant that runs entirely on your phone.
+A personal finance tracker for Android and Linux. It works offline first: every screen reads a local database, and changes sync to Supabase whenever you're online.
 
 ## Features
 
@@ -23,11 +23,6 @@ A personal finance tracker for Android and Linux. It works offline first: every 
 - Shows "Due in N days" or "Overdue". **Post as transaction** records the item in one tap.
 - Pause an item without deleting it.
 
-**Ask (on-device assistant)**
-- Ask things like *"How much did I spend on dining this month?"* or *"Log $8.50 coffee at Blue Bottle"*.
-- Runs [Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF) (Q4_K_M, about 0.9 GB) through llama.cpp. The model downloads once, on your first question. After that the assistant works fully offline, and your data never leaves the device.
-- It answers from your real data using read-only tools: summaries, search, budgets and recurring items. It can **add** transactions but never edit or delete them.
-
 **Accounts and sync**
 - Email and password accounts, confirmed with an emailed code. Password reset also uses an emailed code, so there's no link to open.
 - Each account's data is private: the database only returns a user's own rows (row-level security). Each account also has its own local database on the device.
@@ -47,10 +42,10 @@ Download the APK for your phone from the [latest release](../../releases/latest)
 | File | For |
 |---|---|
 | `PocketSense-<version>-arm64-v8a.apk` | Almost all modern Android phones |
-| `PocketSense-<version>-armeabi-v7a.apk` | Older 32-bit phones (everything except the Ask assistant, which needs a 64-bit phone) |
+| `PocketSense-<version>-armeabi-v7a.apk` | Older 32-bit phones |
 | `PocketSense-<version>-x86_64.apk` | Emulators and Chromebooks |
 
-Requires Android 7.0 (API 24) or later. The assistant needs about 3 GB of free RAM.
+Requires Android 7.0 (API 24) or later.
 
 ## Development
 
@@ -103,10 +98,9 @@ Pushing a tag like `v1.2.1` runs `.github/workflows/release.yml`, which:
 ### Project layout
 ```
 lib/
-  ai/          on-device LLM (llamadart / llama.cpp)
-  data/        repo, local store, outbox, sync engine & controller, session, assistant tools
+  data/        repo, local store, outbox, sync engine & controller, session
   models/      Category, Transaction, Budget, RecurringExpense
-  screens/     Home, Activity, Budgets, Recurring, Ask, Categories, Settings, sign-in
+  screens/     Home, Activity, Budgets, Recurring, Categories, Settings, sign-in
   utils/       money/date formatting, recurring date math, layout helpers
   widgets/     sync indicator, empty/error/loading states
 supabase/migrations/   SQL to run in the Supabase SQL editor
@@ -115,6 +109,4 @@ test/                  unit and widget tests (sync, outbox, local store, repo, a
 
 ## Known limitations
 - One currency (US dollars). Amounts are stored as integer cents.
-- The assistant adds transactions without asking you to confirm first.
-- The assistant's chat history isn't saved.
 - Android and Linux only.

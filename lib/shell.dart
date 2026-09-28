@@ -4,12 +4,11 @@ import 'screens/dashboard_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
 import 'screens/recurring_screen.dart';
-import 'screens/assistant_screen.dart';
 import 'utils/platform.dart';
 
 /// Root scaffold that adapts navigation to the viewport:
 /// - Wide (≥ 900 px): left [NavigationRail] with labelled icons.
-/// - Narrow (< 900 px): bottom bar with 5 primary tabs.
+/// - Narrow (< 900 px): bottom bar with 4 primary tabs.
 /// Categories moved to Settings (gear icon in each tab's app bar).
 class Shell extends StatefulWidget {
   const Shell({super.key});
@@ -26,7 +25,6 @@ class _ShellState extends State<Shell> {
     TransactionsScreen(),
     BudgetsScreen(),
     RecurringScreen(),
-    AssistantScreen(),
   ];
 
   // Single source of truth for all tabs (bottom bar + navigation rail).
@@ -35,7 +33,6 @@ class _ShellState extends State<Shell> {
     _Dest(Icons.swap_vert_rounded, 'Activity'),
     _Dest(Icons.price_change_rounded, 'Budgets'),
     _Dest(Icons.repeat_rounded, 'Recurring'),
-    _Dest(Icons.psychology_alt_rounded, 'Ask'),
   ];
 
   @override

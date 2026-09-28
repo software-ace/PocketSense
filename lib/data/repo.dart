@@ -247,7 +247,6 @@ class FinanceRepo {
 
   /// Active budgets with what has been spent in their category during their
   /// own current period (this week for weekly, this month for monthly).
-  /// The screen and the assistant both use this, so they always agree.
   Future<List<({Budget budget, int spentCents, DateTime start, DateTime end})>> budgetProgress({DateTime? now}) async {
     final at = now ?? DateTime.now();
     final active = (await budgets()).where((b) => b.active).toList();
