@@ -56,6 +56,14 @@ android {
         }
     }
 
+    // sherpa-onnx is only for Linux voice entry; Android uses the phone's own
+    // recognizer and never loads these (~27 MB per APK otherwise).
+    packaging {
+        jniLibs {
+            excludes += listOf("**/libsherpa-onnx-c-api.so", "**/libsherpa-onnx-cxx-api.so", "**/libonnxruntime.so")
+        }
+    }
+
     buildTypes {
         release {
             // Without a release key (e.g. a fresh clone), fall back to debug

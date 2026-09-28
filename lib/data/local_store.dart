@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart' as sq;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
+import '../utils/app_dirs.dart';
 import 'outbox.dart';
 import 'sync_plan.dart';
 
@@ -41,7 +42,7 @@ class LocalStore implements Outbox, SyncStore {
     final sq.Database db;
     if (Platform.isLinux) {
       ffi.sqfliteFfiInit();
-      db = await ffi.databaseFactoryFfi.openDatabase(p.join(_linuxDataDir(), name));
+      db = await ffi.databaseFactoryFfi.openDatabase(p.join(linuxDataDir(), name));
     } else {
       // Android / mobile: standard plugin-backed factory.
       db = await sq.databaseFactory.openDatabase(p.join(await sq.getDatabasesPath(), name));
@@ -67,13 +68,6 @@ class LocalStore implements Outbox, SyncStore {
         options: sq.OpenDatabaseOptions(singleInstance: false)));
     await store.initSchema();
     return store;
-  }
-
-  static String _linuxDataDir() {
-    final home = Platform.environment['HOME'] ?? '.';
-    final dir = p.join(home, '.local', 'share', 'pocket_sense');
-    Directory(dir).createSync(recursive: true);
-    return dir;
   }
 
   /// Schema mirrors Postgres column-for-column so rows round-trip unchanged.

@@ -11,7 +11,7 @@ A personal finance tracker for Android and Linux. It works offline first: every 
 
 **Activity**
 - Add, edit and delete income and expense transactions, with a date, merchant, category and notes.
-- **Add by voice:** tap 🎤 and say *"Spent 12.50 on lunch at Subway yesterday"*. The form opens filled in (amount, type, merchant, category, date) for you to check and save. It uses the phone's speech recognizer (Android only), and the sentence is interpreted on the device.
+- **Add by voice:** tap 🎤 and say *"Spent 12.50 on lunch at Subway yesterday"*. The form opens filled in (amount, type, merchant, category, date) for you to check and save. On Android it uses the phone's speech recognizer. On Linux it runs an offline English model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) streaming Zipformer, about 45 MB, downloaded once on first use to `~/.local/share/pocket_sense/speech/`). Either way, the sentence is interpreted on the device.
 - Search by description or merchant, and filter by All, Expense or Income.
 - On mobile: swipe to delete, long-press for more actions.
 
@@ -56,7 +56,7 @@ tar -xzf PocketSense-<version>-linux-x64.tar.gz
 ./PocketSense/pocket_sense
 ```
 
-It needs GTK 3 (installed on most desktops). It's built on Ubuntu 22.04, so it runs on distros with glibc 2.35 or newer.
+It needs GTK 3 (installed on most desktops). Voice entry also needs `parecord`, which comes with PulseAudio or PipeWire's pulse tools (`pulseaudio-utils` on Debian/Ubuntu, `libpulse` on Arch). It's built on Ubuntu 22.04, so it runs on distros with glibc 2.35 or newer.
 
 ## Development
 
@@ -113,12 +113,14 @@ A manual run (Actions → Release → Run workflow) builds everything and upload
 ```
 lib/
   data/        repo, local store, outbox, sync engine & controller, session
+  voice/       speech engines: Android recognizer, Linux offline model (sherpa-onnx)
   models/      Category, Transaction, Budget, RecurringExpense
   screens/     Home, Activity, Budgets, Recurring, Categories, Settings, sign-in
   utils/       money/date formatting, recurring date math, layout helpers
   widgets/     sync indicator, empty/error/loading states
 supabase/migrations/   SQL to run in the Supabase SQL editor
-test/                  unit and widget tests (sync, outbox, local store, repo, auth, settings)
+test/                  unit and widget tests (sync, outbox, local store, repo, auth, settings, voice)
+                       desktop_speech_test.dart runs the real speech model; opt in with SPEECH_MODEL_DIR=<dir>
 ```
 
 ## Known limitations
