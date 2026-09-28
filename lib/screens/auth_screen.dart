@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -14,7 +15,10 @@ enum _Mode { signIn, signUp, confirmSignUp, forgot, reset }
 /// modes. Email codes are used instead of links: links have to hand off from
 /// the mail app back into this app, which is fragile on Android.
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({super.key, this.auth});
+
+  /// Defaults to the app's Supabase client; tests pass a fake.
+  final GoTrueClient? auth;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -22,6 +26,9 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   static const _minPassword = 8;
+  // bcrypt (Supabase's password hash) only reads the first 72 bytes, and the
+  // server rejects anything longer — catch it here with a clear message.
+  static const _maxPasswordBytes = 72;
 
   final _form = GlobalKey<FormState>();
   final _email = TextEditingController();
@@ -32,10 +39,13 @@ class _AuthScreenState extends State<AuthScreen> {
   _Mode _mode = _Mode.signIn;
   bool _busy = false;
   bool _showPassword = false;
+  // Off until the first submit, so nobody gets scolded mid-typing; then on,
+  // so each message clears the moment its field is fixed.
+  bool _autovalidate = false;
   String? _error;
   String? _info;
 
-  GoTrueClient get _auth => Supabase.instance.client.auth;
+  GoTrueClient get _auth => widget.auth ?? Supabase.instance.client.auth;
   String get _emailValue => _email.text.trim();
 
   @override
@@ -46,18 +56,30 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  void _go(_Mode mode, {String? info}) => setState(() {
-        _mode = mode;
-        _error = null;
-        _info = info;
-        _code.clear();
-        if (mode != _Mode.signIn) _password.clear();
-        _confirm.clear();
-        _form.currentState?.reset();
-      });
+  void _go(_Mode mode, {String? info}) {
+    final email = _email.text, password = _password.text;
+    // reset() clears validation errors, but it also rewinds each controller to
+    // its text at this screen's last build — which can predate what was just
+    // typed. Reset first, then set every field explicitly.
+    _form.currentState?.reset();
+    setState(() {
+      _mode = mode;
+      _autovalidate = false;
+      _error = null;
+      _info = info;
+      _email.text = email;
+      _password.text = mode == _Mode.signIn ? password : '';
+      _code.clear();
+      _confirm.clear();
+    });
+  }
 
   Future<void> _submit() async {
-    if (_busy || !(_form.currentState?.validate() ?? false)) return;
+    if (_busy) return;
+    if (!(_form.currentState?.validate() ?? false)) {
+      setState(() => _autovalidate = true);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -139,6 +161,10 @@ class _AuthScreenState extends State<AuthScreen> {
           return 'Too many attempts. Wait a minute and try again.';
         case 'same_password':
           return 'Choose a password different from your current one.';
+        // Server-side failure, e.g. "Database error saving new user" — the
+        // raw text means nothing to the user and they can't fix it.
+        case 'unexpected_failure':
+          return "Couldn't complete that right now. Please try again later.";
       }
       return e.message;
     }
@@ -152,8 +178,34 @@ class _AuthScreenState extends State<AuthScreen> {
     return null;
   }
 
-  String? _validateNewPassword(String? v) =>
-      (v == null || v.length < _minPassword) ? 'Use at least $_minPassword characters' : null;
+  String? _validatePassword(String? v) => (v == null || v.trim().isEmpty) ? 'Enter your password' : null;
+
+  String? _validateNewPassword(String? v) {
+    final s = v ?? '';
+    if (s.isEmpty) return 'Enter a password';
+    if (s.trim().isEmpty) return "Password can't be only spaces";
+    if (s.length < _minPassword) return 'Use at least $_minPassword characters';
+    if (utf8.encode(s).length > _maxPasswordBytes) return 'Use at most $_maxPasswordBytes characters';
+    return null;
+  }
+
+  String? _validateConfirm(String? v) {
+    if (v == null || v.isEmpty) return 'Confirm your password';
+    return v == _password.text ? null : 'Passwords do not match';
+  }
+
+  static String? _validateCode(String? v) {
+    final s = v?.trim() ?? '';
+    if (s.isEmpty) return 'Enter the code from the email';
+    if (!RegExp(r'^\d+$').hasMatch(s)) return 'The code is numbers only';
+    if (s.length < 6 || s.length > 10) return 'Check the code — it should be 6 to 10 digits';
+    return null;
+  }
+
+  // A server error describes the last attempt; drop it once the user edits.
+  void _clearError() {
+    if (_error != null) setState(() => _error = null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +231,8 @@ class _AuthScreenState extends State<AuthScreen> {
               child: AutofillGroup(
                 child: Form(
                   key: _form,
+                  autovalidateMode: _autovalidate ? AutovalidateMode.always : AutovalidateMode.disabled,
+                  onChanged: _clearError,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Icon(Icons.account_balance_wallet_rounded, size: 48, color: theme.colorScheme.primary),
                     const SizedBox(height: 16),
@@ -203,7 +257,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         autofillHints: const [AutofillHints.oneTimeCode],
                         textInputAction: needsPassword ? TextInputAction.next : TextInputAction.done,
                         decoration: const InputDecoration(labelText: 'Code from email', prefixIcon: Icon(Icons.pin_outlined)),
-                        validator: (v) => RegExp(r'^\d{6,10}$').hasMatch(v?.trim() ?? '') ? null : 'Enter the code from the email',
+                        validator: _validateCode,
                         onFieldSubmitted: needsPassword ? null : (_) => _submit(),
                       ),
                     ],
@@ -223,7 +277,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             onPressed: () => setState(() => _showPassword = !_showPassword),
                           ),
                         ),
-                        validator: newPassword ? _validateNewPassword : (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                        validator: newPassword ? _validateNewPassword : _validatePassword,
                         onFieldSubmitted: newPassword ? null : (_) => _submit(),
                       ),
                     ],
@@ -234,7 +288,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         obscureText: !_showPassword,
                         textInputAction: TextInputAction.done,
                         decoration: const InputDecoration(labelText: 'Confirm password', prefixIcon: Icon(Icons.lock_outline)),
-                        validator: (v) => v == _password.text ? null : 'Passwords do not match',
+                        validator: _validateConfirm,
                         onFieldSubmitted: (_) => _submit(),
                       ),
                     ],
