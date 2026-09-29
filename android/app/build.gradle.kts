@@ -69,8 +69,12 @@ android {
             // Without a release key (e.g. a fresh clone), fall back to debug
             // signing so `flutter run --release` still works. CI refuses to
             // publish in that case — see .github/workflows/release.yml.
-            signingConfig = if (releaseStoreFile != null) signingConfigs.getByName("release")
-                            else signingConfigs.getByName("debug")
+            // UNSIGNED_RELEASE=1 builds unsigned: F-Droid signs with its own key.
+            signingConfig = when {
+                System.getenv("UNSIGNED_RELEASE") == "1" -> null
+                releaseStoreFile != null -> signingConfigs.getByName("release")
+                else -> signingConfigs.getByName("debug")
+            }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
