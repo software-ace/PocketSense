@@ -58,6 +58,30 @@ class FinanceRepo {
     await store.deleteRow('categories', id);
   }
 
+  /// Renames starter categories to [names] (key → name in the UI language),
+  /// but only those still called one of their [defaultNames] (key → every
+  /// default name, lower-cased), so names the user chose are kept. A rename
+  /// that would clash with another category's name is skipped. Returns how
+  /// many were renamed.
+  Future<int> localizeStarterCategories(Map<String, String> names, Map<String, Set<String>> defaultNames) async {
+    final store = await _db;
+    final cats = await categories();
+    final taken = {for (final c in cats) c.name.toLowerCase()};
+    var renamed = 0;
+    for (final c in cats) {
+      final key = defaultNames.entries.where((e) => e.value.contains(c.name.toLowerCase())).firstOrNull?.key;
+      final target = key == null ? null : names[key];
+      if (target == null || target == c.name) continue;
+      if (target.toLowerCase() != c.name.toLowerCase() && taken.contains(target.toLowerCase())) continue;
+      await store.updateRow('categories', c.id, {'name': target, 'updated_at': LocalStore.nowIso()});
+      taken
+        ..remove(c.name.toLowerCase())
+        ..add(target.toLowerCase());
+      renamed++;
+    }
+    return renamed;
+  }
+
   // ── Transactions ─────────────────────────────────────────────────────
 
   Future<List<Transaction>> transactions({

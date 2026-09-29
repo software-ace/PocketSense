@@ -5,6 +5,7 @@ import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
 import '../settings/app_settings.dart';
+import '../settings/language_picker.dart';
 import 'backup_actions.dart';
 
 /// First run: 1) import a backup or start fresh, 2) set a PIN, then offer
@@ -79,6 +80,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           title: l.welcomeTitle,
           body: l.welcomeBody,
           hint: l.backupLaterHint,
+          // First, so the rest of the setup (and the starter categories'
+          // names) is in the right language.
+          top: Center(
+            child: OutlinedButton.icon(
+              onPressed: _busy ? null : () => pickLanguage(context),
+              icon: const Icon(Icons.translate, size: 18),
+              label: Text(languageNames[Localizations.localeOf(context).languageCode] ?? l.language),
+            ),
+          ),
           children: [
             _Choice(
               icon: Icons.restore_page_outlined,
@@ -153,8 +163,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class _Page extends StatelessWidget {
-  const _Page({required this.icon, required this.title, required this.body, required this.children, this.hint});
+  const _Page({required this.icon, required this.title, required this.body, required this.children, this.hint, this.top});
 
+  final Widget? top;
   final IconData icon;
   final String title;
   final String body;
@@ -166,6 +177,7 @@ class _Page extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (top != null) ...[top!, const SizedBox(height: 24)],
       Center(
         child: Container(
           width: 72,

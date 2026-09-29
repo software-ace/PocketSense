@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'data/db_key.dart';
 import 'data/local_store.dart';
+import 'data/repo.dart';
 import 'l10n/l10n.dart';
 import 'screens/onboarding_screen.dart';
 import 'security/lock_gate.dart';
@@ -86,14 +87,28 @@ class _BootState extends State<Boot> {
   Future<void>? _opening;
 
   // Starter categories are named in the UI language, so opening waits for
-  // localizations (not available yet in initState).
+  // localizations (not available yet in initState). This also runs again
+  // whenever the language changes, and renames them to match.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _opening ??= _open();
+    if (_opening == null) {
+      _opening = _open();
+    } else {
+      final names = starterCategoryNames(context.l10n);
+      _opening!.then((_) => _localizeCategories(names)).ignore();
+    }
   }
 
-  Future<void> _open() => LocalStore.open(categoryNames: starterCategoryNames(context.l10n));
+  Future<void> _open() async {
+    final names = starterCategoryNames(context.l10n);
+    await LocalStore.open(categoryNames: names);
+    // The system language may have changed since they were created.
+    await _localizeCategories(names);
+  }
+
+  static Future<void> _localizeCategories(Map<String, String> names) =>
+      FinanceRepo().localizeStarterCategories(names, starterCategoryDefaultNames());
 
   @override
   Widget build(BuildContext context) {

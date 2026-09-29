@@ -24,3 +24,16 @@ Map<String, String> starterCategoryNames(AppLocalizations l) => {
       'freelance': l.catFreelance,
       'otherIncome': l.catOtherIncome,
     };
+
+/// Every default name each starter category has had, in every language
+/// (lower-cased), keyed like `defaultCategories`. A category still called
+/// one of these hasn't been renamed by the user.
+Map<String, Set<String>> starterCategoryDefaultNames() {
+  final result = <String, Set<String>>{};
+  for (final locale in AppLocalizations.supportedLocales) {
+    for (final e in starterCategoryNames(lookupAppLocalizations(locale)).entries) {
+      (result[e.key] ??= {}).add(e.value.toLowerCase());
+    }
+  }
+  return result;
+}

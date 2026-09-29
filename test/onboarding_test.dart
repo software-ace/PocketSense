@@ -46,6 +46,25 @@ void main() {
     expect(await tester.runAsync(() => AppLock.instance.enabled), isFalse);
   });
 
+  testWidgets('the welcome step can switch the language', (tester) async {
+    AppSettings.locale.value = null;
+    await tester.pumpWidget(ValueListenableBuilder<Locale?>(
+      valueListenable: AppSettings.locale,
+      builder: (_, locale, _) => localizedApp(OnboardingScreen(onDone: () {}), locale: locale ?? const Locale('en')),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('العربية'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+
+    expect(AppSettings.locale.value, const Locale('ar'));
+    expect(find.text('استيراد نسخة احتياطية'), findsOneWidget);
+    AppSettings.locale.value = null;
+  });
+
   testWidgets('a failed import stays on step 1; a successful one moves on', (tester) async {
     var succeed = false;
     await pump(tester, importer: (_) async => succeed);

@@ -5,6 +5,7 @@ import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
 import '../settings/app_settings.dart';
+import '../settings/language_picker.dart';
 import 'backup_actions.dart';
 import 'categories_screen.dart';
 
@@ -12,33 +13,6 @@ import 'categories_screen.dart';
 /// navigation: they're set up once and rarely touched afterwards.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  // Language names are written in their own language, so a person can find
-  // theirs whatever the UI is currently showing.
-  static const _languageNames = {'en': 'English', 'ar': 'العربية'};
-
-  Future<void> _pickLanguage(BuildContext context) async {
-    final l = context.l10n;
-    final current = AppSettings.locale.value?.languageCode;
-    final picked = await showDialog<String>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(l.language),
-        children: [
-          RadioGroup<String>(
-            groupValue: current ?? '',
-            onChanged: (v) => Navigator.pop(ctx, v),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              RadioListTile<String>(value: '', title: Text(l.languageSystem)),
-              for (final e in _languageNames.entries) RadioListTile<String>(value: e.key, title: Text(e.value)),
-            ]),
-          ),
-        ],
-      ),
-    );
-    if (picked == null) return;
-    await AppSettings.setLocale(picked.isEmpty ? null : Locale(picked));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +32,8 @@ class SettingsScreen extends StatelessWidget {
             builder: (context, locale, _) => ListTile(
               leading: const Icon(Icons.translate),
               title: Text(l.language),
-              subtitle: Text(locale == null ? l.languageSystem : _languageNames[locale.languageCode]!),
-              onTap: () => _pickLanguage(context),
+              subtitle: Text(locale == null ? l.languageSystem : languageNames[locale.languageCode]!),
+              onTap: () => pickLanguage(context),
             ),
           ),
           header(l.security),
