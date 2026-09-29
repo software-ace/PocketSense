@@ -160,7 +160,7 @@ class LocalStore {
     ''');
     await db.execute('''
       CREATE TABLE transactions (
-        id INTEGER PRIMARY KEY, amount_cents INTEGER NOT NULL, type TEXT NOT NULL,
+        id INTEGER PRIMARY KEY, amount_fils INTEGER NOT NULL, type TEXT NOT NULL,
         date TEXT NOT NULL, description TEXT NOT NULL, merchant TEXT,
         category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
         source TEXT NOT NULL DEFAULT 'manual', reference TEXT, notes TEXT,
@@ -171,13 +171,13 @@ class LocalStore {
       CREATE TABLE budgets (
         id INTEGER PRIMARY KEY,
         category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-        limit_cents INTEGER NOT NULL, period TEXT NOT NULL DEFAULT 'monthly',
+        limit_fils INTEGER NOT NULL, period TEXT NOT NULL DEFAULT 'monthly',
         active INTEGER NOT NULL DEFAULT 1, created_at TEXT, updated_at TEXT
       )
     ''');
     await db.execute('''
       CREATE TABLE recurring_expenses (
-        id INTEGER PRIMARY KEY, description TEXT NOT NULL, amount_cents INTEGER NOT NULL,
+        id INTEGER PRIMARY KEY, description TEXT NOT NULL, amount_fils INTEGER NOT NULL,
         type TEXT NOT NULL DEFAULT 'expense', frequency TEXT NOT NULL, anchor_date TEXT NOT NULL,
         category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
         merchant TEXT, notes TEXT, active INTEGER NOT NULL DEFAULT 1, last_posted TEXT,

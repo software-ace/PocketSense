@@ -5,6 +5,7 @@ import '../data/repo.dart';
 import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
+import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import '../utils/voice_parser.dart';
@@ -60,7 +61,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     if (draft == null || !mounted) return;
     try {
       await _repo.insertTransaction(
-        amountCents: draft.amountCents,
+        amountFils: draft.amountFils,
         type: draft.type,
         date: draft.date,
         description: draft.description,
@@ -88,7 +89,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     if (draft == null || !mounted) return;
     try {
       await _repo.insertTransaction(
-        amountCents: draft.amountCents,
+        amountFils: draft.amountFils,
         type: draft.type,
         date: draft.date,
         description: draft.description,
@@ -107,7 +108,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     try {
       await _repo.updateTransaction(
         t.id,
-        amountCents: draft.amountCents,
+        amountFils: draft.amountFils,
         type: draft.type,
         date: draft.date,
         description: draft.description,
@@ -125,7 +126,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Delete transaction?'),
-        content: Text('${t.description} (${formatMoney(t.amountCents)})'),
+        content: Text('${t.description} (${formatMoney(t.amountFils)})'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
           FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete')),
@@ -268,7 +269,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               DataCell(Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: _catColor(t).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text(t.categoryName ?? '—', style: TextStyle(fontSize: 12, color: _catColor(t))))),
               DataCell(Text(t.merchant ?? '—', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis, maxLines: 1)),
               DataCell(Text(t.type, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Colors.green : Colors.redAccent))),
-              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(t.amountCents, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)))),
+              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)))),
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                 IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: 'Edit', onPressed: () => _editTransaction(t), visualDensity: VisualDensity.compact),
                 IconButton(icon: const Icon(Icons.delete_outline, size: 18), tooltip: 'Delete', onPressed: () => _delete(t), visualDensity: VisualDensity.compact),
@@ -298,7 +299,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
             leading: CircleAvatar(radius: 18, backgroundColor: _catColor(t).withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: _catColor(t)))),
             title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? 'Transaction')),
             subtitle: Text(formatDate(t.date)),
-            trailing: Text(formatMoney(t.amountCents, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)),
+            trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)),
           ),
         );
       },
@@ -394,13 +395,13 @@ class _AddSplitFab extends StatelessWidget {
 }
 
 class _TxDraft {
-  final int amountCents;
+  final int amountFils;
   final String type;
   final String description;
   final String? merchant;
   final int? categoryId;
   final DateTime date;
-  _TxDraft(this.amountCents, this.type, this.description, {required this.date, this.merchant, this.categoryId});
+  _TxDraft(this.amountFils, this.type, this.description, {required this.date, this.merchant, this.categoryId});
 }
 
 class _TxFormSheet extends StatefulWidget {
@@ -413,8 +414,8 @@ class _TxFormSheet extends StatefulWidget {
 }
 
 class _TxFormSheetState extends State<_TxFormSheet> {
-  late final int? _initialCents = widget.existing?.amountCents ?? widget.voice?.amountCents;
-  late final _amtCtrl = TextEditingController(text: _initialCents != null ? (_initialCents / 100).toStringAsFixed(2) : '');
+  late final int? _initialFils = widget.existing?.amountFils ?? widget.voice?.amountFils;
+  late final _amtCtrl = TextEditingController(text: _initialFils != null ? amountToInput(_initialFils) : '');
   late final _descCtrl = TextEditingController(text: widget.existing?.description ?? widget.voice?.description ?? '');
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? widget.voice?.merchant ?? '');
   late String _type = widget.existing?.type ?? widget.voice?.type ?? 'expense';
@@ -487,7 +488,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
             onSelectionChanged: (s) => setState(() => _type = s.first),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _amtCtrl, keyboardType: TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$ ')),
+          AmountField(controller: _amtCtrl, label: 'Amount'),
           const SizedBox(height: 12),
           InkWell(
             onTap: _pickDate,
@@ -513,15 +514,15 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () {
-              final amt = double.tryParse(_amtCtrl.text.replaceAll(',', '').trim()) ?? 0;
-              if (amt <= 0) {
+              final fils = parseAmount(_amtCtrl.text) ?? 0;
+              if (fils <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a positive amount.')));
                 return;
               }
               final desc = _descCtrl.text.trim();
               final merch = _merchCtrl.text.trim();
               final effectiveDesc = desc.isNotEmpty ? desc : (merch.isNotEmpty ? merch : 'Transaction');
-              Navigator.pop(context, _TxDraft((amt * 100).round(), _type, effectiveDesc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
+              Navigator.pop(context, _TxDraft(fils, _type, effectiveDesc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
             },
             child: const Text('Save'),
           ),

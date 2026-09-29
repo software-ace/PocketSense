@@ -30,8 +30,8 @@ void main() {
     LocalStore.overrideInstanceForTest(store);
     final repo = FinanceRepo();
     final cat = await repo.insertCategory(name: 'Food', type: 'expense', color: '#000000');
-    await repo.insertTransaction(amountCents: 100, type: 'expense', date: DateTime(2026, 9, 1), description: 'x', categoryId: cat);
-    await repo.insertBudget(categoryId: cat, limitCents: 1000);
+    await repo.insertTransaction(amountFils: 100, type: 'expense', date: DateTime(2026, 9, 1), description: 'x', categoryId: cat);
+    await repo.insertBudget(categoryId: cat, limitFils: 1000);
 
     await repo.deleteCategory(cat);
 

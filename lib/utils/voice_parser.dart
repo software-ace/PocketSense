@@ -3,13 +3,13 @@ import '../models/models.dart';
 /// What a spoken sentence says about a transaction. Anything it can't find is
 /// left null; the user reviews everything in the form before saving.
 class VoiceDraft {
-  final int? amountCents;
+  final int? amountFils;
   final String type; // 'income' | 'expense'
   final String? description;
   final String? merchant;
   final int? categoryId;
   final DateTime date;
-  const VoiceDraft({this.amountCents, required this.type, this.description, this.merchant, this.categoryId, required this.date});
+  const VoiceDraft({this.amountFils, required this.type, this.description, this.merchant, this.categoryId, required this.date});
 }
 
 const _incomeWords = ['earned', 'received', 'got paid', 'income', 'salary', 'paycheck', 'payday', 'refund', 'sold', 'deposit', 'bonus'];
@@ -40,15 +40,27 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
   var text = ' ${input.trim()} '.replaceAll(RegExp(r'\s+'), ' ');
   final lower = text.toLowerCase();
 
-  // ── Amount: "$8.50", "8.50", "1,200", "12 dollars and 50 cents" ──
-  int? cents;
-  final money = RegExp(r'\$?\s?(\d{1,3}(?:,\d{3})+|\d+)\b(?!\s*days?\b)(?:\.(\d{1,2}))?(?:\s*(?:dollars?|bucks|usd))?(?:\s+and\s+(\d{1,2})\s+cents?)?', caseSensitive: false)
+  // ── Amount: "8.5", "JD 8.500", "1,200", "12 dinars and 500 fils" ──
+  // Stored in fils (1 JOD = 1000). A decimal part is a fraction of a dinar
+  // (".5" = 500 fils); "and N fils" is a count of fils, and a piaster
+  // (qirsh) is 10 fils.
+  int? fils;
+  final money = RegExp(
+          r'(?:\b(?:jod|jd)\s?)?(\d{1,3}(?:,\d{3})+|\d+)\b(?!\s*days?\b)(?:\.(\d{1,3}))?'
+          r'(?:\s*(?:dinars?|jds?|jod)\b)?'
+          r'(?:\s+and\s+(\d{1,3})\s+(fils|piasters?|piastres?|qirsh)\b)?',
+          caseSensitive: false)
       .firstMatch(text);
   if (money != null) {
     final whole = int.parse(money.group(1)!.replaceAll(',', ''));
-    final frac = money.group(2) ?? money.group(3);
-    final fracCents = frac == null ? 0 : int.parse(frac.padRight(2, '0'));
-    cents = whole * 100 + fracCents;
+    final decimal = money.group(2);
+    var part = decimal == null ? 0 : int.parse(decimal.padRight(3, '0'));
+    final count = money.group(3);
+    if (decimal == null && count != null) {
+      final n = int.parse(count);
+      part = money.group(4)!.toLowerCase() == 'fils' ? n : n * 10;
+    }
+    fils = whole * 1000 + part.clamp(0, 999);
     text = text.replaceRange(money.start, money.end, ' ');
   }
 
@@ -124,7 +136,7 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
   }
   if (description == null) {
     final leftover = text
-        .replaceAll(RegExp(r'\b(?:add|log|record|new|i|i\s+just|just|spent|spend|paid|pay|bought|buy|got|an?|expense|transaction|of|and|dollars?|bucks)\b', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'\b(?:add|log|record|new|i|i\s+just|just|spent|spend|paid|pay|bought|buy|got|an?|expense|transaction|of|and|dinars?|jds?|jod|fils)\b', caseSensitive: false), ' ')
         .replaceAll(RegExp(r'\b(?:' + _incomeWords.map(RegExp.escape).join('|') + r')\b', caseSensitive: false), ' ')
         .replaceAll(RegExp(r'[^\w\s&\x27-]'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
@@ -133,7 +145,7 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
   }
   if (description != null) description = description[0].toUpperCase() + description.substring(1);
 
-  return VoiceDraft(amountCents: cents, type: type, description: description, merchant: merchant, categoryId: category?.id, date: date);
+  return VoiceDraft(amountFils: fils, type: type, description: description, merchant: merchant, categoryId: category?.id, date: date);
 }
 
 String _titleCase(String s) => s.split(' ').map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1)).join(' ');

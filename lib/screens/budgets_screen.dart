@@ -5,6 +5,7 @@ import '../data/repo.dart';
 import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
+import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import 'settings_screen.dart';
@@ -17,7 +18,7 @@ class BudgetsScreen extends StatefulWidget {
 
 class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
   final _repo = FinanceRepo();
-  List<({Budget budget, int spentCents, DateTime start, DateTime end})> _budgets = [];
+  List<({Budget budget, int spentFils, DateTime start, DateTime end})> _budgets = [];
   List<Category> _cats = [];
   Object? _error;
   bool _loading = true;
@@ -45,7 +46,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
       final results = await Future.wait([_repo.budgetProgress(), _repo.categories()]);
       if (!mounted) return;
       setState(() {
-        _budgets = results[0] as List<({Budget budget, int spentCents, DateTime start, DateTime end})>;
+        _budgets = results[0] as List<({Budget budget, int spentFils, DateTime start, DateTime end})>;
         _cats = results[1] as List<Category>;
         _loading = false;
       });
@@ -121,9 +122,9 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                 final p = _budgets[i];
                                 final b = p.budget;
                                 final color = _hex(b.categoryColor, theme.colorScheme.primary);
-                                final spent = p.spentCents;
-                                final ratio = b.limitCents > 0 ? (spent / b.limitCents).clamp(0.0, 1.5) : 0.0;
-                                final over = spent > b.limitCents;
+                                final spent = p.spentFils;
+                                final ratio = b.limitFils > 0 ? (spent / b.limitFils).clamp(0.0, 1.5) : 0.0;
+                                final over = spent > b.limitFils;
 
                                 return Card(
                                   margin: const EdgeInsets.symmetric(vertical: 6),
@@ -143,7 +144,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                               Text(_periodLabel(p.budget.period, p.start, p.end), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                                             ]),
                                           ),
-                                          Text('${formatMoney(spent)} / ${formatMoney(b.limitCents)}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: over ? const Color(0xFFFF5252) : null)),
+                                          Text('${formatMoney(spent)} / ${formatMoney(b.limitFils)}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: over ? const Color(0xFFFF5252) : null)),
                                           if (desktop) ...[
                                             const SizedBox(width: 4),
                                             IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: 'Edit', visualDensity: VisualDensity.compact, onPressed: () => _edit(b)),
@@ -162,7 +163,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                         ),
                                         const SizedBox(height: 6),
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                          Text(over ? 'Over budget by ${formatMoney(spent - b.limitCents)}' : '${formatMoney(b.limitCents - spent)} remaining', style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
+                                          Text(over ? 'Over budget by ${formatMoney(spent - b.limitFils)}' : '${formatMoney(b.limitFils - spent)} remaining', style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
                                           Text('${(ratio * 100).toInt()}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                                         ]),
                                       ]),
@@ -198,7 +199,7 @@ class _BudgetDialog extends StatefulWidget {
 
 class _BudgetDialogState extends State<_BudgetDialog> {
   late int? _catId = widget.existing?.categoryId;
-  late final _amtCtrl = TextEditingController(text: widget.existing != null ? (widget.existing!.limitCents / 100).toStringAsFixed(2) : '');
+  late final _amtCtrl = TextEditingController(text: widget.existing != null ? amountToInput(widget.existing!.limitFils) : '');
   late String _period = widget.existing?.period ?? 'monthly';
   bool _saving = false;
 
@@ -209,16 +210,15 @@ class _BudgetDialogState extends State<_BudgetDialog> {
   }
 
   Future<void> _save() async {
-    final amt = double.tryParse(_amtCtrl.text.replaceAll(',', '').trim()) ?? 0;
-    if (_catId == null || amt <= 0 || _saving) return;
+    final fils = parseAmount(_amtCtrl.text) ?? 0;
+    if (_catId == null || fils <= 0 || _saving) return;
     setState(() => _saving = true);
     try {
       final repo = FinanceRepo();
-      final cents = (amt * 100).round();
       if (widget.existing == null) {
-        await repo.insertBudget(categoryId: _catId!, limitCents: cents, period: _period);
+        await repo.insertBudget(categoryId: _catId!, limitFils: fils, period: _period);
       } else {
-        await repo.updateBudget(widget.existing!.id, categoryId: _catId!, limitCents: cents, period: _period);
+        await repo.updateBudget(widget.existing!.id, categoryId: _catId!, limitFils: fils, period: _period);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -244,11 +244,10 @@ class _BudgetDialogState extends State<_BudgetDialog> {
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 16),
-          TextField(
+          AmountField(
             controller: _amtCtrl,
             autofocus: widget.existing == null,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: _period == 'weekly' ? 'Weekly limit' : 'Monthly limit', prefixText: '\$ '),
+            label: _period == 'weekly' ? 'Weekly limit' : 'Monthly limit',
             onSubmitted: (_) => _save(),
           ),
           const SizedBox(height: 16),

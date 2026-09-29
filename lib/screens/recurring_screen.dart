@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/recurring.dart';
+import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import 'settings_screen.dart';
@@ -161,7 +162,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
               DataCell(Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
               DataCell(Text(formatFrequency(r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
-              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(r.amountCents, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
+              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
               DataCell(Text(r.active ? _fmtDate(next) : '—', style: const TextStyle(fontSize: 13))),
               DataCell(r.active
                   ? Container(
@@ -214,7 +215,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
           ]),
           subtitle: Text('${formatFrequency(r.frequency)} · ${r.categoryName ?? ''}'.trim()),
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(formatMoney(r.amountCents, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
+            Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
             if (r.active)
               Text(
                 overdue ? 'Overdue by ${-days}d' : (days == 0 ? 'Due today' : 'Due in $days d'),
@@ -270,7 +271,7 @@ class _RecurringDialog extends StatefulWidget {
 
 class _RecurringDialogState extends State<_RecurringDialog> {
   late final _descCtrl = TextEditingController(text: widget.existing?.description ?? '');
-  late final _amtCtrl = TextEditingController(text: widget.existing != null ? (widget.existing!.amountCents / 100).toStringAsFixed(2) : '');
+  late final _amtCtrl = TextEditingController(text: widget.existing != null ? amountToInput(widget.existing!.amountFils) : '');
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? '');
   late final _notesCtrl = TextEditingController(text: widget.existing?.notes ?? '');
   late String _type = widget.existing?.type ?? 'expense';
@@ -303,19 +304,18 @@ class _RecurringDialogState extends State<_RecurringDialog> {
 
   Future<void> _save() async {
     final desc = _descCtrl.text.trim();
-    final amt = double.tryParse(_amtCtrl.text.replaceAll(',', '').trim()) ?? 0;
-    if (desc.isEmpty || amt <= 0 || _saving) return;
+    final fils = parseAmount(_amtCtrl.text) ?? 0;
+    if (desc.isEmpty || fils <= 0 || _saving) return;
     setState(() => _saving = true);
     try {
       final repo = FinanceRepo();
-      final cents = (amt * 100).round();
       final anchor = DateTime(_anchor.year, _anchor.month, _anchor.day);
       final merch = _merchCtrl.text.trim().isEmpty ? null : _merchCtrl.text.trim();
       final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
       if (widget.existing == null) {
-        await repo.insertRecurring(description: desc, amountCents: cents, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
       } else {
-        await repo.updateRecurring(widget.existing!.id, description: desc, amountCents: cents, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -352,7 +352,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
           const SizedBox(height: 16),
           TextField(controller: _descCtrl, autofocus: widget.existing == null, decoration: const InputDecoration(labelText: 'Description'), onSubmitted: (_) => _save()),
           const SizedBox(height: 16),
-          TextField(controller: _amtCtrl, keyboardType: TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount', prefixText: '\$ ')),
+          AmountField(controller: _amtCtrl, label: 'Amount'),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: _freq,

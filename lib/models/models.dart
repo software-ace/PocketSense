@@ -27,7 +27,7 @@ class Category {
 
 class Transaction {
   final int id;
-  final int amountCents;
+  final int amountFils;
   final String type; // 'income' | 'expense'
   final DateTime date;
   final String description;
@@ -44,7 +44,7 @@ class Transaction {
 
   Transaction({
     required this.id,
-    required this.amountCents,
+    required this.amountFils,
     required this.type,
     required this.date,
     required this.description,
@@ -60,7 +60,7 @@ class Transaction {
 
   factory Transaction.fromMap(Map<String, dynamic> m) => Transaction(
         id: m['id'] as int,
-        amountCents: m['amount_cents'] as int,
+        amountFils: m['amount_fils'] as int,
         type: m['type'] as String? ?? 'expense',
         date: DateTime.parse(m['date'].toString()),
         description: m['description'] as String? ?? '',
@@ -78,7 +78,7 @@ class Transaction {
 class Budget {
   final int id;
   final int categoryId;
-  final int limitCents;
+  final int limitFils;
   final String period;
   final bool active;
   final String? categoryName;
@@ -87,7 +87,7 @@ class Budget {
   Budget({
     required this.id,
     required this.categoryId,
-    required this.limitCents,
+    required this.limitFils,
     required this.period,
     required this.active,
     this.categoryName,
@@ -97,7 +97,7 @@ class Budget {
   factory Budget.fromMap(Map<String, dynamic> m) => Budget(
         id: m['id'] as int,
         categoryId: m['category_id'] as int,
-        limitCents: m['limit_cents'] as int,
+        limitFils: m['limit_fils'] as int,
         period: m['period'] as String? ?? 'monthly',
         active: m['active'] is bool ? m['active'] as bool : (m['active'] as int? ?? 1) == 1,
         categoryName: m['category_name'] as String?,
@@ -108,7 +108,7 @@ class Budget {
 class RecurringExpense {
   final int id;
   final String description;
-  final int amountCents;
+  final int amountFils;
   final String type; // 'income' | 'expense'
   final String frequency; // 'weekly'|'biweekly'|'monthly'|'quarterly'|'yearly'
   final DateTime anchorDate;
@@ -122,7 +122,7 @@ class RecurringExpense {
   RecurringExpense({
     required this.id,
     required this.description,
-    required this.amountCents,
+    required this.amountFils,
     this.type = 'expense',
     required this.frequency,
     required this.anchorDate,

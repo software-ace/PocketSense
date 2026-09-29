@@ -16,7 +16,7 @@ void main() {
     final key = DbKey.generate();
 
     final db = await LocalStore.openEncryptedFfi(file, key);
-    await db.insert('transactions', {'id': 1, 'amount_cents': 1, 'type': 'expense', 'date': '2026-09-29', 'description': 'Secret lunch'});
+    await db.insert('transactions', {'id': 1, 'amount_fils': 1, 'type': 'expense', 'date': '2026-09-29', 'description': 'Secret lunch'});
     await db.close();
 
     final bytes = await File(file).readAsBytes();

@@ -15,7 +15,7 @@ void main() {
 
   test('full sentence: amount, purpose, merchant, date, category', () {
     final d = parse('Spent 8.50 on coffee at Blue Bottle yesterday');
-    expect(d.amountCents, 850);
+    expect(d.amountFils, 8500);
     expect(d.type, 'expense');
     expect(d.description, 'Coffee');
     expect(d.merchant, 'Blue Bottle');
@@ -23,19 +23,24 @@ void main() {
     expect(d.categoryId, 1, reason: 'coffee → Dining Out');
   });
 
-  test('dollar sign and thousands separator', () {
-    expect(parse('paid \$1,250 rent').amountCents, 125000);
-    expect(parse('\$12.5 lunch').amountCents, 1250);
+  test('JD prefix, thousands separator and three decimals', () {
+    expect(parse('paid JD 1,250 rent').amountFils, 1250000);
+    expect(parse('12.5 lunch').amountFils, 12500);
+    expect(parse('lunch 3.750').amountFils, 3750);
   });
 
-  test('"dollars and cents" wording', () {
-    expect(parse('12 dollars and 40 cents for groceries').amountCents, 1240);
+  test('"dinars and fils" wording', () {
+    final d = parse('12 dinars and 500 fils for groceries');
+    expect(d.amountFils, 12500);
+    expect(d.description, 'Groceries');
+    expect(parse('2 JD and 50 fils coffee').amountFils, 2050, reason: 'a count of fils, not a decimal');
+    expect(parse('1 dinar and 25 piasters bus').amountFils, 1250, reason: 'a piaster is 10 fils');
   });
 
   test('income from words and category, merchant after "from"', () {
     final d = parse('received 500 from Acme for the website');
     expect(d.type, 'income');
-    expect(d.amountCents, 50000);
+    expect(d.amountFils, 500000);
     expect(d.merchant, 'Acme');
     expect(d.description, 'The website');
 
@@ -51,7 +56,7 @@ void main() {
   test('relative dates', () {
     expect(parse('taxi 15 3 days ago').date, DateTime(2026, 9, 24));
     final early = parse('30 days ago taxi 15');
-    expect(early.amountCents, 1500, reason: '"30 days" is a date, not the amount');
+    expect(early.amountFils, 15000, reason: '"30 days" is a date, not the amount');
     expect(early.date, DateTime(2026, 8, 28));
     expect(parse('lunch 20 last friday').date, DateTime(2026, 9, 25));
     expect(parse('lunch 20 on sunday').date, DateTime(2026, 9, 20), reason: 'said on a Sunday → a week ago');
@@ -66,7 +71,7 @@ void main() {
 
   test('no amount leaves it empty for the user to type', () {
     final d = parse('coffee at Starbucks');
-    expect(d.amountCents, isNull);
+    expect(d.amountFils, isNull);
     expect(d.merchant, 'Starbucks');
   });
 

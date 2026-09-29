@@ -27,8 +27,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   ({int income, int expense})? _month;
   ({int income, int expense})? _year;
   List<Transaction> _recent = [];
-  List<({String label, int cents, String? color})> _byCategory = [];
-  List<({DateTime day, int cents})> _daily = [];
+  List<({String label, int fils, String? color})> _byCategory = [];
+  List<({DateTime day, int fils})> _daily = [];
 
   @override
   void onDataChanged() => _load();
@@ -63,8 +63,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _month = results[0] as ({int income, int expense});
         _year = results[1] as ({int income, int expense});
         _recent = results[2] as List<Transaction>;
-        _byCategory = results[3] as List<({String label, int cents, String? color})>;
-        _daily = results[4] as List<({DateTime day, int cents})>;
+        _byCategory = results[3] as List<({String label, int fils, String? color})>;
+        _daily = results[4] as List<({DateTime day, int fils})>;
         _loading = false;
       });
     } catch (e) {
@@ -221,12 +221,12 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
 
   Widget _buildLineChart() {
     if (_daily.isEmpty) return const Center(child: Text('No data'));
-    final spots = List.generate(_daily.length, (i) => FlSpot(i.toDouble(), _daily[i].cents / 100));
-    final maxCents = _daily.fold<int>(0, (a, b) => b.cents > a ? b.cents : a);
+    final spots = List.generate(_daily.length, (i) => FlSpot(i.toDouble(), _daily[i].fils / 1000));
+    final maxFils = _daily.fold<int>(0, (a, b) => b.fils > a ? b.fils : a);
     // ~4 gridlines on a 1/2/5 step, with the top snapped to a step multiple.
-    // (A fixed interval of 1 drew one label per dollar — hundreds, overlapping.)
-    final step = _niceStep(maxCents > 0 ? maxCents / 100 / 4 : 2.5);
-    final maxY = ((maxCents / 100) * 1.1 / step).ceil().clamp(1, 1 << 30) * step;
+    // (A fixed interval of 1 drew one label per dinar — hundreds, overlapping.)
+    final step = _niceStep(maxFils > 0 ? maxFils / 1000 / 4 : 2.5);
+    final maxY = ((maxFils / 1000) * 1.1 / step).ceil().clamp(1, 1 << 30) * step;
     final lastIdx = (_daily.length - 1).toDouble();
 
     return LineChart(
@@ -244,7 +244,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             sideTitles: SideTitles(showTitles: true, interval: step, reservedSize: 44,
               getTitlesWidget: (v, meta) => Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Text(_compactMoney(v), style: const TextStyle(fontSize: 11), textAlign: TextAlign.right))),
+                  child: Text(compactAmount(v), style: const TextStyle(fontSize: 11), textAlign: TextAlign.right))),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: true, interval: 7, reservedSize: 24,
@@ -287,22 +287,14 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     return nice * mag;
   }
 
-  static String _compactMoney(double v) {
-    if (v >= 1000) {
-      final k = v / 1000;
-      return '\$${k == k.roundToDouble() ? k.toInt() : k.toStringAsFixed(1)}k';
-    }
-    return '\$${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(1)}';
-  }
-
   Widget _buildPieChart() {
     if (_byCategory.isEmpty) return const Center(child: Text('No expenses yet'));
-    final totalCents = _byCategory.fold<int>(0, (a, b) => a + b.cents);
-    if (totalCents == 0) return const Center(child: Text('No expenses yet'));
+    final totalFils = _byCategory.fold<int>(0, (a, b) => a + b.fils);
+    if (totalFils == 0) return const Center(child: Text('No expenses yet'));
 
     final sections = _byCategory.asMap().entries.map((e) {
       final item = e.value;
-      final pct = item.cents / totalCents;
+      final pct = item.fils / totalFils;
       final color = _hex(item.color);
       return PieChartSectionData(
         value: pct,
@@ -338,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                   Container(width: 10, height: 10, decoration: BoxDecoration(color: _hex(c.color), borderRadius: BorderRadius.circular(3))),
                   const SizedBox(width: 6),
                   Expanded(child: Text(c.label, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
-                  Text(formatMoney(c.cents), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(formatMoney(c.fils), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               );
             },
@@ -371,7 +363,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: color, fontSize: 14))),
       title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? 'Transaction'), style: const TextStyle(fontSize: 14)),
       subtitle: Text(_when(t), style: const TextStyle(fontSize: 12)),
-      trailing: Text(formatMoney(t.amountCents, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: t.type == 'income' ? Colors.green : null)),
+      trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: t.type == 'income' ? Colors.green : null)),
     );
   }
 }

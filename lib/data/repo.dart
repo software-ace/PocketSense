@@ -98,7 +98,7 @@ class FinanceRepo {
     final txs = (rows ?? []).map((m) {
       final t = Transaction(
         id: m['id'] as int,
-        amountCents: m['amount_cents'] as int,
+        amountFils: m['amount_fils'] as int,
         type: m['type'] as String? ?? 'expense',
         date: DateTime.parse(m['date'].toString()),
         description: m['description'] as String? ?? '',
@@ -117,7 +117,7 @@ class FinanceRepo {
 
   Transaction _withCat(Transaction t, Category? c) => Transaction(
         id: t.id,
-        amountCents: t.amountCents,
+        amountFils: t.amountFils,
         type: t.type,
         date: t.date,
         description: t.description,
@@ -141,7 +141,7 @@ class FinanceRepo {
   }
 
   Future<int> insertTransaction({
-    required int amountCents,
+    required int amountFils,
     required String type,
     required DateTime date,
     required String description,
@@ -154,7 +154,7 @@ class FinanceRepo {
     final id = newRowId();
     final row = <String, dynamic>{
       'id': id,
-      'amount_cents': amountCents,
+      'amount_fils': amountFils,
       'type': type,
       'date': _isoDate(date),
       'description': description,
@@ -171,7 +171,7 @@ class FinanceRepo {
 
   Future<void> updateTransaction(
     int id, {
-    required int amountCents,
+    required int amountFils,
     required String type,
     required DateTime date,
     required String description,
@@ -180,7 +180,7 @@ class FinanceRepo {
   }) async {
     final store = await _db;
     final values = <String, dynamic>{
-      'amount_cents': amountCents,
+      'amount_fils': amountFils,
       'type': type,
       'date': _isoDate(date),
       'description': description,
@@ -207,7 +207,7 @@ class FinanceRepo {
       final b = Budget(
         id: m['id'] as int,
         categoryId: m['category_id'] as int,
-        limitCents: m['limit_cents'] as int,
+        limitFils: m['limit_fils'] as int,
         period: m['period'] as String? ?? 'monthly',
         active: (m['active'] as int? ?? 1) == 1,
       );
@@ -215,7 +215,7 @@ class FinanceRepo {
       return Budget(
         id: b.id,
         categoryId: b.categoryId,
-        limitCents: b.limitCents,
+        limitFils: b.limitFils,
         period: b.period,
         active: b.active,
         categoryName: c?.name,
@@ -226,7 +226,7 @@ class FinanceRepo {
 
   /// Active budgets with what has been spent in their category during their
   /// own current period (this week for weekly, this month for monthly).
-  Future<List<({Budget budget, int spentCents, DateTime start, DateTime end})>> budgetProgress({DateTime? now}) async {
+  Future<List<({Budget budget, int spentFils, DateTime start, DateTime end})>> budgetProgress({DateTime? now}) async {
     final at = now ?? DateTime.now();
     final active = (await budgets()).where((b) => b.active).toList();
     if (active.isEmpty) return [];
@@ -239,26 +239,26 @@ class FinanceRepo {
       for (final b in active)
         (
           budget: b,
-          spentCents: txs
+          spentFils: txs
               .where((t) => t.categoryId == b.categoryId && !t.date.isBefore(windows[b.id]!.start) && !t.date.isAfter(windows[b.id]!.end))
-              .fold(0, (sum, t) => sum + t.amountCents),
+              .fold(0, (sum, t) => sum + t.amountFils),
           start: windows[b.id]!.start,
           end: windows[b.id]!.end,
         ),
     ];
   }
 
-  Future<int> insertBudget({required int categoryId, required int limitCents, String period = 'monthly'}) async {
+  Future<int> insertBudget({required int categoryId, required int limitFils, String period = 'monthly'}) async {
     final store = await _db;
     final id = newRowId();
-    final row = {'id': id, 'category_id': categoryId, 'limit_cents': limitCents, 'period': period, 'active': 1, 'updated_at': LocalStore.nowIso()};
+    final row = {'id': id, 'category_id': categoryId, 'limit_fils': limitFils, 'period': period, 'active': 1, 'updated_at': LocalStore.nowIso()};
     await store.insertRow('budgets', row);
     return id;
   }
 
-  Future<void> updateBudget(int id, {required int categoryId, required int limitCents, required String period}) async {
+  Future<void> updateBudget(int id, {required int categoryId, required int limitFils, required String period}) async {
     final store = await _db;
-    final values = {'category_id': categoryId, 'limit_cents': limitCents, 'period': period, 'updated_at': LocalStore.nowIso()};
+    final values = {'category_id': categoryId, 'limit_fils': limitFils, 'period': period, 'updated_at': LocalStore.nowIso()};
     await store.updateRow('budgets', id, values);
   }
 
@@ -277,7 +277,7 @@ class FinanceRepo {
     final list = (rows ?? []).map((m) => RecurringExpense(
           id: m['id'] as int,
           description: m['description'] as String? ?? '',
-          amountCents: m['amount_cents'] as int,
+          amountFils: m['amount_fils'] as int,
           type: m['type'] as String? ?? 'expense',
           frequency: m['frequency'] as String? ?? 'monthly',
           anchorDate: _dateOnly(m['anchor_date']),
@@ -295,13 +295,13 @@ class FinanceRepo {
     return list;
   }
 
-  Future<int> insertRecurring({required String description, required int amountCents, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true}) async {
+  Future<int> insertRecurring({required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true}) async {
     final store = await _db;
     final id = newRowId();
     final row = <String, dynamic>{
       'id': id,
       'description': description,
-      'amount_cents': amountCents,
+      'amount_fils': amountFils,
       'type': type,
       'frequency': frequency,
       'anchor_date': _isoDate(anchorDate),
@@ -315,11 +315,11 @@ class FinanceRepo {
     return id;
   }
 
-  Future<void> updateRecurring(int id, {required String description, required int amountCents, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active}) async {
+  Future<void> updateRecurring(int id, {required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active}) async {
     final store = await _db;
     final values = <String, dynamic>{
       'description': description,
-      'amount_cents': amountCents,
+      'amount_fils': amountFils,
       'type': type,
       'frequency': frequency,
       'anchor_date': _isoDate(anchorDate),
@@ -350,7 +350,7 @@ class FinanceRepo {
     final txId = newRowId();
     final txRow = <String, dynamic>{
       'id': txId,
-      'amount_cents': r.amountCents,
+      'amount_fils': r.amountFils,
       'type': r.type,
       'description': '${r.description} (recurring)',
       'date': _isoDate(today),
@@ -369,7 +369,7 @@ class FinanceRepo {
 
   // ── Aggregates (computed over local rows) ────────────────────────────
 
-  /// Aggregate income/expense cents within [from],[to].
+  /// Aggregate income/expense fils within [from],[to].
   Future<({int income, int expense})> totals(DateTime from, DateTime to) async {
     final store = await _db;
     final lo = _isoDate(from);
@@ -379,29 +379,29 @@ class FinanceRepo {
     final inc = await store.selectRows('transactions',
         where: 'date >= ? AND date <= ? AND type = ?', whereArgs: [lo, hi, 'income']);
     int sum(List<Map<String, dynamic>>? l) =>
-        (l ?? []).fold(0, (a, b) => a + (b['amount_cents'] as int));
+        (l ?? []).fold(0, (a, b) => a + (b['amount_fils'] as int));
     return (income: sum(inc), expense: sum(exp));
   }
 
-  /// Expense cents grouped by category name within [from],[to].
-  Future<List<({String label, int cents, String? color})>> spendingByCategory(
+  /// Expense fils grouped by category name within [from],[to].
+  Future<List<({String label, int fils, String? color})>> spendingByCategory(
       DateTime from, DateTime to) async {
     final txs = await transactions(from: from, to: to, type: 'expense', limit: 1000);
-    final map = <String, ({String label, int cents, String? color})>{};
+    final map = <String, ({String label, int fils, String? color})>{};
     for (final t in txs) {
       final name = t.categoryName ?? 'Uncategorized';
       final existing = map[name];
       if (existing == null) {
-        map[name] = (label: name, cents: t.amountCents, color: t.categoryColor);
+        map[name] = (label: name, fils: t.amountFils, color: t.categoryColor);
       } else {
-        map[name] = (label: name, cents: existing.cents + t.amountCents, color: t.categoryColor);
+        map[name] = (label: name, fils: existing.fils + t.amountFils, color: t.categoryColor);
       }
     }
-    return map.values.toList()..sort((a, b) => b.cents.compareTo(a.cents));
+    return map.values.toList()..sort((a, b) => b.fils.compareTo(a.fils));
   }
 
-  /// Daily expense cents for the last [days] days ending at [end].
-  Future<List<({DateTime day, int cents})>> dailySpending(
+  /// Daily expense fils for the last [days] days ending at [end].
+  Future<List<({DateTime day, int fils})>> dailySpending(
       {required DateTime end, int days = 30}) async {
     final start = end.subtract(Duration(days: days - 1));
     final txs = await transactions(from: start, to: end, type: 'expense', limit: 2000);
@@ -412,11 +412,11 @@ class FinanceRepo {
     }
     for (final t in txs) {
       final key = _isoDate(t.date);
-      byDay[key] = (byDay[key] ?? 0) + t.amountCents;
+      byDay[key] = (byDay[key] ?? 0) + t.amountFils;
     }
     return byDay.entries.map((e) {
       final p = e.key.split('-');
-      return (day: DateTime(int.parse(p[0]), int.parse(p[1]), int.parse(p[2])), cents: e.value);
+      return (day: DateTime(int.parse(p[0]), int.parse(p[1]), int.parse(p[2])), fils: e.value);
     }).toList()
       ..sort((a, b) => a.day.compareTo(b.day));
   }

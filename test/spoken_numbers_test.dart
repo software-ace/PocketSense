@@ -38,7 +38,7 @@ void main() {
     final now = DateTime(2026, 9, 28);
     final cats = [Category(id: 1, name: 'Dining Out', type: 'expense', color: '#000', icon: 'x')];
     final d = parseVoiceEntry(normalizeSpokenText('SPENT TWELVE FIFTY ON LUNCH AT SUBWAY YESTERDAY'), categories: cats, now: now);
-    expect(d.amountCents, 1250);
+    expect(d.amountFils, 12500);
     expect(d.type, 'expense');
     expect(d.merchant, 'Subway');
     expect(d.description, 'Lunch');
