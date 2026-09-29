@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
+import '../security/app_lock.dart';
+import '../security/biometrics.dart';
+import '../security/pin_flows.dart';
 import '../settings/app_settings.dart';
 import 'backup_actions.dart';
 import 'categories_screen.dart';
@@ -59,6 +62,8 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => _pickLanguage(context),
             ),
           ),
+          header(l.security),
+          const _SecuritySection(),
           header(l.settingsData),
           ListTile(
             leading: const Icon(Icons.category_rounded),
@@ -83,6 +88,93 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// App lock on/off, change PIN, and (Android) biometric unlock. Changes to
+/// an existing lock ask for the current PIN first.
+class _SecuritySection extends StatefulWidget {
+  const _SecuritySection();
+
+  @override
+  State<_SecuritySection> createState() => _SecuritySectionState();
+}
+
+class _SecuritySectionState extends State<_SecuritySection> {
+  bool? _enabled;
+  bool _biometrics = false;
+  bool _biometricsAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final lock = AppLock.instance;
+    final enabled = await lock.enabled;
+    final bio = await lock.biometricsEnabled;
+    final available = await Biometrics.instance.available();
+    if (mounted) {
+      setState(() {
+        _enabled = enabled;
+        _biometrics = bio;
+        _biometricsAvailable = available;
+      });
+    }
+  }
+
+  void _toast(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+  Future<void> _toggleLock(bool on) async {
+    final l = context.l10n;
+    if (on) {
+      if (await chooseNewPin(context)) _toast(l.pinSet);
+    } else if (await confirmCurrentPin(context)) {
+      await AppLock.instance.disable();
+    }
+    await _refresh();
+  }
+
+  Future<void> _changePin() async {
+    final l = context.l10n;
+    if (!await confirmCurrentPin(context) || !mounted) return;
+    if (await chooseNewPin(context)) _toast(l.pinChanged);
+    await _refresh();
+  }
+
+  Future<void> _toggleBiometrics(bool on) async {
+    // Turning it on proves the enrolled biometric works before relying on it.
+    if (on && !await Biometrics.instance.authenticate(context.l10n.biometricReason)) return;
+    await AppLock.instance.setBiometrics(on);
+    await _refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final enabled = _enabled;
+    if (enabled == null) return const SizedBox(height: 56);
+    return Column(children: [
+      SwitchListTile(
+        secondary: const Icon(Icons.lock_outline),
+        title: Text(l.appLock),
+        subtitle: Text(l.appLockSubtitle),
+        value: enabled,
+        onChanged: _toggleLock,
+      ),
+      if (enabled) ...[
+        ListTile(leading: const Icon(Icons.pin_outlined), title: Text(l.changePin), onTap: _changePin),
+        if (_biometricsAvailable)
+          SwitchListTile(
+            secondary: const Icon(Icons.fingerprint),
+            title: Text(l.useBiometrics),
+            value: _biometrics,
+            onChanged: _toggleBiometrics,
+          ),
+      ],
+    ]);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'data/db_key.dart';
 import 'data/local_store.dart';
 import 'l10n/l10n.dart';
+import 'security/lock_gate.dart';
 import 'settings/app_settings.dart';
 import 'shell.dart';
 
@@ -23,11 +24,17 @@ ThemeData _theme(Brightness brightness, Color seed) => ThemeData(
       fontFamilyFallback: const ['NotoSansArabic'],
     );
 
-class PocketSenseApp extends StatelessWidget {
-  const PocketSenseApp({super.key, this.home = const Boot()});
+/// Bumped to start over from an empty database (after "erase all data"):
+/// Boot is keyed by it, so it opens again from scratch.
+final _generation = ValueNotifier(0);
 
-  /// Replaced in tests.
-  final Widget home;
+Future<void> _eraseAndRestart() async {
+  await LocalStore.eraseAll();
+  _generation.value++;
+}
+
+class PocketSenseApp extends StatelessWidget {
+  const PocketSenseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +59,12 @@ class PocketSenseApp extends StatelessWidget {
         },
         theme: _theme(Brightness.light, const Color(0xFF4F46E5)),
         darkTheme: _theme(Brightness.dark, const Color(0xFF818CF8)),
-        home: home,
+        // Above the Navigator, so the lock covers every route and dialog.
+        builder: (context, child) => LockGate(onEraseAll: _eraseAndRestart, child: child!),
+        home: ValueListenableBuilder<int>(
+          valueListenable: _generation,
+          builder: (_, generation, _) => Boot(key: ValueKey(generation)),
+        ),
       ),
     );
   }
@@ -89,7 +101,7 @@ class _BootState extends State<Boot> {
           return StartupError(
             error: snap.error!,
             onRetry: () => setState(() => _opening = _open()),
-            onErase: snap.error is DbKeyLost ? () => setState(() => _opening = LocalStore.eraseAll().then((_) => _open())) : null,
+            onErase: snap.error is DbKeyLost ? _eraseAndRestart : null,
           );
         }
         if (snap.connectionState != ConnectionState.done) return const _Splash();

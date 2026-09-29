@@ -5,6 +5,8 @@
          at install; Bluetooth permissions are omitted, so a headset mic is not
          specifically requested, only whatever the recognizer uses. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Optional fingerprint / face unlock for the app lock (local_auth). -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <!-- Backups are off: the database key lives in the Android Keystore, which
          is never backed up, so a restored database could not be opened.
          Settings → Backup (JSON export) is the way to move data. -->

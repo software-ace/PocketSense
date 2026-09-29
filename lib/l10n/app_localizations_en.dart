@@ -652,4 +652,82 @@ class AppLocalizationsEn extends AppLocalizations {
   String backupReadFailed(String error) {
     return 'Couldn\'t read the file: $error';
   }
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get appLock => 'App lock';
+
+  @override
+  String get appLockSubtitle => 'Ask for a PIN when opening Pocket Sense';
+
+  @override
+  String get changePin => 'Change PIN';
+
+  @override
+  String get useBiometrics => 'Unlock with fingerprint or face';
+
+  @override
+  String get enterPin => 'Enter your PIN';
+
+  @override
+  String get enterCurrentPin => 'Enter your current PIN';
+
+  @override
+  String get chooseNewPin => 'Choose a PIN (4–6 digits)';
+
+  @override
+  String get confirmNewPin => 'Enter the PIN again';
+
+  @override
+  String get pinsDontMatch => 'The PINs don\'t match. Try again.';
+
+  @override
+  String get pinSet => 'App lock is on.';
+
+  @override
+  String get pinChanged => 'PIN changed.';
+
+  @override
+  String wrongPin(int remaining) {
+    String _temp0 = intl.Intl.pluralLogic(
+      remaining,
+      locale: localeName,
+      other: 'Wrong PIN. $remaining tries left before a wait.',
+      one: 'Wrong PIN. 1 try left before a wait.',
+      zero: 'Wrong PIN.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tooManyAttempts(int seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: 'Too many wrong PINs. Try again in $seconds seconds.',
+      one: 'Too many wrong PINs. Try again in 1 second.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get continueAction => 'Continue';
+
+  @override
+  String get forgotPin => 'Forgot PIN?';
+
+  @override
+  String get forgotPinBody =>
+      'Your PIN can\'t be recovered. The only way back in is to erase all data on this device and start over. If you have a backup file, you can import it afterwards.';
+
+  @override
+  String get biometricReason => 'Unlock Pocket Sense';
+
+  @override
+  String get biometricUnlock => 'Use fingerprint or face';
+
+  @override
+  String get deleteDigit => 'Delete digit';
 }

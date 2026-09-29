@@ -402,5 +402,39 @@
         "type": "String"
       }
     }
-  }
+  },
+  "security": "Security",
+  "appLock": "App lock",
+  "appLockSubtitle": "Ask for a PIN when opening Pocket Sense",
+  "changePin": "Change PIN",
+  "useBiometrics": "Unlock with fingerprint or face",
+  "enterPin": "Enter your PIN",
+  "enterCurrentPin": "Enter your current PIN",
+  "chooseNewPin": "Choose a PIN (4–6 digits)",
+  "confirmNewPin": "Enter the PIN again",
+  "pinsDontMatch": "The PINs don't match. Try again.",
+  "pinSet": "App lock is on.",
+  "pinChanged": "PIN changed.",
+  "wrongPin": "{remaining, plural, =0{Wrong PIN.} =1{Wrong PIN. 1 try left before a wait.} other{Wrong PIN. {remaining} tries left before a wait.}}",
+  "@wrongPin": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "tooManyAttempts": "{seconds, plural, =1{Too many wrong PINs. Try again in 1 second.} other{Too many wrong PINs. Try again in {seconds} seconds.}}",
+  "@tooManyAttempts": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "continueAction": "Continue",
+  "forgotPin": "Forgot PIN?",
+  "forgotPinBody": "Your PIN can't be recovered. The only way back in is to erase all data on this device and start over. If you have a backup file, you can import it afterwards.",
+  "biometricReason": "Unlock Pocket Sense",
+  "biometricUnlock": "Use fingerprint or face",
+  "deleteDigit": "Delete digit"
 }

@@ -667,4 +667,88 @@ class AppLocalizationsAr extends AppLocalizations {
   String backupReadFailed(String error) {
     return 'تعذّرت قراءة الملف: $error';
   }
+
+  @override
+  String get security => 'الأمان';
+
+  @override
+  String get appLock => 'قفل التطبيق';
+
+  @override
+  String get appLockSubtitle => 'طلب رمز PIN عند فتح Pocket Sense';
+
+  @override
+  String get changePin => 'تغيير رمز PIN';
+
+  @override
+  String get useBiometrics => 'الفتح بالبصمة أو الوجه';
+
+  @override
+  String get enterPin => 'أدخل رمز PIN';
+
+  @override
+  String get enterCurrentPin => 'أدخل رمز PIN الحالي';
+
+  @override
+  String get chooseNewPin => 'اختر رمز PIN (من 4 إلى 6 أرقام)';
+
+  @override
+  String get confirmNewPin => 'أدخل الرمز مرة أخرى';
+
+  @override
+  String get pinsDontMatch => 'الرمزان غير متطابقين. حاول مرة أخرى.';
+
+  @override
+  String get pinSet => 'قفل التطبيق مُفعّل.';
+
+  @override
+  String get pinChanged => 'تم تغيير رمز PIN.';
+
+  @override
+  String wrongPin(int remaining) {
+    String _temp0 = intl.Intl.pluralLogic(
+      remaining,
+      locale: localeName,
+      other: 'رمز خاطئ. بقيت $remaining محاولة قبل الانتظار.',
+      many: 'رمز خاطئ. بقيت $remaining محاولة قبل الانتظار.',
+      few: 'رمز خاطئ. بقيت $remaining محاولات قبل الانتظار.',
+      two: 'رمز خاطئ. بقيت محاولتان قبل الانتظار.',
+      one: 'رمز خاطئ. بقيت محاولة واحدة قبل الانتظار.',
+      zero: 'رمز خاطئ.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tooManyAttempts(int seconds) {
+    String _temp0 = intl.Intl.pluralLogic(
+      seconds,
+      locale: localeName,
+      other: 'محاولات خاطئة كثيرة. حاول مجددًا بعد $seconds ثانية.',
+      many: 'محاولات خاطئة كثيرة. حاول مجددًا بعد $seconds ثانية.',
+      few: 'محاولات خاطئة كثيرة. حاول مجددًا بعد $seconds ثوانٍ.',
+      two: 'محاولات خاطئة كثيرة. حاول مجددًا بعد ثانيتين.',
+      one: 'محاولات خاطئة كثيرة. حاول مجددًا بعد ثانية واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get continueAction => 'متابعة';
+
+  @override
+  String get forgotPin => 'نسيت الرمز؟';
+
+  @override
+  String get forgotPinBody =>
+      'لا يمكن استعادة رمز PIN. الطريقة الوحيدة للدخول هي مسح كل البيانات على هذا الجهاز والبدء من جديد. إذا كان لديك ملف نسخة احتياطية، يمكنك استيراده بعد ذلك.';
+
+  @override
+  String get biometricReason => 'افتح Pocket Sense';
+
+  @override
+  String get biometricUnlock => 'استخدام البصمة أو الوجه';
+
+  @override
+  String get deleteDigit => 'حذف رقم';
 }

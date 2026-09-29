@@ -1153,6 +1153,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t read the file: {error}'**
   String backupReadFailed(String error);
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @appLock.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock'**
+  String get appLock;
+
+  /// No description provided for @appLockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for a PIN when opening Pocket Sense'**
+  String get appLockSubtitle;
+
+  /// No description provided for @changePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePin;
+
+  /// No description provided for @useBiometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with fingerprint or face'**
+  String get useBiometrics;
+
+  /// No description provided for @enterPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN'**
+  String get enterPin;
+
+  /// No description provided for @enterCurrentPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current PIN'**
+  String get enterCurrentPin;
+
+  /// No description provided for @chooseNewPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a PIN (4–6 digits)'**
+  String get chooseNewPin;
+
+  /// No description provided for @confirmNewPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the PIN again'**
+  String get confirmNewPin;
+
+  /// No description provided for @pinsDontMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The PINs don\'t match. Try again.'**
+  String get pinsDontMatch;
+
+  /// No description provided for @pinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock is on.'**
+  String get pinSet;
+
+  /// No description provided for @pinChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN changed.'**
+  String get pinChanged;
+
+  /// No description provided for @wrongPin.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining, plural, =0{Wrong PIN.} =1{Wrong PIN. 1 try left before a wait.} other{Wrong PIN. {remaining} tries left before a wait.}}'**
+  String wrongPin(int remaining);
+
+  /// No description provided for @tooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds, plural, =1{Too many wrong PINs. Try again in 1 second.} other{Too many wrong PINs. Try again in {seconds} seconds.}}'**
+  String tooManyAttempts(int seconds);
+
+  /// No description provided for @continueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
+
+  /// No description provided for @forgotPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot PIN?'**
+  String get forgotPin;
+
+  /// No description provided for @forgotPinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your PIN can\'t be recovered. The only way back in is to erase all data on this device and start over. If you have a backup file, you can import it afterwards.'**
+  String get forgotPinBody;
+
+  /// No description provided for @biometricReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Pocket Sense'**
+  String get biometricReason;
+
+  /// No description provided for @biometricUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Use fingerprint or face'**
+  String get biometricUnlock;
+
+  /// No description provided for @deleteDigit.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete digit'**
+  String get deleteDigit;
 }
 
 class _AppLocalizationsDelegate
