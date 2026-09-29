@@ -1273,6 +1273,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete digit'**
   String get deleteDigit;
+
+  /// No description provided for @onboardingStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step} of {total}'**
+  String onboardingStep(int step, int total);
+
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Pocket Sense'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your finances stay on this device, encrypted. Nothing is uploaded anywhere.'**
+  String get welcomeBody;
+
+  /// No description provided for @startFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Start fresh'**
+  String get startFresh;
+
+  /// No description provided for @startFreshSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin with empty data and starter categories'**
+  String get startFreshSubtitle;
+
+  /// No description provided for @importBackupOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a backup'**
+  String get importBackupOption;
+
+  /// No description provided for @importBackupOptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore your data from a Pocket Sense backup file'**
+  String get importBackupOptionSubtitle;
+
+  /// No description provided for @backupLaterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can import or export any time in Settings → Backup.'**
+  String get backupLaterHint;
+
+  /// No description provided for @secureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your data'**
+  String get secureTitle;
+
+  /// No description provided for @secureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a PIN so only you can open Pocket Sense.'**
+  String get secureBody;
+
+  /// No description provided for @setPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a PIN'**
+  String get setPin;
+
+  /// No description provided for @skipForNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get skipForNow;
+
+  /// No description provided for @securityLaterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this any time in Settings → Security.'**
+  String get securityLaterHint;
+
+  /// No description provided for @biometricOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with fingerprint or face?'**
+  String get biometricOfferTitle;
+
+  /// No description provided for @biometricOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your fingerprint or face instead of typing the PIN. The PIN always works too.'**
+  String get biometricOfferBody;
+
+  /// No description provided for @turnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get turnOn;
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
 }
 
 class _AppLocalizationsDelegate

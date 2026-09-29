@@ -436,5 +436,32 @@
   "forgotPinBody": "Your PIN can't be recovered. The only way back in is to erase all data on this device and start over. If you have a backup file, you can import it afterwards.",
   "biometricReason": "Unlock Pocket Sense",
   "biometricUnlock": "Use fingerprint or face",
-  "deleteDigit": "Delete digit"
+  "deleteDigit": "Delete digit",
+  "onboardingStep": "Step {step} of {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeTitle": "Welcome to Pocket Sense",
+  "welcomeBody": "Your finances stay on this device, encrypted. Nothing is uploaded anywhere.",
+  "startFresh": "Start fresh",
+  "startFreshSubtitle": "Begin with empty data and starter categories",
+  "importBackupOption": "Import a backup",
+  "importBackupOptionSubtitle": "Restore your data from a Pocket Sense backup file",
+  "backupLaterHint": "You can import or export any time in Settings → Backup.",
+  "secureTitle": "Protect your data",
+  "secureBody": "Set a PIN so only you can open Pocket Sense.",
+  "setPin": "Set a PIN",
+  "skipForNow": "Skip for now",
+  "securityLaterHint": "You can change this any time in Settings → Security.",
+  "biometricOfferTitle": "Unlock with fingerprint or face?",
+  "biometricOfferBody": "Use your fingerprint or face instead of typing the PIN. The PIN always works too.",
+  "turnOn": "Turn on",
+  "notNow": "Not now"
 }

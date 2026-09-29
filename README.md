@@ -4,6 +4,9 @@ A private, offline personal finance tracker for Android and Linux, in Jordanian 
 
 ## Features
 
+**First run**
+- A two-step welcome: **import a backup** (for example from your old phone) or **start fresh**, then **set a PIN**, and on Android turn on fingerprint or face unlock. Both steps can be changed later in Settings. Erasing all data brings the welcome back.
+
 **Home**
 - Income, spending and net for this month, plus spending so far this year.
 - Daily spending chart for the last 30 days and a by-category breakdown.

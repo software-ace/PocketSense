@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'data/db_key.dart';
 import 'data/local_store.dart';
 import 'l10n/l10n.dart';
+import 'screens/onboarding_screen.dart';
 import 'security/lock_gate.dart';
 import 'settings/app_settings.dart';
 import 'shell.dart';
@@ -30,6 +31,8 @@ final _generation = ValueNotifier(0);
 
 Future<void> _eraseAndRestart() async {
   await LocalStore.eraseAll();
+  // Starting over is exactly when "Import a backup" is wanted.
+  await AppSettings.setOnboardingStep(0);
   _generation.value++;
 }
 
@@ -105,6 +108,9 @@ class _BootState extends State<Boot> {
           );
         }
         if (snap.connectionState != ConnectionState.done) return const _Splash();
+        if (AppSettings.onboardingStep < AppSettings.onboardingDone) {
+          return OnboardingScreen(onDone: () => setState(() {}));
+        }
         return const Shell();
       },
     );

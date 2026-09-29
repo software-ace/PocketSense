@@ -8,10 +8,17 @@ class AppSettings {
   AppSettings._();
 
   static const _localeKey = 'locale';
+  static const _onboardingKey = 'onboarding.step';
   static const supportedLanguages = ['en', 'ar'];
 
   /// The chosen UI language, or null to follow the system.
   static final ValueNotifier<Locale?> locale = ValueNotifier(null);
+
+  /// First-run onboarding progress: 0 = choose data, 1 = security, 2 = done.
+  /// Saved per step, so closing the app mid-way resumes where it stopped
+  /// (and "Start fresh" isn't offered again after an import).
+  static int onboardingStep = 0;
+  static const onboardingDone = 2;
 
   static final _prefs = SharedPreferencesAsync();
 
@@ -19,9 +26,15 @@ class AppSettings {
     try {
       final code = await _prefs.getString(_localeKey);
       locale.value = supportedLanguages.contains(code) ? Locale(code!) : null;
+      onboardingStep = await _prefs.getInt(_onboardingKey) ?? 0;
     } catch (_) {
-      // Unreadable preferences just mean "follow the system".
+      // Unreadable preferences: follow the system language, show onboarding.
     }
+  }
+
+  static Future<void> setOnboardingStep(int step) async {
+    onboardingStep = step;
+    await _prefs.setInt(_onboardingKey, step);
   }
 
   static Future<void> setLocale(Locale? value) async {

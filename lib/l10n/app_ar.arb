@@ -195,5 +195,22 @@
   "forgotPinBody": "لا يمكن استعادة رمز PIN. الطريقة الوحيدة للدخول هي مسح كل البيانات على هذا الجهاز والبدء من جديد. إذا كان لديك ملف نسخة احتياطية، يمكنك استيراده بعد ذلك.",
   "biometricReason": "افتح Pocket Sense",
   "biometricUnlock": "استخدام البصمة أو الوجه",
-  "deleteDigit": "حذف رقم"
+  "deleteDigit": "حذف رقم",
+  "onboardingStep": "الخطوة {step} من {total}",
+  "welcomeTitle": "مرحبًا بك في Pocket Sense",
+  "welcomeBody": "تبقى بياناتك المالية على هذا الجهاز، مشفّرة. لا يُرفع أي شيء إلى أي مكان.",
+  "startFresh": "البدء من جديد",
+  "startFreshSubtitle": "ابدأ ببيانات فارغة وفئات جاهزة",
+  "importBackupOption": "استيراد نسخة احتياطية",
+  "importBackupOptionSubtitle": "استعِد بياناتك من ملف نسخة احتياطية من Pocket Sense",
+  "backupLaterHint": "يمكنك الاستيراد أو التصدير في أي وقت من الإعدادات ← النسخ الاحتياطي.",
+  "secureTitle": "احمِ بياناتك",
+  "secureBody": "عيّن رمز PIN حتى لا يفتح Pocket Sense أحد غيرك.",
+  "setPin": "تعيين رمز PIN",
+  "skipForNow": "تخطَّ الآن",
+  "securityLaterHint": "يمكنك تغيير ذلك في أي وقت من الإعدادات ← الأمان.",
+  "biometricOfferTitle": "الفتح بالبصمة أو الوجه؟",
+  "biometricOfferBody": "استخدم بصمتك أو وجهك بدل كتابة الرمز. سيبقى الرمز يعمل دائمًا.",
+  "turnOn": "تفعيل",
+  "notNow": "ليس الآن"
 }

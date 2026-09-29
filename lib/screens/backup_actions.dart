@@ -29,34 +29,40 @@ Future<void> exportBackup(BuildContext context) async {
   }
 }
 
-Future<void> importBackup(BuildContext context) async {
+/// Returns true once a backup was imported. [confirmReplace] asks first;
+/// onboarding skips it, since there is nothing there yet to replace.
+Future<bool> importBackup(BuildContext context, {bool confirmReplace = true}) async {
   final l = context.l10n;
   final PlatformFile? file;
   try {
     file = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: const ['json']);
   } catch (e) {
     if (context.mounted) _toast(context, l.backupReadFailed('$e'));
-    return;
+    return false;
   }
-  if (file == null || !context.mounted) return;
-  final ok = await _confirm(context, l.importConfirmTitle, l.importConfirmBody, l.importAction);
-  if (ok != true || !context.mounted) return;
+  if (file == null || !context.mounted) return false;
+  if (confirmReplace) {
+    final ok = await _confirm(context, l.importConfirmTitle, l.importConfirmBody, l.importAction);
+    if (ok != true || !context.mounted) return false;
+  }
 
   final String json;
   try {
     json = utf8.decode(await file.readAsBytes());
   } on FormatException {
     if (context.mounted) _toast(context, l.backupNotJson);
-    return;
+    return false;
   } catch (e) {
     if (context.mounted) _toast(context, l.backupReadFailed('$e'));
-    return;
+    return false;
   }
   try {
     final s = await Backup.import(await LocalStore.instance(), json);
     if (context.mounted) _toast(context, l.importDone(s.categories + s.transactions + s.budgets + s.recurring));
+    return true;
   } on BackupException catch (e) {
     if (context.mounted) _toast(context, describeBackupProblem(l, e));
+    return false;
   }
 }
 

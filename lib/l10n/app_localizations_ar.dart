@@ -751,4 +751,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteDigit => 'حذف رقم';
+
+  @override
+  String onboardingStep(int step, int total) {
+    return 'الخطوة $step من $total';
+  }
+
+  @override
+  String get welcomeTitle => 'مرحبًا بك في Pocket Sense';
+
+  @override
+  String get welcomeBody =>
+      'تبقى بياناتك المالية على هذا الجهاز، مشفّرة. لا يُرفع أي شيء إلى أي مكان.';
+
+  @override
+  String get startFresh => 'البدء من جديد';
+
+  @override
+  String get startFreshSubtitle => 'ابدأ ببيانات فارغة وفئات جاهزة';
+
+  @override
+  String get importBackupOption => 'استيراد نسخة احتياطية';
+
+  @override
+  String get importBackupOptionSubtitle =>
+      'استعِد بياناتك من ملف نسخة احتياطية من Pocket Sense';
+
+  @override
+  String get backupLaterHint =>
+      'يمكنك الاستيراد أو التصدير في أي وقت من الإعدادات ← النسخ الاحتياطي.';
+
+  @override
+  String get secureTitle => 'احمِ بياناتك';
+
+  @override
+  String get secureBody => 'عيّن رمز PIN حتى لا يفتح Pocket Sense أحد غيرك.';
+
+  @override
+  String get setPin => 'تعيين رمز PIN';
+
+  @override
+  String get skipForNow => 'تخطَّ الآن';
+
+  @override
+  String get securityLaterHint =>
+      'يمكنك تغيير ذلك في أي وقت من الإعدادات ← الأمان.';
+
+  @override
+  String get biometricOfferTitle => 'الفتح بالبصمة أو الوجه؟';
+
+  @override
+  String get biometricOfferBody =>
+      'استخدم بصمتك أو وجهك بدل كتابة الرمز. سيبقى الرمز يعمل دائمًا.';
+
+  @override
+  String get turnOn => 'تفعيل';
+
+  @override
+  String get notNow => 'ليس الآن';
 }

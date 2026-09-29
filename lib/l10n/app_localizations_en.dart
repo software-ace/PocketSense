@@ -730,4 +730,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteDigit => 'Delete digit';
+
+  @override
+  String onboardingStep(int step, int total) {
+    return 'Step $step of $total';
+  }
+
+  @override
+  String get welcomeTitle => 'Welcome to Pocket Sense';
+
+  @override
+  String get welcomeBody =>
+      'Your finances stay on this device, encrypted. Nothing is uploaded anywhere.';
+
+  @override
+  String get startFresh => 'Start fresh';
+
+  @override
+  String get startFreshSubtitle =>
+      'Begin with empty data and starter categories';
+
+  @override
+  String get importBackupOption => 'Import a backup';
+
+  @override
+  String get importBackupOptionSubtitle =>
+      'Restore your data from a Pocket Sense backup file';
+
+  @override
+  String get backupLaterHint =>
+      'You can import or export any time in Settings → Backup.';
+
+  @override
+  String get secureTitle => 'Protect your data';
+
+  @override
+  String get secureBody => 'Set a PIN so only you can open Pocket Sense.';
+
+  @override
+  String get setPin => 'Set a PIN';
+
+  @override
+  String get skipForNow => 'Skip for now';
+
+  @override
+  String get securityLaterHint =>
+      'You can change this any time in Settings → Security.';
+
+  @override
+  String get biometricOfferTitle => 'Unlock with fingerprint or face?';
+
+  @override
+  String get biometricOfferBody =>
+      'Use your fingerprint or face instead of typing the PIN. The PIN always works too.';
+
+  @override
+  String get turnOn => 'Turn on';
+
+  @override
+  String get notNow => 'Not now';
 }
