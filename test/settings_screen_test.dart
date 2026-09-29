@@ -56,4 +56,16 @@ void main() {
     expect(text, contains('2026'));
     expect(text, isNot(contains('٢')));
   });
+
+  testWidgets('Settings offers backup export and import', (tester) async {
+    await openSettings(tester);
+    expect(find.widgetWithText(ListTile, 'Export data'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Import data'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ListTile, 'Export data'));
+    await tester.pumpAndSettle();
+    expect(find.text('Export an unencrypted file?'), findsOneWidget, reason: 'warns before writing plaintext');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+  });
 }

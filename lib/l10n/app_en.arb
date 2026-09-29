@@ -347,5 +347,60 @@
         "type": "String"
       }
     }
+  },
+  "backup": "Backup",
+  "exportData": "Export data",
+  "exportDataSubtitle": "Save everything to a JSON file",
+  "importData": "Import data",
+  "importDataSubtitle": "Replace everything with a backup file",
+  "exportWarningTitle": "Export an unencrypted file?",
+  "exportWarningBody": "The backup file is not encrypted. Anyone who opens it can read your finances, so keep it somewhere safe.",
+  "exportAction": "Export",
+  "exportDone": "Backup saved.",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importConfirmTitle": "Replace all data?",
+  "importConfirmBody": "Everything currently in Pocket Sense is replaced by the backup. This cannot be undone.",
+  "importAction": "Replace",
+  "importDone": "{count, plural, =1{Restored 1 record.} other{Restored {count} records.}}",
+  "@importDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupNotJson": "This file isn't valid JSON, so nothing was changed.",
+  "backupNotABackup": "This isn't a Pocket Sense backup, so nothing was changed.",
+  "backupTooNew": "This backup comes from a newer version of Pocket Sense. Update the app, then try again.",
+  "backupWrongCurrency": "This backup uses another currency ({currency}), so nothing was changed.",
+  "@backupWrongCurrency": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "backupBadData": "The backup contains invalid data, so nothing was changed. ({detail})",
+  "@backupBadData": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "backupReadFailed": "Couldn't read the file: {error}",
+  "@backupReadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }

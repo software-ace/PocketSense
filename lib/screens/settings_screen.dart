@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
 import '../settings/app_settings.dart';
+import 'backup_actions.dart';
 import 'categories_screen.dart';
 
 /// Home for app configuration. Categories live here rather than in the main
@@ -65,6 +66,19 @@ class SettingsScreen extends StatelessWidget {
             subtitle: Text(l.categoriesSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+          ),
+          header(l.backup),
+          ListTile(
+            leading: const Icon(Icons.upload_file_outlined),
+            title: Text(l.exportData),
+            subtitle: Text(l.exportDataSubtitle),
+            onTap: () => exportBackup(context),
+          ),
+          ListTile(
+            leading: const Icon(Icons.restore_page_outlined),
+            title: Text(l.importData),
+            subtitle: Text(l.importDataSubtitle),
+            onTap: () => importBackup(context),
           ),
         ],
       ),

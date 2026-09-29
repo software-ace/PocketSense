@@ -1033,6 +1033,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The microphone stopped ({detail}).'**
   String voiceMicStopped(String detail);
+
+  /// No description provided for @backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backup;
+
+  /// No description provided for @exportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export data'**
+  String get exportData;
+
+  /// No description provided for @exportDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save everything to a JSON file'**
+  String get exportDataSubtitle;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import data'**
+  String get importData;
+
+  /// No description provided for @importDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace everything with a backup file'**
+  String get importDataSubtitle;
+
+  /// No description provided for @exportWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export an unencrypted file?'**
+  String get exportWarningTitle;
+
+  /// No description provided for @exportWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file is not encrypted. Anyone who opens it can read your finances, so keep it somewhere safe.'**
+  String get exportWarningBody;
+
+  /// No description provided for @exportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportAction;
+
+  /// No description provided for @exportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved.'**
+  String get exportDone;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String exportFailed(String error);
+
+  /// No description provided for @importConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all data?'**
+  String get importConfirmTitle;
+
+  /// No description provided for @importConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything currently in Pocket Sense is replaced by the backup. This cannot be undone.'**
+  String get importConfirmBody;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get importAction;
+
+  /// No description provided for @importDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Restored 1 record.} other{Restored {count} records.}}'**
+  String importDone(int count);
+
+  /// No description provided for @backupNotJson.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t valid JSON, so nothing was changed.'**
+  String get backupNotJson;
+
+  /// No description provided for @backupNotABackup.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a Pocket Sense backup, so nothing was changed.'**
+  String get backupNotABackup;
+
+  /// No description provided for @backupTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup comes from a newer version of Pocket Sense. Update the app, then try again.'**
+  String get backupTooNew;
+
+  /// No description provided for @backupWrongCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup uses another currency ({currency}), so nothing was changed.'**
+  String backupWrongCurrency(String currency);
+
+  /// No description provided for @backupBadData.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup contains invalid data, so nothing was changed. ({detail})'**
+  String backupBadData(String detail);
+
+  /// No description provided for @backupReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read the file: {error}'**
+  String backupReadFailed(String error);
 }
 
 class _AppLocalizationsDelegate

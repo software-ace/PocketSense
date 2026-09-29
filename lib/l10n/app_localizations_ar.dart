@@ -582,4 +582,89 @@ class AppLocalizationsAr extends AppLocalizations {
   String voiceMicStopped(String detail) {
     return 'توقّف الميكروفون ($detail).';
   }
+
+  @override
+  String get backup => 'النسخ الاحتياطي';
+
+  @override
+  String get exportData => 'تصدير البيانات';
+
+  @override
+  String get exportDataSubtitle => 'حفظ كل البيانات في ملف JSON';
+
+  @override
+  String get importData => 'استيراد البيانات';
+
+  @override
+  String get importDataSubtitle => 'استبدال كل البيانات بملف نسخة احتياطية';
+
+  @override
+  String get exportWarningTitle => 'تصدير ملف غير مشفّر؟';
+
+  @override
+  String get exportWarningBody =>
+      'ملف النسخة الاحتياطية غير مشفّر، ويستطيع أي شخص يفتحه الاطلاع على بياناتك المالية، لذا احفظه في مكان آمن.';
+
+  @override
+  String get exportAction => 'تصدير';
+
+  @override
+  String get exportDone => 'حُفظت النسخة الاحتياطية.';
+
+  @override
+  String exportFailed(String error) {
+    return 'فشل التصدير: $error';
+  }
+
+  @override
+  String get importConfirmTitle => 'استبدال كل البيانات؟';
+
+  @override
+  String get importConfirmBody =>
+      'سيُستبدل كل ما في Pocket Sense حاليًا بمحتوى النسخة الاحتياطية. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get importAction => 'استبدال';
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استُعيد $count سجل.',
+      many: 'استُعيد $count سجلًا.',
+      few: 'استُعيدت $count سجلات.',
+      two: 'استُعيد سجلان.',
+      one: 'استُعيد سجل واحد.',
+      zero: 'لم يُستعد أي سجل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupNotJson =>
+      'هذا الملف ليس بصيغة JSON صحيحة، لذا لم يتغيّر شيء.';
+
+  @override
+  String get backupNotABackup =>
+      'هذا الملف ليس نسخة احتياطية من Pocket Sense، لذا لم يتغيّر شيء.';
+
+  @override
+  String get backupTooNew =>
+      'هذه النسخة الاحتياطية من إصدار أحدث من Pocket Sense. حدّث التطبيق ثم حاول مجددًا.';
+
+  @override
+  String backupWrongCurrency(String currency) {
+    return 'تستخدم هذه النسخة الاحتياطية عملة أخرى ($currency)، لذا لم يتغيّر شيء.';
+  }
+
+  @override
+  String backupBadData(String detail) {
+    return 'تحتوي النسخة الاحتياطية على بيانات غير صالحة، لذا لم يتغيّر شيء. ($detail)';
+  }
+
+  @override
+  String backupReadFailed(String error) {
+    return 'تعذّرت قراءة الملف: $error';
+  }
 }

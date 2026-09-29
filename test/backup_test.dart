@@ -1,0 +1,124 @@
+import 'dart:convert';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/data/backup.dart';
+import 'package:pocket_sense/data/local_store.dart';
+import 'package:pocket_sense/data/repo.dart';
+
+void main() {
+  late LocalStore store;
+  final repo = FinanceRepo();
+
+  setUp(() async {
+    store = await LocalStore.openInMemoryForTest();
+    LocalStore.overrideInstanceForTest(store);
+  });
+
+  Future<void> seed() async {
+    final food = await repo.insertCategory(name: 'Food', type: 'expense', color: '#22c55e');
+    final pay = await repo.insertCategory(name: 'Salary', type: 'income', color: '#16a34a');
+    await repo.insertTransaction(amountFils: 3500, type: 'expense', date: DateTime(2026, 9, 28), description: 'Lunch', merchant: 'Reem', categoryId: food);
+    await repo.insertTransaction(amountFils: 900000, type: 'income', date: DateTime(2026, 9, 25), description: 'Pay', categoryId: pay);
+    await repo.insertBudget(categoryId: food, limitFils: 100000, period: 'weekly');
+    await repo.insertRecurring(description: 'Rent', amountFils: 350000, frequency: 'monthly', anchorDate: DateTime(2026, 10, 1));
+  }
+
+  Future<Map<String, List<Map<String, Object?>>>> dump(LocalStore s) async => {
+        for (final t in ['categories', 'transactions', 'budgets', 'recurring_expenses']) t: await s.db.query(t, orderBy: 'id'),
+      };
+
+  Map<String, dynamic> decode(String json) => jsonDecode(json) as Map<String, dynamic>;
+
+  test('export then import into an empty database restores every row exactly', () async {
+    await seed();
+    final json = await Backup.export(store, now: DateTime.utc(2026, 9, 29));
+    final doc = decode(json);
+    expect(doc['format'], 'pocketsense-backup');
+    expect(doc['version'], 1);
+    expect(doc['currency'], 'JOD');
+    expect(doc['exported_at'], '2026-09-29T00:00:00.000Z');
+
+    final fresh = await LocalStore.openInMemoryForTest();
+    final summary = await Backup.import(fresh, json);
+    expect(summary, (categories: 2, transactions: 2, budgets: 1, recurring: 1));
+    expect(await dump(fresh), await dump(store));
+  });
+
+  test('import replaces what was there and notifies listeners', () async {
+    await seed();
+    final json = await Backup.export(store);
+    await repo.insertTransaction(amountFils: 1, type: 'expense', date: DateTime(2026, 9, 29), description: 'after export');
+    var notified = 0;
+    store.changes.addListener(() => notified++);
+
+    await Backup.import(store, json);
+
+    expect((await repo.transactions()).map((t) => t.description), isNot(contains('after export')));
+    expect(await repo.transactions(), hasLength(2));
+    expect(notified, 1);
+  });
+
+  group('refuses', () {
+    Future<void> expectProblem(String json, BackupProblem problem) async {
+      await seed();
+      final before = await dump(store);
+      await expectLater(Backup.import(store, json), throwsA(isA<BackupException>().having((e) => e.problem, 'problem', problem)));
+      expect(await dump(store), before, reason: 'a refused file must leave the data untouched');
+    }
+
+    Map<String, dynamic> valid() => {
+          'format': 'pocketsense-backup',
+          'version': 1,
+          'currency': 'JOD',
+          'tables': {
+            'categories': [
+              {'id': 1, 'name': 'Food', 'type': 'expense', 'color': '#000000'},
+            ],
+            'transactions': [
+              {'id': 2, 'amount_fils': 500, 'type': 'expense', 'date': '2026-09-01', 'description': 'x', 'category_id': 1},
+            ],
+          },
+        };
+
+    test('corrupt JSON', () => expectProblem('{"format": "pocketsense-b', BackupProblem.notJson));
+    test('some other JSON file', () => expectProblem('{"hello": "world"}', BackupProblem.notABackup));
+    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 2), BackupProblem.tooNew));
+    test('another currency', () => expectProblem(jsonEncode(valid()..['currency'] = 'USD'), BackupProblem.wrongCurrency));
+
+    test('a row missing a required column', () {
+      final doc = valid();
+      ((doc['tables'] as Map)['transactions'] as List).first.remove('amount_fils');
+      return expectProblem(jsonEncode(doc), BackupProblem.badData);
+    });
+
+    test('a non-integer amount', () {
+      final doc = valid();
+      ((doc['tables'] as Map)['transactions'] as List).first['amount_fils'] = '12.5';
+      return expectProblem(jsonEncode(doc), BackupProblem.badData);
+    });
+
+    test('a budget for a category that is not in the file (rolled back)', () {
+      final doc = valid();
+      (doc['tables'] as Map)['budgets'] = [
+        {'id': 3, 'category_id': 999, 'limit_fils': 1000},
+      ];
+      return expectProblem(jsonEncode(doc), BackupProblem.badData);
+    });
+  });
+
+  test('columns this version does not know are ignored', () async {
+    final json = jsonEncode({
+      'format': 'pocketsense-backup',
+      'version': 1,
+      'currency': 'JOD',
+      'tables': {
+        'categories': [
+          {'id': 1, 'name': 'Food', 'type': 'expense', 'color': '#000000', 'emoji': '🍔'},
+        ],
+      },
+    });
+    final summary = await Backup.import(store, json);
+    expect(summary.categories, 1);
+    expect((await repo.categories()).single.name, 'Food');
+  });
+}

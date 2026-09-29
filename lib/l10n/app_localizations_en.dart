@@ -571,4 +571,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String voiceMicStopped(String detail) {
     return 'The microphone stopped ($detail).';
   }
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get exportData => 'Export data';
+
+  @override
+  String get exportDataSubtitle => 'Save everything to a JSON file';
+
+  @override
+  String get importData => 'Import data';
+
+  @override
+  String get importDataSubtitle => 'Replace everything with a backup file';
+
+  @override
+  String get exportWarningTitle => 'Export an unencrypted file?';
+
+  @override
+  String get exportWarningBody =>
+      'The backup file is not encrypted. Anyone who opens it can read your finances, so keep it somewhere safe.';
+
+  @override
+  String get exportAction => 'Export';
+
+  @override
+  String get exportDone => 'Backup saved.';
+
+  @override
+  String exportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get importConfirmTitle => 'Replace all data?';
+
+  @override
+  String get importConfirmBody =>
+      'Everything currently in Pocket Sense is replaced by the backup. This cannot be undone.';
+
+  @override
+  String get importAction => 'Replace';
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Restored $count records.',
+      one: 'Restored 1 record.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupNotJson =>
+      'This file isn\'t valid JSON, so nothing was changed.';
+
+  @override
+  String get backupNotABackup =>
+      'This isn\'t a Pocket Sense backup, so nothing was changed.';
+
+  @override
+  String get backupTooNew =>
+      'This backup comes from a newer version of Pocket Sense. Update the app, then try again.';
+
+  @override
+  String backupWrongCurrency(String currency) {
+    return 'This backup uses another currency ($currency), so nothing was changed.';
+  }
+
+  @override
+  String backupBadData(String detail) {
+    return 'The backup contains invalid data, so nothing was changed. ($detail)';
+  }
+
+  @override
+  String backupReadFailed(String error) {
+    return 'Couldn\'t read the file: $error';
+  }
 }
