@@ -33,18 +33,19 @@ void main() {
 
     test('posting an income item records an income transaction', () async {
       await repo.insertRecurring(description: 'Salary', amountFils: 300000, type: 'income', frequency: 'monthly', anchorDate: DateTime(2026, 9, 25));
-      await repo.postRecurring((await repo.recurring()).single);
+      await repo.postRecurring((await repo.recurring()).single, description: 'x (recurring)', note: 'note');
 
       final tx = (await repo.transactions()).single;
       expect(tx.type, 'income');
       expect(tx.amountFils, 300000);
+      expect(tx.description, 'x (recurring)', reason: 'the screen supplies the text, in the UI language');
       expect(tx.createdAt, isNotNull, reason: 'Home shows the entry time from created_at');
       expect((await repo.recurring()).single.lastPosted, isNotNull);
     });
 
     test('posting an expense item still records an expense', () async {
       await repo.insertRecurring(description: 'Internet', amountFils: 2500, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1));
-      await repo.postRecurring((await repo.recurring()).single);
+      await repo.postRecurring((await repo.recurring()).single, description: 'x (recurring)', note: 'note');
       expect((await repo.transactions()).single.type, 'expense');
     });
   });

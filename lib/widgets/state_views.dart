@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
+
 /// Centered spinner shown while a page loads its data.
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
@@ -48,11 +50,11 @@ class ErrorView extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.cloud_off, size: 56, color: Colors.redAccent),
           const SizedBox(height: 16),
-          Text('Could not load', style: Theme.of(context).textTheme.titleMedium),
+          Text(context.l10n.couldNotLoad, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16),
-          FilledButton.tonal(onPressed: onRetry, child: const Text('Retry')),
+          FilledButton.tonal(onPressed: onRetry, child: Text(context.l10n.retry)),
         ]),
       ),
     );

@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/voice/speech_engine.dart';
 import 'package:pocket_sense/widgets/voice_entry_sheet.dart';
 
+import 'helpers/localized_app.dart';
+
 /// Scripted recognizer: the test decides when words arrive and how it ends.
 class FakeEngine implements SpeechEngine {
   final calls = <String>[];
@@ -55,8 +57,8 @@ void main() {
   });
 
   Future<void> open(WidgetTester t) async {
-    await t.pumpWidget(MaterialApp(
-      home: Builder(
+    await t.pumpWidget(localizedApp(
+      Builder(
         builder: (c) => TextButton(onPressed: () async => result = await showVoiceEntrySheet(c, engine: engine), child: const Text('open')),
       ),
     ));

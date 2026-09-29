@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
+import 'package:pocket_sense/models/default_categories.dart';
 
 void main() {
   test('a new database is seeded with the starter categories', () async {

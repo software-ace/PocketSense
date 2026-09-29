@@ -2,9 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../data/repo.dart';
+import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
@@ -27,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   ({int income, int expense})? _month;
   ({int income, int expense})? _year;
   List<Transaction> _recent = [];
-  List<({String label, int fils, String? color})> _byCategory = [];
+  List<({String? label, int fils, String? color})> _byCategory = [];
   List<({DateTime day, int fils})> _daily = [];
 
   @override
@@ -63,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _month = results[0] as ({int income, int expense});
         _year = results[1] as ({int income, int expense});
         _recent = results[2] as List<Transaction>;
-        _byCategory = results[3] as List<({String label, int fils, String? color})>;
+        _byCategory = results[3] as List<({String? label, int fils, String? color})>;
         _daily = results[4] as List<({DateTime day, int fils})>;
         _loading = false;
       });
@@ -80,9 +81,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final desktop = PlatformUi.isDesktop(context);
+    final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false, actions: const [SettingsButton()]),
+      appBar: AppBar(title: Text(desktop ? l.navOverview : l.navHome), centerTitle: false, actions: const [SettingsButton()]),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: CustomScrollView(
@@ -109,10 +111,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                       crossAxisSpacing: 12,
                       childAspectRatio: desktop ? 2.4 : 1.8,
                       children: [
-                        _statCard(theme, 'Income (mo)', formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
-                        _statCard(theme, 'Spent (mo)', formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
-                        _statCard(theme, 'Net (mo)', formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
-                        _statCard(theme, 'Year total', formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
+                        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
+                        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
+                        _statCard(theme, l.statNetMonth, formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
+                        _statCard(theme, l.statYearTotal, formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
                       ],
                     );
                   },
@@ -129,9 +131,9 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 3, child: _chartCard(theme, 'Daily Spending (30d)', _buildLineChart())),
+                      Expanded(flex: 3, child: _chartCard(theme, l.chartDaily, _buildLineChart())),
                       const SizedBox(width: 16),
-                      Expanded(flex: 2, child: _chartCard(theme, 'By Category (30d)', _buildPieChart())),
+                      Expanded(flex: 2, child: _chartCard(theme, l.chartByCategory, _buildPieChart())),
                     ],
                   ),
                 ),
@@ -140,14 +142,14 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                  child: _chartCard(theme, 'Daily Spending (30d)', _buildLineChart()),
+                  child: _chartCard(theme, l.chartDaily, _buildLineChart()),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                  child: _chartCard(theme, 'By Category (30d)', _buildPieChart()),
+                  child: _chartCard(theme, l.chartByCategory, _buildPieChart()),
                 ),
               ),
             ],
@@ -158,13 +160,13 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
               child: Padding(
                 padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 0, PlatformUi.hPadding(context), 8),
                 child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Recent Activity', style: theme.textTheme.titleMedium),
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(l.recentActivity, style: theme.textTheme.titleMedium),
                 ),
               ),
             ),
             if (_recent.isEmpty)
-              const SliverToBoxAdapter(child: EmptyView(icon: Icons.receipt_long, title: 'No transactions yet'))
+              SliverToBoxAdapter(child: EmptyView(icon: Icons.receipt_long, title: l.noTransactionsYet))
             else
               SliverList(
                 delegate: SliverChildBuilderDelegate(
@@ -220,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   }
 
   Widget _buildLineChart() {
-    if (_daily.isEmpty) return const Center(child: Text('No data'));
+    if (_daily.isEmpty) return Center(child: Text(context.l10n.noData));
     final spots = List.generate(_daily.length, (i) => FlSpot(i.toDouble(), _daily[i].fils / 1000));
     final maxFils = _daily.fold<int>(0, (a, b) => b.fils > a ? b.fils : a);
     // ~4 gridlines on a 1/2/5 step, with the top snapped to a step multiple.
@@ -229,7 +231,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     final maxY = ((maxFils / 1000) * 1.1 / step).ceil().clamp(1, 1 << 30) * step;
     final lastIdx = (_daily.length - 1).toDouble();
 
-    return LineChart(
+    // Axes stay left-to-right in Arabic too: days and amounts read that way.
+    return Directionality(textDirection: TextDirection.ltr, child: LineChart(
       LineChartData(
         minY: 0,
         maxY: maxY,
@@ -277,7 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           ),
         ],
       ),
-    );
+    ));
   }
 
   static double _niceStep(double raw) {
@@ -288,9 +291,9 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   }
 
   Widget _buildPieChart() {
-    if (_byCategory.isEmpty) return const Center(child: Text('No expenses yet'));
+    if (_byCategory.isEmpty) return Center(child: Text(context.l10n.noExpensesYet));
     final totalFils = _byCategory.fold<int>(0, (a, b) => a + b.fils);
-    if (totalFils == 0) return const Center(child: Text('No expenses yet'));
+    if (totalFils == 0) return Center(child: Text(context.l10n.noExpensesYet));
 
     final sections = _byCategory.asMap().entries.map((e) {
       final item = e.value;
@@ -329,7 +332,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                 children: [
                   Container(width: 10, height: 10, decoration: BoxDecoration(color: _hex(c.color), borderRadius: BorderRadius.circular(3))),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(c.label, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+                  Expanded(child: Text(c.label ?? context.l10n.uncategorized, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
                   Text(formatMoney(c.fils), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               );
@@ -361,7 +364,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     final color = _hex(t.categoryColor);
     return ListTile(
       leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: color, fontSize: 14))),
-      title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? 'Transaction'), style: const TextStyle(fontSize: 14)),
+      title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? context.l10n.transactionFallback), style: const TextStyle(fontSize: 14)),
       subtitle: Text(_when(t), style: const TextStyle(fontSize: 12)),
       trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: t.type == 'income' ? Colors.green : null)),
     );

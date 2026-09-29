@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../voice/desktop_speech_engine.dart' show SpeechModel;
 import '../voice/speech_engine.dart';
 
@@ -10,7 +11,7 @@ export '../voice/speech_engine.dart' show voiceEntrySupported;
 Future<String?> showVoiceEntrySheet(BuildContext context, {SpeechEngine? engine}) => showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
-      builder: (_) => _VoiceEntrySheet(engine ?? createSpeechEngine()),
+      builder: (_) => _VoiceEntrySheet(engine ?? createSpeechEngine(context.l10n)),
     );
 
 class _VoiceEntrySheet extends StatefulWidget {
@@ -91,6 +92,7 @@ class _VoiceEntrySheetState extends State<_VoiceEntrySheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final l = context.l10n;
     // Scrolls rather than overflows: sheets are capped at 9/16 of the window,
     // and a short desktop window can't fit the download state.
     return SafeArea(
@@ -98,13 +100,13 @@ class _VoiceEntrySheetState extends State<_VoiceEntrySheet> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(_download != null ? 'Downloading speech model…' : _listening ? 'Listening…' : (_problem == null ? 'Starting…' : 'Voice entry'),
+            Text(_download != null ? l.voiceDownloading : _listening ? l.voiceListening : (_problem == null ? l.voiceStarting : l.voiceTitle),
                 style: theme.textTheme.titleMedium),
             const SizedBox(height: 20),
             if (_download != null) ...[
               LinearProgressIndicator(value: _download),
               const SizedBox(height: 12),
-              Text('One-time download, about ${(SpeechModel.totalBytes / 1e6).round()} MB. After this, voice entry works offline.',
+              Text(l.voiceDownloadNote((SpeechModel.totalBytes / 1e6).round()),
                   textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.outline)),
               const SizedBox(height: 20),
             ],
@@ -128,16 +130,16 @@ class _VoiceEntrySheetState extends State<_VoiceEntrySheet> {
             else if (_heard.isNotEmpty)
               Text('"$_heard"', textAlign: TextAlign.center, style: theme.textTheme.titleMedium)
             else
-              Text('Try: "Spent 12.50 on lunch at Subway"\n"Received 500 from Acme yesterday"',
+              Text(l.voiceHint,
                   textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.outline)),
             const SizedBox(height: 20),
             Row(children: [
-              Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel'))),
+              Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(l.cancel))),
               const SizedBox(width: 12),
               Expanded(
                 child: FilledButton(
                   onPressed: _download != null ? null : (_listening || _heard.isNotEmpty ? _finish : _start),
-                  child: Text(_listening || _heard.isNotEmpty ? 'Done' : 'Try again'),
+                  child: Text(_listening || _heard.isNotEmpty ? l.done : l.tryAgain),
                 ),
               ),
             ]),

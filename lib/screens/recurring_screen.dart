@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
+import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
@@ -65,14 +66,15 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
 
   Future<void> _post(RecurringExpense r) async {
     try {
-      await _repo.postRecurring(r);
+      final l = context.l10n;
+      await _repo.postRecurring(r, description: l.recurringSuffix(r.description), note: l.recurringNote(r.description));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Posted "${r.description}" as a transaction')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.postedAsTransaction(r.description))));
       await _load();
     } catch (e, st) {
       debugPrint('postRecurring error: $e\n$st');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Post failed: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.postFailed('$e')), backgroundColor: Colors.red));
     }
   }
 
@@ -80,11 +82,11 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete "${r.description}"?'),
-        content: const Text('This recurring item will be removed. This cannot be undone.'),
+        title: Text(ctx.l10n.deleteNamedTitle(r.description)),
+        content: Text(ctx.l10n.deleteRecurringBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -93,7 +95,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
       await _repo.deleteRecurring(r.id);
       if (mounted) await _load();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }
   }
 
@@ -101,10 +103,11 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final desktop = PlatformUi.isDesktop(context);
+    final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recurring'), actions: const [SettingsButton()]),
-      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
+      appBar: AppBar(title: Text(l.navRecurring), actions: const [SettingsButton()]),
+      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: _loading
@@ -116,13 +119,13 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
                       Padding(
                         padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 8, PlatformUi.hPadding(context), 0),
                         child: Row(children: [
-                          Expanded(child: Text('${_items.length} recurring items', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
-                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: const Text('New recurring')),
+                          Expanded(child: Text(l.recurringCount(_items.length), style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
+                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: Text(l.newRecurring)),
                         ]),
                       ),
                     Expanded(
                       child: _items.isEmpty
-                          ? Center(child: EmptyView(icon: Icons.repeat, title: 'No recurring items', subtitle: 'Add salary, rent, subscriptions, and bills to see what is coming up.'))
+                          ? Center(child: EmptyView(icon: Icons.repeat, title: l.noRecurring, subtitle: l.noRecurringHint))
                           : desktop
                               ? _buildTable(theme)
                               : ListView.builder(
@@ -137,6 +140,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
   }
 
   Widget _buildTable(ThemeData theme) {
+    final l = context.l10n;
     return SingleChildScrollView(
       padding: EdgeInsets.all(PlatformUi.hPadding(context)),
       child: Card(
@@ -145,13 +149,13 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
           headingRowHeight: 44,
           dataRowMinHeight: 52,
           dataRowMaxHeight: 60,
-          columns: const [
-            DataColumn(label: Text('Description')),
-            DataColumn(label: Text('Frequency')),
-            DataColumn(label: Text('Category')),
-            DataColumn(label: Align(alignment: Alignment.centerRight, child: Text('Amount'))),
-            DataColumn(label: Text('Next Due')),
-            DataColumn(label: Text('Status')),
+          columns: [
+            DataColumn(label: Text(l.description)),
+            DataColumn(label: Text(l.frequency)),
+            DataColumn(label: Text(l.category)),
+            DataColumn(label: Align(alignment: AlignmentDirectional.centerEnd, child: Text(l.amount))),
+            DataColumn(label: Text(l.nextDue)),
+            DataColumn(label: Text(l.status)),
             DataColumn(label: SizedBox(width: 64)),
           ],
           rows: _items.map((r) {
@@ -160,10 +164,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             final overdue = days < 0;
             return DataRow(cells: [
               DataCell(Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
-              DataCell(Text(formatFrequency(r.frequency), style: const TextStyle(fontSize: 13))),
+              DataCell(Text(formatFrequency(l, r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
-              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
-              DataCell(Text(r.active ? _fmtDate(next) : '—', style: const TextStyle(fontSize: 13))),
+              DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
+              DataCell(Text(r.active ? DateFormat.yMMMd().format(next) : '—', style: const TextStyle(fontSize: 13))),
               DataCell(r.active
                   ? Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -172,19 +176,19 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        overdue ? 'Overdue ${-days}d' : (days == 0 ? 'Today' : 'In $days d'),
+                        overdue ? l.overdueDays(-days) : (days == 0 ? l.dueToday : l.dueInDays(days)),
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: overdue ? Colors.red.shade900 : (days <= 7 ? Colors.orange.shade900 : Colors.green.shade900)),
                       ),
                     )
                   : Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6)),
-                      child: Text('Inactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: theme.colorScheme.outline)),
+                      child: Text(l.inactive, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: theme.colorScheme.outline)),
                     )),
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
-                IconButton(icon: const Icon(Icons.play_arrow_rounded, size: 20), tooltip: 'Post as transaction', visualDensity: VisualDensity.compact, onPressed: () => _post(r)),
-                IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: 'Edit', visualDensity: VisualDensity.compact, onPressed: () => _edit(r)),
-                IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), tooltip: 'Delete', visualDensity: VisualDensity.compact, onPressed: () => _delete(r)),
+                IconButton(icon: const Icon(Icons.play_arrow_rounded, size: 20), tooltip: l.postAsTransaction, visualDensity: VisualDensity.compact, onPressed: () => _post(r)),
+                IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: l.edit, visualDensity: VisualDensity.compact, onPressed: () => _edit(r)),
+                IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), tooltip: l.delete, visualDensity: VisualDensity.compact, onPressed: () => _delete(r)),
               ])),
             ]);
           }).toList(),
@@ -198,6 +202,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
     final days = daysUntil(next);
     final overdue = days < 0;
     final opacity = r.active ? 1.0 : 0.5;
+    final l = context.l10n;
     return Opacity(
       opacity: opacity,
       child: Card(
@@ -210,19 +215,19 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             Expanded(child: Text(r.description)),
             if (!r.active) ...[
               const SizedBox(width: 6),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4)), child: Text('Inactive', style: theme.textTheme.labelSmall?.copyWith(fontSize: 10))),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4)), child: Text(l.inactive, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10))),
             ],
           ]),
-          subtitle: Text('${formatFrequency(r.frequency)} · ${r.categoryName ?? ''}'.trim()),
+          subtitle: Text([formatFrequency(l, r.frequency), ?r.categoryName].join(' · ')),
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
             if (r.active)
               Text(
-                overdue ? 'Overdue by ${-days}d' : (days == 0 ? 'Due today' : 'Due in $days d'),
+                overdue ? l.overdueDays(-days) : (days == 0 ? l.dueToday : l.dueInDays(days)),
                 style: theme.textTheme.bodySmall?.copyWith(color: overdue ? Colors.redAccent : theme.colorScheme.outline),
               )
             else
-              Text('Paused', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+              Text(l.paused, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
           ]),
         ),
       ),
@@ -234,31 +239,18 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(leading: const Icon(Icons.play_arrow_rounded), title: const Text('Post as transaction'), subtitle: const Text('Records it today in Activity'), onTap: () { Navigator.pop(ctx); _post(r); }),
-          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('Edit'), onTap: () { Navigator.pop(ctx); _edit(r); }),
-          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: const Text('Delete', style: TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(r); }),
+          ListTile(leading: const Icon(Icons.play_arrow_rounded), title: Text(ctx.l10n.postAsTransaction), subtitle: Text(ctx.l10n.postAsTransactionHint), onTap: () { Navigator.pop(ctx); _post(r); }),
+          ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), onTap: () { Navigator.pop(ctx); _edit(r); }),
+          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(r); }),
         ]),
       ),
     );
   }
 
   bool _isIncome(RecurringExpense r) => r.type == 'income';
-
-  String _fmtDate(DateTime d) {
-    final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${months[d.month - 1]} ${d.day}, ${d.year}';
-  }
 }
 
 // ── Dialog ────────────────────────────────────────────────────────────────
-
-const _freqs = [
-  ('weekly', 'Weekly'),
-  ('biweekly', 'Bi-weekly'),
-  ('monthly', 'Monthly'),
-  ('quarterly', 'Quarterly'),
-  ('yearly', 'Yearly'),
-];
 
 class _RecurringDialog extends StatefulWidget {
   final RecurringExpense? existing;
@@ -288,7 +280,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
       initialDate: _anchor,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      helpText: 'First due date',
+      helpText: context.l10n.firstDueDate,
     );
     if (picked != null) setState(() => _anchor = picked);
   }
@@ -322,7 +314,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.saveFailed('$e'))));
     }
   }
 
@@ -330,16 +322,17 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final typeCats = widget.cats.where((c) => c.type == _type).toList();
+    final l = context.l10n;
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New recurring item' : 'Edit recurring item'),
+      title: Text(widget.existing == null ? l.newRecurringItem : l.editRecurringItem),
       content: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'expense', label: Text('Expense'), icon: Icon(Icons.arrow_downward, size: 16)),
-                ButtonSegment(value: 'income', label: Text('Income'), icon: Icon(Icons.arrow_upward, size: 16)),
+              segments: [
+                ButtonSegment(value: 'expense', label: Text(l.expense), icon: const Icon(Icons.arrow_downward, size: 16)),
+                ButtonSegment(value: 'income', label: Text(l.income), icon: const Icon(Icons.arrow_upward, size: 16)),
               ],
               selected: {_type},
               onSelectionChanged: (sel) => setState(() {
@@ -350,14 +343,14 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _descCtrl, autofocus: widget.existing == null, decoration: const InputDecoration(labelText: 'Description'), onSubmitted: (_) => _save()),
+          TextField(controller: _descCtrl, autofocus: widget.existing == null, decoration: InputDecoration(labelText: l.description), onSubmitted: (_) => _save()),
           const SizedBox(height: 16),
-          AmountField(controller: _amtCtrl, label: 'Amount'),
+          AmountField(controller: _amtCtrl, label: l.amount),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: _freq,
-            decoration: const InputDecoration(labelText: 'Frequency'),
-            items: _freqs.map((f) => DropdownMenuItem(value: f.$1, child: Text(f.$2))).toList(),
+            decoration: InputDecoration(labelText: l.frequency),
+            items: frequencies.map((f) => DropdownMenuItem(value: f, child: Text(formatFrequency(l, f)))).toList(),
             onChanged: (v) => setState(() => _freq = v!),
           ),
           const SizedBox(height: 16),
@@ -365,8 +358,8 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             onTap: _pickAnchor,
             borderRadius: BorderRadius.circular(4),
             child: InputDecorator(
-              decoration: const InputDecoration(labelText: 'First due date', suffixIcon: Icon(Icons.calendar_today_outlined, size: 18)),
-              child: Text(DateFormat('MMM d, y').format(_anchor)),
+              decoration: InputDecoration(labelText: l.firstDueDate, suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18)),
+              child: Text(DateFormat.yMMMd().format(_anchor)),
             ),
           ),
           const SizedBox(height: 16),
@@ -374,21 +367,21 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             // Keyed by type so the field resets when the category list changes.
             key: ValueKey(_type),
             initialValue: typeCats.any((c) => c.id == _catId) ? _catId : null,
-            decoration: const InputDecoration(labelText: 'Category (optional)'),
+            decoration: InputDecoration(labelText: l.categoryOptional),
             items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _merchCtrl, decoration: const InputDecoration(labelText: 'Merchant (optional)')),
+          TextField(controller: _merchCtrl, decoration: InputDecoration(labelText: l.merchantOptional)),
           const SizedBox(height: 16),
-          TextField(controller: _notesCtrl, decoration: const InputDecoration(labelText: 'Notes (optional)', hintText: 'Any extra details…')),
+          TextField(controller: _notesCtrl, decoration: InputDecoration(labelText: l.notesOptional, hintText: l.notesHint)),
           if (widget.existing != null) ...[
             const SizedBox(height: 16),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.power_settings_new),
-              title: const Text('Active'),
-              subtitle: Text(widget.existing!.active ? 'Showing in list' : 'Hidden from list', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+              title: Text(l.active),
+              subtitle: Text(widget.existing!.active ? l.showingInList : l.hiddenFromList, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
               value: _active,
               onChanged: (v) => setState(() => _active = v),
             ),
@@ -396,10 +389,10 @@ class _RecurringDialogState extends State<_RecurringDialog> {
         ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
         FilledButton(
           onPressed: _saving ? null : _save,
-          child: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
+          child: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Text(l.save),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../l10n/app_localizations.dart';
 import 'desktop_speech_engine.dart';
 
 /// Hears one spoken sentence at a time. The voice sheet drives it and doesn't
@@ -32,10 +33,16 @@ abstract class SpeechEngine {
 /// Android uses the phone's recognizer; Linux uses the bundled offline model.
 bool get voiceEntrySupported => Platform.isAndroid || Platform.isLinux;
 
-SpeechEngine createSpeechEngine() => Platform.isAndroid ? AndroidSpeechEngine() : DesktopSpeechEngine();
+/// [l10n] words the problems an engine reports to the user.
+SpeechEngine createSpeechEngine(AppLocalizations l10n) =>
+    Platform.isAndroid ? AndroidSpeechEngine(l10n) : DesktopSpeechEngine(l10n: l10n);
 
 /// The phone's own recognizer, through speech_to_text.
 class AndroidSpeechEngine implements SpeechEngine {
+  AndroidSpeechEngine(this._l);
+
+  final AppLocalizations _l;
+
   // One recognizer for the app; initialize() is only allowed to succeed once.
   static final SpeechToText _speech = SpeechToText();
 
@@ -50,20 +57,18 @@ class AndroidSpeechEngine implements SpeechEngine {
       onError: (e) {
         _onListening?.call(false);
         _onProblem?.call(switch (e.errorMsg) {
-          'error_no_match' || 'error_speech_timeout' => "Didn't catch that. Tap the mic and try again.",
-          'error_permission' => _permissionOff,
+          'error_no_match' || 'error_speech_timeout' => _l.voiceDidntCatch,
+          'error_permission' => _l.voiceMicPermissionOff,
           'error_network' || 'error_network_timeout' || 'error_server' || 'error_server_disconnected' ||
           'error_language_not_supported' || 'error_language_unavailable' =>
-            'Speech recognition needs a connection on this phone, or an offline speech pack for your language.',
-          _ => 'Speech recognition failed (${e.errorMsg}).',
+            _l.voiceNeedsConnection,
+          _ => _l.voiceFailed(e.errorMsg),
         });
       },
     );
     if (ok) return null;
-    return await _speech.hasPermission ? "Speech recognition isn't available on this phone." : _permissionOff;
+    return await _speech.hasPermission ? _l.voiceUnavailable : _l.voiceMicPermissionOff;
   }
-
-  static const _permissionOff = 'Microphone permission is off. Allow it in Settings → Apps → Pocket Sense.';
 
   @override
   Future<void> listen({
@@ -80,6 +85,9 @@ class AndroidSpeechEngine implements SpeechEngine {
         if (r.finalResult && r.recognizedWords.trim().isNotEmpty) onFinal(r.recognizedWords.trim());
       },
       listenOptions: SpeechListenOptions(
+        // The sentence parser understands English only, so ask for English
+        // even on a phone set to Arabic.
+        localeId: 'en_US',
         partialResults: true,
         cancelOnError: true,
         listenMode: ListenMode.dictation,

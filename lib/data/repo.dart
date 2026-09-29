@@ -343,8 +343,9 @@ class FinanceRepo {
     await store.updateRow('recurring_expenses', id, values);
   }
 
-  /// Record this recurring expense as a transaction dated today, then advance last_posted.
-  Future<void> postRecurring(RecurringExpense r) async {
+  /// Record this recurring expense as a transaction dated today, then advance
+  /// last_posted. [description] and [note] come from the UI, in its language.
+  Future<void> postRecurring(RecurringExpense r, {required String description, required String note}) async {
     final store = await _db;
     final today = DateTime.now();
     final txId = newRowId();
@@ -352,10 +353,10 @@ class FinanceRepo {
       'id': txId,
       'amount_fils': r.amountFils,
       'type': r.type,
-      'description': '${r.description} (recurring)',
+      'description': description,
       'date': _isoDate(today),
       'source': 'manual',
-      'notes': 'Auto-posted from recurring ${r.type} "${r.description}"',
+      'notes': note,
       'created_at': LocalStore.nowIso(),
       'updated_at': LocalStore.nowIso(),
     };
@@ -383,19 +384,15 @@ class FinanceRepo {
     return (income: sum(inc), expense: sum(exp));
   }
 
-  /// Expense fils grouped by category name within [from],[to].
-  Future<List<({String label, int fils, String? color})>> spendingByCategory(
+  /// Expense fils grouped by category within [from],[to]. Uncategorized
+  /// spending has a null label; the screen names it in the UI language.
+  Future<List<({String? label, int fils, String? color})>> spendingByCategory(
       DateTime from, DateTime to) async {
     final txs = await transactions(from: from, to: to, type: 'expense', limit: 1000);
-    final map = <String, ({String label, int fils, String? color})>{};
+    final map = <int?, ({String? label, int fils, String? color})>{};
     for (final t in txs) {
-      final name = t.categoryName ?? 'Uncategorized';
-      final existing = map[name];
-      if (existing == null) {
-        map[name] = (label: name, fils: t.amountFils, color: t.categoryColor);
-      } else {
-        map[name] = (label: name, fils: existing.fils + t.amountFils, color: t.categoryColor);
-      }
+      final existing = map[t.categoryId];
+      map[t.categoryId] = (label: t.categoryName, fils: (existing?.fils ?? 0) + t.amountFils, color: t.categoryColor);
     }
     return map.values.toList()..sort((a, b) => b.fils.compareTo(a.fils));
   }

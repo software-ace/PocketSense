@@ -41,6 +41,9 @@ dependencies:
   record: ^7.1.1
   sqflite_sqlcipher: ^3.4.1
   flutter_secure_storage: ^11.2.0
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -52,12 +55,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  shared_preferences_platform_interface: ^2.4.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -66,6 +71,16 @@ flutter:
 
   assets:
     - assets/splash_icon.png
+
+  # Arabic UI font (SIL OFL 1.1, see assets/fonts/OFL.txt). Bundled because
+  # many Linux installs have no good Arabic font; used as a fallback, so
+  # Latin text keeps the platform font.
+  fonts:
+    - family: NotoSansArabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic-Regular.ttf
+        - asset: assets/fonts/NotoSansArabic-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

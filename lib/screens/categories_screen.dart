@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/repo.dart';
+import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
@@ -86,11 +87,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete "${c.name}"?'),
-        content: const Text('Transactions tagged with this category will become uncategorized. Budgets for it will be removed. This cannot be undone.'),
+        title: Text(ctx.l10n.deleteNamedTitle(c.name)),
+        content: Text(ctx.l10n.deleteCategoryBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -100,7 +101,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }
   }
 
@@ -109,10 +110,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     final theme = Theme.of(context);
     final desktop = PlatformUi.isDesktop(context);
     final pad = PlatformUi.hPadding(context);
+    final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
-      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
+      appBar: AppBar(title: Text(l.categories)),
+      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: _loading
@@ -129,10 +131,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
                           isScrollable: false,
                           dividerHeight: 0,
                           indicatorSize: TabBarIndicatorSize.label,
-                          tabs: const [
-                            Tab(text: 'All'),
-                            Tab(text: 'Expense'),
-                            Tab(text: 'Income'),
+                          tabs: [
+                            Tab(text: l.all),
+                            Tab(text: l.expense),
+                            Tab(text: l.income),
                           ],
                         ),
                       ),
@@ -141,13 +143,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
                       Padding(
                         padding: EdgeInsets.fromLTRB(pad, 8, pad, 0),
                         child: Row(children: [
-                          Expanded(child: Text('${_filtered.length} of ${_cats.length} categories', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
-                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: const Text('New category')),
+                          Expanded(child: Text(l.categoriesShown(_filtered.length, _cats.length), style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
+                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: Text(l.newCategory)),
                         ]),
                       ),
                     Expanded(
                       child: _filtered.isEmpty
-                          ? Center(child: EmptyView(icon: Icons.category, title: _filter == 'all' ? 'No categories' : 'No $_filter categories', subtitle: 'Create one to start tagging transactions.'))
+                          ? Center(child: EmptyView(icon: Icons.category, title: switch (_filter) { 'expense' => l.noExpenseCategories, 'income' => l.noIncomeCategories, _ => l.noCategories }, subtitle: l.noCategoriesHint))
                           : desktop
                               ? _buildGrid(theme, pad)
                               : _buildList(theme),
@@ -180,18 +182,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(c.name, style: theme.textTheme.titleSmall, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
-                    Text(c.type == 'income' ? 'Income' : 'Expense', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                    Text(c.type == 'income' ? context.l10n.income : context.l10n.expense, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                   ]),
                 ),
                 PopupMenuButton<String>(
-                  tooltip: 'More',
+                  tooltip: context.l10n.more,
                   onSelected: (v) {
                     if (v == 'edit') _edit(c);
                     if (v == 'delete') _delete(c);
                   },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit_outlined), title: Text('Edit'), contentPadding: EdgeInsets.zero)),
-                    PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete_outline, color: Colors.redAccent), title: Text('Delete', style: TextStyle(color: Colors.redAccent)), contentPadding: EdgeInsets.zero)),
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem(value: 'edit', child: ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), contentPadding: EdgeInsets.zero)),
+                    PopupMenuItem(value: 'delete', child: ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), contentPadding: EdgeInsets.zero)),
                   ],
                 ),
               ]),
@@ -211,13 +213,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
         return Dismissible(
           key: ValueKey(c.id),
           direction: DismissDirection.endToStart,
-          background: Container(color: Colors.red.shade400, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), child: const Icon(Icons.delete, color: Colors.white)),
+          background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
           onDismissed: (_) => _delete(c),
           child: ListTile(
             onTap: () => _edit(c),
             leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.2), child: Icon(Icons.tag, color: color)),
             title: Text(c.name),
-            subtitle: Text(c.type == 'income' ? 'Income' : 'Expense'),
+            subtitle: Text(c.type == 'income' ? context.l10n.income : context.l10n.expense),
             trailing: Container(width: 14, height: 14, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           ),
         );
@@ -262,29 +264,30 @@ class _CategoryDialogState extends State<_CategoryDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.saveFailed('$e'))));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New category' : 'Edit category'),
+      title: Text(widget.existing == null ? l.newCategory : l.editCategory),
       content: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          TextField(controller: _nameCtrl, autofocus: widget.existing == null, decoration: const InputDecoration(labelText: 'Name'), onSubmitted: (_) => _save()),
+          TextField(controller: _nameCtrl, autofocus: widget.existing == null, decoration: InputDecoration(labelText: l.name), onSubmitted: (_) => _save()),
           const SizedBox(height: 16),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'expense', label: Text('Expense')),
-              ButtonSegment(value: 'income', label: Text('Income')),
+            segments: [
+              ButtonSegment(value: 'expense', label: Text(l.expense)),
+              ButtonSegment(value: 'income', label: Text(l.income)),
             ],
             selected: {_type},
             onSelectionChanged: (s) => setState(() => _type = s.first),
           ),
           const SizedBox(height: 16),
-          Text('Color', style: theme.textTheme.labelLarge),
+          Text(l.color, style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: [
             for (final sw in _CategoriesScreenState._swatches)
@@ -306,8 +309,8 @@ class _CategoryDialogState extends State<_CategoryDialog> {
         ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        FilledButton(onPressed: _saving ? null : _save, child: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
+        FilledButton(onPressed: _saving ? null : _save, child: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Text(l.save)),
       ],
     );
   }

@@ -1,34 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'data/db_key.dart';
 import 'data/local_store.dart';
+import 'l10n/l10n.dart';
+import 'settings/app_settings.dart';
 import 'shell.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppSettings.load();
   runApp(const PocketSenseApp());
 }
 
+ThemeData _theme(Brightness brightness, Color seed) => ThemeData(
+      brightness: brightness,
+      colorSchemeSeed: seed,
+      useMaterial3: true,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      // Arabic glyphs come from the bundled font; Latin text keeps the
+      // platform font.
+      fontFamilyFallback: const ['NotoSansArabic'],
+    );
+
 class PocketSenseApp extends StatelessWidget {
-  const PocketSenseApp({super.key});
+  const PocketSenseApp({super.key, this.home = const Boot()});
+
+  /// Replaced in tests.
+  final Widget home;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pocket Sense',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF4F46E5),
-        useMaterial3: true,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: AppSettings.locale,
+      builder: (context, locale, _) => MaterialApp(
+        onGenerateTitle: (c) => c.l10n.appTitle,
+        debugShowCheckedModeBanner: false,
+        locale: locale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        localeResolutionCallback: (device, supported) {
+          final resolved = locale ??
+              supported.firstWhere((s) => s.languageCode == device?.languageCode, orElse: () => supported.first);
+          AppSettings.applyToIntl(resolved);
+          return resolved;
+        },
+        theme: _theme(Brightness.light, const Color(0xFF4F46E5)),
+        darkTheme: _theme(Brightness.dark, const Color(0xFF818CF8)),
+        home: home,
       ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorSchemeSeed: const Color(0xFF818CF8),
-        useMaterial3: true,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const Boot(),
     );
   }
 }
@@ -43,9 +68,17 @@ class Boot extends StatefulWidget {
 }
 
 class _BootState extends State<Boot> {
-  late Future<void> _opening = _open();
+  Future<void>? _opening;
 
-  Future<void> _open() => LocalStore.open();
+  // Starter categories are named in the UI language, so opening waits for
+  // localizations (not available yet in initState).
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _opening ??= _open();
+  }
+
+  Future<void> _open() => LocalStore.open(categoryNames: starterCategoryNames(context.l10n));
 
   @override
   Widget build(BuildContext context) {
@@ -75,18 +108,25 @@ class StartupError extends StatelessWidget {
   /// Offered only when the data is unrecoverable ([DbKeyLost]).
   final VoidCallback? onErase;
 
+  static String describe(AppLocalizations l, Object error) => switch (error) {
+        KeyStoreUnavailable(:final detail) => l.keyringUnavailable(detail),
+        DbKeyLost() => l.dbKeyLost,
+        _ => '$error',
+      };
+
   Future<void> _confirmErase(BuildContext context) async {
+    final l = context.l10n;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Erase all data?'),
-        content: const Text('Everything stored in Pocket Sense on this device is deleted. This cannot be undone.'),
+        title: Text(l.eraseAllTitle),
+        content: Text(l.eraseAllBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Erase'),
+            child: Text(l.erase),
           ),
         ],
       ),
@@ -97,6 +137,7 @@ class StartupError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -107,14 +148,14 @@ class StartupError extends StatelessWidget {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
                 const SizedBox(height: 16),
-                Text("Couldn't open your data", style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+                Text(l.startupErrorTitle, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
                 const SizedBox(height: 8),
-                Text('$error', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+                Text(describe(l, error), textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 24),
-                FilledButton(onPressed: onRetry, child: const Text('Try again')),
+                FilledButton(onPressed: onRetry, child: Text(l.tryAgain)),
                 if (onErase != null) ...[
                   const SizedBox(height: 8),
-                  TextButton(onPressed: () => _confirmErase(context), child: const Text('Erase and start over')),
+                  TextButton(onPressed: () => _confirmErase(context), child: Text(l.eraseAndStartOver)),
                 ],
               ]),
             ),

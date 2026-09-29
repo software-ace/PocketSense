@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
+import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
@@ -70,7 +71,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       );
       await _load();
     } catch (e) {
-      if (mounted) _toast('Failed to add: $e');
+      if (mounted) _toast(context.l10n.addFailed('$e'));
     }
   }
 
@@ -79,7 +80,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   Future<void> _addByVoice() async {
     final heard = await showVoiceEntrySheet(context);
     if (heard == null || !mounted) return;
-    final guess = parseVoiceEntry(heard, categories: await _repo.categories());
+    final starterNames = starterCategoryNames(context.l10n);
+    final guess = parseVoiceEntry(heard, categories: await _repo.categories(), starterNames: starterNames);
     if (!mounted) return;
     final draft = await showModalBottomSheet<_TxDraft>(
       context: context,
@@ -98,7 +100,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       );
       await _load();
     } catch (e) {
-      if (mounted) _toast('Failed to add: $e');
+      if (mounted) _toast(context.l10n.addFailed('$e'));
     }
   }
 
@@ -117,7 +119,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       );
       await _load();
     } catch (e) {
-      if (mounted) _toast('Failed to update: $e');
+      if (mounted) _toast(context.l10n.updateFailed('$e'));
     }
   }
 
@@ -125,11 +127,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Delete transaction?'),
+        title: Text(c.l10n.deleteTransactionTitle),
         content: Text('${t.description} (${formatMoney(t.amountFils)})'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(c.l10n.delete)),
         ],
       ),
     );
@@ -151,14 +153,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     return _buildMobile(theme);
   }
 
+  List<ButtonSegment<String>> _typeSegments(AppLocalizations l) => [
+        ButtonSegment(value: '', label: Text(l.all)),
+        ButtonSegment(value: 'expense', label: Text(l.expense)),
+        ButtonSegment(value: 'income', label: Text(l.income)),
+      ];
+
   Widget _buildDesktop(ThemeData theme) {
     final pad = PlatformUi.hPadding(context);
+    final l = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Activity'),
+        title: Text(l.navActivity),
         actions: [
-          if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: 'Add by voice', onPressed: _addByVoice),
-          IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
+          if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: l.addByVoice, onPressed: _addByVoice),
+          IconButton(icon: const Icon(Icons.add), tooltip: l.addTransaction, onPressed: _addTransaction),
           const SettingsButton(),
         ],
       ),
@@ -170,17 +179,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               flex: 3,
               child: TextField(
                 controller: _searchCtrl,
-                decoration: InputDecoration(hintText: 'Search transactions…', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), isDense: true, prefixIcon: const Icon(Icons.search)),
+                decoration: InputDecoration(hintText: l.searchTransactions, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), isDense: true, prefixIcon: const Icon(Icons.search)),
                 onChanged: (_) => _applyFilters(),
               ),
             ),
             const SizedBox(width: 12),
             SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: '', label: Text('All')),
-                ButtonSegment(value: 'expense', label: Text('Expense')),
-                ButtonSegment(value: 'income', label: Text('Income')),
-              ],
+              segments: _typeSegments(l),
               selected: {_typeFilter ?? ''},
               onSelectionChanged: (s) {
                 setState(() => _typeFilter = s.first.isEmpty ? null : s.first);
@@ -196,32 +201,29 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   }
 
   Widget _buildMobile(ThemeData theme) {
+    final l = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Activity'),
+        title: Text(l.navActivity),
         actions: const [SettingsButton()],
       ),
       // Both ways to add sit in thumb reach; the app bar keeps only status.
       floatingActionButton: voiceEntrySupported
           ? _AddSplitFab(onVoice: _addByVoice, onAdd: _addTransaction)
-          : FloatingActionButton.extended(onPressed: _addTransaction, icon: const Icon(Icons.add), label: const Text('Add')),
+          : FloatingActionButton.extended(onPressed: _addTransaction, icon: const Icon(Icons.add), label: Text(l.add)),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: TextField(
             controller: _searchCtrl,
-            decoration: InputDecoration(hintText: 'Search…', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, prefixIcon: const Icon(Icons.search)),
+            decoration: InputDecoration(hintText: l.search, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, prefixIcon: const Icon(Icons.search)),
             onChanged: (_) => _applyFilters(),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: '', label: Text('All')),
-              ButtonSegment(value: 'expense', label: Text('Expense')),
-              ButtonSegment(value: 'income', label: Text('Income')),
-            ],
+            segments: _typeSegments(l),
             selected: {_typeFilter ?? ''},
             onSelectionChanged: (s) {
               setState(() => _typeFilter = s.first.isEmpty ? null : s.first);
@@ -237,13 +239,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   Widget _buildBody(ThemeData theme, {required bool desktop}) {
     if (_loading) return const LoadingView();
     if (_error != null) return ErrorView(message: _error.toString(), onRetry: _load);
-    if (_items.isEmpty) return const EmptyView(icon: Icons.receipt_long, title: 'No transactions yet', subtitle: 'Tap Add to record your first entry.');
+    if (_items.isEmpty) return EmptyView(icon: Icons.receipt_long, title: context.l10n.noTransactionsYet, subtitle: context.l10n.noTransactionsHint);
 
     if (desktop) return _dataTable(theme);
     return _mobileList(theme);
   }
 
   Widget _dataTable(ThemeData theme) {
+    final l = context.l10n;
     return Card(
       margin: EdgeInsets.zero,
       child: SingleChildScrollView(
@@ -252,13 +255,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
           headingRowHeight: 44,
           dataRowMinHeight: 48,
           dataRowMaxHeight: 56,
-          columns: const [
-            DataColumn(label: Text('Date')),
-            DataColumn(label: Text('Description')),
-            DataColumn(label: Text('Category')),
-            DataColumn(label: Text('Merchant')),
-            DataColumn(label: Text('Type')),
-            DataColumn(label: Align(alignment: Alignment.centerRight, child: Text('Amount'))),
+          columns: [
+            DataColumn(label: Text(l.date)),
+            DataColumn(label: Text(l.description)),
+            DataColumn(label: Text(l.category)),
+            DataColumn(label: Text(l.merchant)),
+            DataColumn(label: Text(l.type)),
+            DataColumn(label: Align(alignment: AlignmentDirectional.centerEnd, child: Text(l.amount))),
             DataColumn(label: SizedBox(width: 72)),
           ],
           rows: _items.map((t) {
@@ -266,13 +269,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
             return DataRow(cells: [
               DataCell(Text(fmt.format(t.date), style: const TextStyle(fontSize: 13))),
               DataCell(Text(t.description.isNotEmpty ? t.description : (t.merchant ?? '—'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis, maxLines: 1)),
-              DataCell(Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: _catColor(t).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text(t.categoryName ?? '—', style: TextStyle(fontSize: 12, color: _catColor(t))))),
+              DataCell(Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: _catColor(t).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text(t.categoryName ?? l.uncategorized, style: TextStyle(fontSize: 12, color: _catColor(t))))),
               DataCell(Text(t.merchant ?? '—', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis, maxLines: 1)),
-              DataCell(Text(t.type, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Colors.green : Colors.redAccent))),
-              DataCell(Align(alignment: Alignment.centerRight, child: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)))),
+              DataCell(Text(t.type == 'income' ? l.income : l.expense, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Colors.green : Colors.redAccent))),
+              DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)))),
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
-                IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: 'Edit', onPressed: () => _editTransaction(t), visualDensity: VisualDensity.compact),
-                IconButton(icon: const Icon(Icons.delete_outline, size: 18), tooltip: 'Delete', onPressed: () => _delete(t), visualDensity: VisualDensity.compact),
+                IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: l.edit, onPressed: () => _editTransaction(t), visualDensity: VisualDensity.compact),
+                IconButton(icon: const Icon(Icons.delete_outline, size: 18), tooltip: l.delete, onPressed: () => _delete(t), visualDensity: VisualDensity.compact),
               ])),
             ]);
           }).toList(),
@@ -291,13 +294,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         return Dismissible(
           key: ValueKey(t.id),
           direction: DismissDirection.endToStart,
-          background: Container(color: Colors.red.shade400, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), child: const Icon(Icons.delete, color: Colors.white)),
+          background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
           onDismissed: (_) => _delete(t),
           child: ListTile(
             onTap: () => _editTransaction(t),
             onLongPress: () => _mobileActionSheet(t),
             leading: CircleAvatar(radius: 18, backgroundColor: _catColor(t).withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: _catColor(t)))),
-            title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? 'Transaction')),
+            title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? context.l10n.transactionFallback)),
             subtitle: Text(formatDate(t.date)),
             trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)),
           ),
@@ -311,8 +314,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('Edit'), onTap: () { Navigator.pop(ctx); _editTransaction(t); }),
-          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: const Text('Delete', style: TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(t); }),
+          ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), onTap: () { Navigator.pop(ctx); _editTransaction(t); }),
+          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(t); }),
         ]),
       ),
     );
@@ -367,7 +370,7 @@ class _AddSplitFab extends StatelessWidget {
         height: 56,
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Tooltip(
-            message: 'Add by voice',
+            message: context.l10n.addByVoice,
             child: InkWell(
               onTap: onVoice,
               child: SizedBox(height: 56, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: Icon(Icons.mic_none, color: fg))),
@@ -379,11 +382,11 @@ class _AddSplitFab extends StatelessWidget {
             child: SizedBox(
               height: 56,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 20, 0),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 20, 0),
                 child: Row(children: [
                   Icon(Icons.add, color: fg),
                   const SizedBox(width: 8),
-                  Text('Add', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg)),
+                  Text(context.l10n.add, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg)),
                 ]),
               ),
             ),
@@ -442,8 +445,9 @@ class _TxFormSheetState extends State<_TxFormSheet> {
 
   String _dateLabel() {
     final diff = _date.difference(_today()).inDays;
-    final day = DateFormat('EEE, MMM d, y').format(_date);
-    return switch (diff) { 0 => 'Today · $day', -1 => 'Yesterday · $day', _ => day };
+    final day = DateFormat.yMMMEd().format(_date);
+    final l = context.l10n;
+    return switch (diff) { 0 => l.dateToday(day), -1 => l.dateYesterday(day), _ => day };
   }
 
   @override
@@ -464,12 +468,13 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   Widget build(BuildContext context) {
     final cats = _cats.cast<Category>();
     final isEdit = widget.existing != null;
+    final l = context.l10n;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(isEdit ? 'Edit transaction' : (widget.heard != null ? 'Check and save' : 'New transaction'), style: Theme.of(context).textTheme.titleLarge),
+          Text(isEdit ? l.editTransaction : (widget.heard != null ? l.checkAndSave : l.newTransaction), style: Theme.of(context).textTheme.titleLarge),
           if (widget.heard != null) ...[
             const SizedBox(height: 8),
             Row(children: [
@@ -480,34 +485,34 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           ],
           const SizedBox(height: 16),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'expense', label: Text('Expense')),
-              ButtonSegment(value: 'income', label: Text('Income')),
+            segments: [
+              ButtonSegment(value: 'expense', label: Text(l.expense)),
+              ButtonSegment(value: 'income', label: Text(l.income)),
             ],
             selected: {_type},
             onSelectionChanged: (s) => setState(() => _type = s.first),
           ),
           const SizedBox(height: 16),
-          AmountField(controller: _amtCtrl, label: 'Amount'),
+          AmountField(controller: _amtCtrl, label: l.amount),
           const SizedBox(height: 12),
           InkWell(
             onTap: _pickDate,
             borderRadius: BorderRadius.circular(4),
             child: InputDecorator(
-              decoration: const InputDecoration(labelText: 'Date', suffixIcon: Icon(Icons.calendar_today_outlined, size: 18)),
+              decoration: InputDecoration(labelText: l.date, suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18)),
               child: Text(_dateLabel()),
             ),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _descCtrl, decoration: const InputDecoration(labelText: 'Description (optional)')),
+          TextField(controller: _descCtrl, decoration: InputDecoration(labelText: l.descriptionOptional)),
           const SizedBox(height: 12),
-          TextField(controller: _merchCtrl, decoration: const InputDecoration(labelText: 'Merchant (optional)')),
+          TextField(controller: _merchCtrl, decoration: InputDecoration(labelText: l.merchantOptional)),
           const SizedBox(height: 12),
           DropdownButtonFormField<int>(
             // Categories load async; only select once the item exists.
             key: ValueKey(cats.length),
             initialValue: cats.any((c) => c.id == _catId) ? _catId : null,
-            decoration: const InputDecoration(labelText: 'Category (optional)'),
+            decoration: InputDecoration(labelText: l.categoryOptional),
             items: cats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
@@ -516,15 +521,15 @@ class _TxFormSheetState extends State<_TxFormSheet> {
             onPressed: () {
               final fils = parseAmount(_amtCtrl.text) ?? 0;
               if (fils <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a positive amount.')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.enterPositiveAmount)));
                 return;
               }
               final desc = _descCtrl.text.trim();
               final merch = _merchCtrl.text.trim();
-              final effectiveDesc = desc.isNotEmpty ? desc : (merch.isNotEmpty ? merch : 'Transaction');
+              final effectiveDesc = desc.isNotEmpty ? desc : (merch.isNotEmpty ? merch : l.transactionFallback);
               Navigator.pop(context, _TxDraft(fils, _type, effectiveDesc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
             },
-            child: const Text('Save'),
+            child: Text(l.save),
           ),
         ]),
       ),

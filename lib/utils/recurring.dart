@@ -4,6 +4,8 @@
 
 import 'package:intl/intl.dart';
 
+import '../l10n/app_localizations.dart';
+
 int _daysInMonth(int year, int month) => DateTime(year, month + 1, 0).day;
 
 /// Advance [d] by [n] calendar months, preserving day-of-month with overflow
@@ -94,22 +96,17 @@ int daysUntil(DateTime isoDate) {
   return b.difference(a).inDays;
 }
 
-String formatFrequency(String freq) {
-  switch (freq) {
-    case 'weekly':
-      return 'Weekly';
-    case 'biweekly':
-      return 'Bi-weekly';
-    case 'monthly':
-      return 'Monthly';
-    case 'quarterly':
-      return 'Quarterly';
-    case 'yearly':
-      return 'Yearly';
-    default:
-      return freq;
-  }
-}
+/// Every frequency the app offers, in display order.
+const frequencies = ['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'];
+
+String formatFrequency(AppLocalizations l, String freq) => switch (freq) {
+      'weekly' => l.freqWeekly,
+      'biweekly' => l.freqBiweekly,
+      'monthly' => l.freqMonthly,
+      'quarterly' => l.freqQuarterly,
+      'yearly' => l.freqYearly,
+      _ => freq,
+    };
 
 /// Convenience: "Oct 5" style short date.
 String fmtShortDate(DateTime d) => DateFormat('MMM d').format(d.toLocal());

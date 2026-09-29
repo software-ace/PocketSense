@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' show Locale;
 
 import 'package:path/path.dart' as p;
 import 'package:record/record.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
+import '../l10n/app_localizations.dart';
 import '../utils/app_dirs.dart';
 import '../utils/spoken_numbers.dart';
 import 'speech_engine.dart';
@@ -14,9 +16,12 @@ import 'speech_engine.dart';
 /// sherpa-onnx runs a small streaming English model on the CPU, fed from the
 /// microphone through `record` (which uses PulseAudio/PipeWire's parecord).
 class DesktopSpeechEngine implements SpeechEngine {
-  DesktopSpeechEngine({String? modelDir}) : _modelDir = modelDir ?? p.join(linuxDataDir(), 'speech', SpeechModel.name);
+  DesktopSpeechEngine({String? modelDir, AppLocalizations? l10n})
+      : _modelDir = modelDir ?? p.join(linuxDataDir(), 'speech', SpeechModel.name),
+        _l = l10n ?? lookupAppLocalizations(const Locale('en'));
 
   final String _modelDir;
+  final AppLocalizations _l;
   AudioRecorder? _recorder;
   StreamSubscription<Uint8List>? _audio;
   Transcriber? _transcriber;
@@ -31,12 +36,12 @@ class DesktopSpeechEngine implements SpeechEngine {
     try {
       await SpeechModel.download(_modelDir, onProgress: onProgress);
     } on IOException {
-      return "Couldn't download the speech model. Check your connection and try again.";
+      return _l.voiceModelDownloadFailed;
     }
     try {
       _recognizer ??= SpeechModel.load(_modelDir);
     } catch (e) {
-      return "Speech recognition couldn't start ($e).";
+      return _l.voiceCouldntStart('$e');
     }
     return null;
   }
@@ -55,11 +60,11 @@ class DesktopSpeechEngine implements SpeechEngine {
           const RecordConfig(encoder: AudioEncoder.pcm16bits, sampleRate: Transcriber.sampleRate, numChannels: 1));
     } on ProcessException {
       await _end();
-      onProblem("Can't open the microphone: voice entry needs parecord (from PulseAudio, or PipeWire's pulse tools).");
+      onProblem(_l.voiceNeedsParecord);
       return;
     } catch (e) {
       await _end();
-      onProblem("Couldn't open the microphone ($e).");
+      onProblem(_l.voiceMicOpenFailed('$e'));
       return;
     }
     final t = _transcriber = Transcriber(_recognizer!);
@@ -73,11 +78,11 @@ class DesktopSpeechEngine implements SpeechEngine {
         if (!ended) return;
         final sentence = t.text;
         unawaited(_end());
-        sentence.isEmpty ? onProblem("Didn't catch that. Tap the mic and try again.") : onFinal(sentence);
+        sentence.isEmpty ? onProblem(_l.voiceDidntCatch) : onFinal(sentence);
       },
       onError: (Object e) {
         unawaited(_end());
-        onProblem('The microphone stopped ($e).');
+        onProblem(_l.voiceMicStopped('$e'));
       },
     );
   }

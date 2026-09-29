@@ -64,6 +64,17 @@ void main() {
     expect(parse('lunch 20').date, DateTime(2026, 9, 27));
   });
 
+  test('hints find starter categories under their localized names', () {
+    final arabic = [
+      Category(id: 10, name: 'مطاعم', type: 'expense', color: '#000', icon: 'tag'),
+      Category(id: 11, name: 'مواصلات', type: 'expense', color: '#000', icon: 'tag'),
+    ];
+    VoiceDraft ar(String s) => parseVoiceEntry(s, categories: arabic, now: now, starterNames: {'dining': 'مطاعم', 'transport': 'مواصلات'});
+    expect(ar('coffee 2.5').categoryId, 10);
+    expect(ar('taxi 3').categoryId, 11);
+    expect(ar('gift 30').categoryId, isNull);
+  });
+
   test('uber → Transport; unmatched categories stay empty', () {
     expect(parse('uber 23').categoryId, 2);
     expect(parse('gift for mom 30').categoryId, isNull);

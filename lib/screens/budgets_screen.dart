@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
+import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
@@ -33,9 +34,9 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
   }
 
   // "This week · Sep 22 – 28" / "This month · September"
-  static String _periodLabel(String period, DateTime start, DateTime end) => period == 'weekly'
-      ? 'This week · ${DateFormat.MMMd().format(start)} – ${start.month == end.month ? end.day : DateFormat.MMMd().format(end)}'
-      : 'This month · ${DateFormat.MMMM().format(start)}';
+  static String _periodLabel(AppLocalizations l, String period, DateTime start, DateTime end) => period == 'weekly'
+      ? l.periodThisWeek('${DateFormat.MMMd().format(start)} – ${start.month == end.month ? DateFormat.d().format(end) : DateFormat.MMMd().format(end)}')
+      : l.periodThisMonth(DateFormat.MMMM().format(start));
 
   Future<void> _load() async {
     setState(() {
@@ -71,11 +72,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Delete budget for "${b.categoryName ?? 'Category'}"?'),
-        content: const Text('This will remove the spending limit. Existing transactions are unaffected.'),
+        title: Text(ctx.l10n.deleteBudgetTitle(b.categoryName ?? ctx.l10n.category)),
+        content: Text(ctx.l10n.deleteBudgetBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -84,7 +85,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
       await _repo.deleteBudget(b.id);
       if (mounted) await _load();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }
   }
 
@@ -93,10 +94,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     final theme = Theme.of(context);
     final desktop = PlatformUi.isDesktop(context);
     final pad = PlatformUi.hPadding(context);
+    final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Budgets'), actions: const [SettingsButton()]),
-      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
+      appBar: AppBar(title: Text(l.navBudgets), actions: const [SettingsButton()]),
+      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: _loading
@@ -108,13 +110,13 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                       Padding(
                         padding: EdgeInsets.fromLTRB(pad, 8, pad, 0),
                         child: Row(children: [
-                          Expanded(child: Text('${_budgets.length} active budgets', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
-                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: const Text('New budget')),
+                          Expanded(child: Text(l.activeBudgets(_budgets.length), style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline))),
+                          OutlinedButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 18), label: Text(l.newBudget)),
                         ]),
                       ),
                     Expanded(
                       child: _budgets.isEmpty
-                          ? Center(child: EmptyView(icon: Icons.dashboard_customize_outlined, title: 'No budgets set', subtitle: 'Set a monthly limit per category to track spending.'))
+                          ? Center(child: EmptyView(icon: Icons.dashboard_customize_outlined, title: l.noBudgets, subtitle: l.noBudgetsHint))
                           : ListView.builder(
                               padding: EdgeInsets.symmetric(horizontal: pad, vertical: 8),
                               itemCount: _budgets.length,
@@ -140,15 +142,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                              Text(b.categoryName ?? 'Category', style: theme.textTheme.titleSmall),
-                                              Text(_periodLabel(p.budget.period, p.start, p.end), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                                              Text(b.categoryName ?? l.category, style: theme.textTheme.titleSmall),
+                                              Text(_periodLabel(l, p.budget.period, p.start, p.end), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                                             ]),
                                           ),
                                           Text('${formatMoney(spent)} / ${formatMoney(b.limitFils)}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: over ? const Color(0xFFFF5252) : null)),
                                           if (desktop) ...[
                                             const SizedBox(width: 4),
-                                            IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: 'Edit', visualDensity: VisualDensity.compact, onPressed: () => _edit(b)),
-                                            IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), tooltip: 'Delete', visualDensity: VisualDensity.compact, onPressed: () => _delete(b)),
+                                            IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: l.edit, visualDensity: VisualDensity.compact, onPressed: () => _edit(b)),
+                                            IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), tooltip: l.delete, visualDensity: VisualDensity.compact, onPressed: () => _delete(b)),
                                           ],
                                         ]),
                                         const SizedBox(height: 12),
@@ -163,7 +165,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                         ),
                                         const SizedBox(height: 6),
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                          Text(over ? 'Over budget by ${formatMoney(spent - b.limitFils)}' : '${formatMoney(b.limitFils - spent)} remaining', style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
+                                          Text(over ? l.overBudgetBy(formatMoney(spent - b.limitFils)) : l.amountRemaining(formatMoney(b.limitFils - spent)), style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
                                           Text('${(ratio * 100).toInt()}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                                         ]),
                                       ]),
@@ -225,7 +227,7 @@ class _BudgetDialogState extends State<_BudgetDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.saveFailed('$e'))));
     }
   }
 
@@ -233,13 +235,14 @@ class _BudgetDialogState extends State<_BudgetDialog> {
   Widget build(BuildContext context) {
     // Only expense categories make sense for budgets.
     final expenseCats = widget.cats.where((c) => c.type == 'expense').toList();
+    final l = context.l10n;
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New budget' : 'Edit budget'),
+      title: Text(widget.existing == null ? l.newBudget : l.editBudget),
       content: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           DropdownButtonFormField<int>(
             initialValue: _catId,
-            decoration: const InputDecoration(labelText: 'Category'),
+            decoration: InputDecoration(labelText: l.category),
             items: expenseCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
@@ -247,14 +250,14 @@ class _BudgetDialogState extends State<_BudgetDialog> {
           AmountField(
             controller: _amtCtrl,
             autofocus: widget.existing == null,
-            label: _period == 'weekly' ? 'Weekly limit' : 'Monthly limit',
+            label: _period == 'weekly' ? l.weeklyLimit : l.monthlyLimit,
             onSubmitted: (_) => _save(),
           ),
           const SizedBox(height: 16),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'monthly', label: Text('Monthly')),
-              ButtonSegment(value: 'weekly', label: Text('Weekly')),
+            segments: [
+              ButtonSegment(value: 'monthly', label: Text(l.freqMonthly)),
+              ButtonSegment(value: 'weekly', label: Text(l.freqWeekly)),
             ],
             selected: {_period},
             onSelectionChanged: (s) => setState(() => _period = s.first),
@@ -262,10 +265,10 @@ class _BudgetDialogState extends State<_BudgetDialog> {
         ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
         FilledButton(
           onPressed: _saving ? null : _save,
-          child: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
+          child: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Text(l.save),
         ),
       ],
     );

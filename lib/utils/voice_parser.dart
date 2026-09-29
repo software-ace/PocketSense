@@ -1,3 +1,4 @@
+import '../models/default_categories.dart';
 import '../models/models.dart';
 
 /// What a spoken sentence says about a transaction. Anything it can't find is
@@ -15,27 +16,30 @@ class VoiceDraft {
 const _incomeWords = ['earned', 'received', 'got paid', 'income', 'salary', 'paycheck', 'payday', 'refund', 'sold', 'deposit', 'bonus'];
 const _weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-// Everyday words → the starter category names. Only used when the user has a
-// category with that exact name; their own category names always win.
+// Everyday words → starter categories (by their key in defaultCategories).
+// Only used when the user still has that category, under its English name or
+// the localized name it was created with; their own names always win.
 const _categoryHints = <String, List<String>>{
-  'Dining Out': ['coffee', 'lunch', 'dinner', 'breakfast', 'restaurant', 'cafe', 'pizza', 'burger', 'takeout', 'snack'],
-  'Groceries': ['grocery', 'groceries', 'supermarket'],
-  'Transport': ['uber', 'taxi', 'careem', 'bus', 'fuel', 'gas', 'petrol', 'parking', 'train', 'metro'],
-  'Housing': ['rent'],
-  'Utilities': ['electricity', 'water bill', 'internet', 'phone bill'],
-  'Subscriptions': ['netflix', 'spotify', 'subscription', 'youtube premium'],
-  'Entertainment': ['movie', 'cinema', 'concert', 'game'],
-  'Health': ['pharmacy', 'doctor', 'medicine', 'dentist', 'gym'],
-  'Shopping': ['clothes', 'shoes', 'amazon'],
-  'Salary': ['salary', 'paycheck', 'payday'],
-  'Freelance': ['freelance', 'client'],
+  'dining': ['coffee', 'lunch', 'dinner', 'breakfast', 'restaurant', 'cafe', 'pizza', 'burger', 'takeout', 'snack', 'shawarma', 'falafel', 'knafeh'],
+  'groceries': ['grocery', 'groceries', 'supermarket'],
+  'transport': ['uber', 'taxi', 'careem', 'bus', 'fuel', 'gas', 'petrol', 'parking', 'train', 'metro'],
+  'housing': ['rent'],
+  'utilities': ['electricity', 'water bill', 'internet', 'phone bill'],
+  'subscriptions': ['netflix', 'spotify', 'subscription', 'youtube premium'],
+  'entertainment': ['movie', 'cinema', 'concert', 'game'],
+  'health': ['pharmacy', 'doctor', 'medicine', 'dentist', 'gym'],
+  'shopping': ['clothes', 'shoes', 'amazon'],
+  'salary': ['salary', 'paycheck', 'payday'],
+  'freelance': ['freelance', 'client'],
 };
 
 // Words that end a "at <merchant>" / "for <thing>" phrase.
 final _phraseEnd = RegExp(r'\s+(?:at|from|for|on|in|with|yesterday|today|last|this|\d+\s+days?\s+ago)\b.*$', caseSensitive: false);
 
-/// Parse a sentence like "spent 8.50 on coffee at Blue Bottle yesterday".
-VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, DateTime? now}) {
+/// Parse a sentence like "spent 8.5 on coffee at Blue Bottle yesterday".
+/// [starterNames] maps starter-category keys to the localized names the
+/// database was seeded with (see starterCategoryNames).
+VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, DateTime? now, Map<String, String> starterNames = const {}}) {
   final at = now ?? DateTime.now();
   var text = ' ${input.trim()} '.replaceAll(RegExp(r'\s+'), ' ');
   final lower = text.toLowerCase();
@@ -112,7 +116,11 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
     for (final e in _categoryHints.entries) {
       for (final w in e.value) {
         if (RegExp(r'\b' + RegExp.escape(w) + r'\b').hasMatch(lower)) {
-          final match = categories.where((c) => c.name.toLowerCase() == e.key.toLowerCase());
+          final names = {
+            for (final d in defaultCategories.where((d) => d.key == e.key)) d.name.toLowerCase(),
+            if (starterNames[e.key] != null) starterNames[e.key]!.toLowerCase(),
+          };
+          final match = categories.where((c) => names.contains(c.name.toLowerCase()));
           if (match.isNotEmpty) {
             category = match.first;
             break outer;

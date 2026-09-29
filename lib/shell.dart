@@ -4,6 +4,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
 import 'screens/recurring_screen.dart';
+import 'l10n/l10n.dart';
 import 'utils/platform.dart';
 
 /// Root scaffold that adapts navigation to the viewport:
@@ -28,12 +29,15 @@ class _ShellState extends State<Shell> {
   ];
 
   // Single source of truth for all tabs (bottom bar + navigation rail).
-  static const _dests = <_Dest>[
-    _Dest(Icons.space_dashboard_rounded, 'Home'),
-    _Dest(Icons.swap_vert_rounded, 'Activity'),
-    _Dest(Icons.price_change_rounded, 'Budgets'),
-    _Dest(Icons.repeat_rounded, 'Recurring'),
-  ];
+  List<_Dest> _dests(BuildContext context) {
+    final l = context.l10n;
+    return [
+      _Dest(Icons.space_dashboard_rounded, l.navHome),
+      _Dest(Icons.swap_vert_rounded, l.navActivity),
+      _Dest(Icons.price_change_rounded, l.navBudgets),
+      _Dest(Icons.repeat_rounded, l.navRecurring),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +76,7 @@ class _ShellState extends State<Shell> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: Text(
-                    'Pocket Sense',
+                    context.l10n.appTitle,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -80,7 +84,7 @@ class _ShellState extends State<Shell> {
                 ),
               ),
             ),
-            destinations: _dests
+            destinations: _dests(context)
                 .map((d) => NavigationRailDestination(
                       icon: Icon(d.icon),
                       selectedIcon: Icon(d.icon,
@@ -107,7 +111,7 @@ class _ShellState extends State<Shell> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Theme.of(context).colorScheme.outline,
-        items: _dests
+        items: _dests(context)
             .map((d) => BottomNavigationBarItem(icon: Icon(d.icon), label: d.label))
             .toList(),
       ),
