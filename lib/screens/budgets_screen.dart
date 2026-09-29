@@ -6,7 +6,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
-import '../widgets/sync_indicator.dart';
+import '../widgets/data_aware.dart';
 import 'settings_screen.dart';
 
 class BudgetsScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class BudgetsScreen extends StatefulWidget {
   State<BudgetsScreen> createState() => _BudgetsScreenState();
 }
 
-class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
+class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
   final _repo = FinanceRepo();
   List<({Budget budget, int spentCents, DateTime start, DateTime end})> _budgets = [];
   List<Category> _cats = [];
@@ -94,10 +94,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> with SyncAware {
     final pad = PlatformUi.hPadding(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Budgets'), actions: const [SyncIndicator(), SettingsButton()]),
+      appBar: AppBar(title: const Text('Budgets'), actions: const [SettingsButton()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('New')),
       body: RefreshIndicator(
-        onRefresh: () => syncAndReload(_load),
+        onRefresh: () => _load(),
         child: _loading
             ? const LoadingView()
             : _error != null

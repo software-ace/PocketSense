@@ -1,26 +1,39 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart' as sq;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 
 import '../utils/app_dirs.dart';
-import 'outbox.dart';
-import 'sync_plan.dart';
 
-/// Local SQLite mirror of the four finance tables plus a mutation outbox and
-/// per-table sync watermarks. This is what makes the app offline-first: every
-/// read hits this store, every write lands here first and queues for push.
-class LocalStore implements Outbox, SyncStore {
+/// Starter categories created with a new database. `key` identifies each one
+/// so the name can be supplied in the user's language at first launch; after
+/// that the names are ordinary user data.
+const defaultCategories = <({String key, String name, String type, String color, String icon})>[
+  (key: 'groceries', name: 'Groceries', type: 'expense', color: '#22c55e', icon: 'cart'),
+  (key: 'dining', name: 'Dining Out', type: 'expense', color: '#f97316', icon: 'utensils'),
+  (key: 'transport', name: 'Transport', type: 'expense', color: '#0ea5e9', icon: 'car'),
+  (key: 'housing', name: 'Housing', type: 'expense', color: '#a855f7', icon: 'home'),
+  (key: 'utilities', name: 'Utilities', type: 'expense', color: '#eab308', icon: 'bolt'),
+  (key: 'entertainment', name: 'Entertainment', type: 'expense', color: '#ec4899', icon: 'film'),
+  (key: 'shopping', name: 'Shopping', type: 'expense', color: '#ef4444', icon: 'bag'),
+  (key: 'health', name: 'Health', type: 'expense', color: '#14b8a6', icon: 'heart'),
+  (key: 'subscriptions', name: 'Subscriptions', type: 'expense', color: '#f59e0b', icon: 'tag'),
+  (key: 'otherExpense', name: 'Other Expense', type: 'expense', color: '#64748b', icon: 'tag'),
+  (key: 'salary', name: 'Salary', type: 'income', color: '#16a34a', icon: 'banknote'),
+  (key: 'freelance', name: 'Freelance', type: 'income', color: '#0d9488', icon: 'briefcase'),
+  (key: 'otherIncome', name: 'Other Income', type: 'income', color: '#475569', icon: 'plus-circle'),
+];
+
+/// The app's only data store: one SQLite database on the device. Nothing
+/// leaves it except through an explicit backup export.
+class LocalStore {
   static LocalStore? _instance;
 
-  /// The signed-in account's store. Opened by [openForUser] when a session
-  /// starts; there is deliberately no fallback, so nothing can read or write
-  /// data while signed out.
   static Future<LocalStore> instance() async {
     final s = _instance;
-    if (s == null) throw StateError('No signed-in session: local store is not open');
+    if (s == null) throw StateError('Local store is not open');
     return s;
   }
 
@@ -31,26 +44,50 @@ class LocalStore implements Outbox, SyncStore {
   final sq.Database db;
   LocalStore._(this.db);
 
-  /// One file per account, so switching accounts can never mix rows or push
-  /// one user's queued changes under another user's session. (The pre-auth
-  /// 'pocketsense.sqlite' is left untouched and no longer used.)
-  static String dbNameFor(String userId) => 'pocketsense_$userId.sqlite';
+  /// Bumped after every write so open tabs (kept alive in an IndexedStack)
+  /// know to reload.
+  final ValueNotifier<int> changes = ValueNotifier(0);
+  void notifyChanged() => changes.value++;
 
-  static Future<LocalStore> openForUser(String userId) async {
+  static const fileName = 'pocketsense.db';
+  static const schemaVersion = 1;
+
+  static Future<String> _dir() async => Platform.isLinux ? linuxDataDir() : await sq.getDatabasesPath();
+
+  static Future<String> path() async => p.join(await _dir(), fileName);
+
+  /// Opens (creating and seeding on first run) the on-device database.
+  /// [categoryNames] maps [defaultCategories] keys to localized names.
+  static Future<LocalStore> open({Map<String, String> categoryNames = const {}}) async {
     await closeCurrent();
-    final name = dbNameFor(userId);
+    await _deleteLegacyFiles();
+    final options = sq.OpenDatabaseOptions(
+      version: schemaVersion,
+      onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+      onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
+    );
     final sq.Database db;
     if (Platform.isLinux) {
       ffi.sqfliteFfiInit();
-      db = await ffi.databaseFactoryFfi.openDatabase(p.join(linuxDataDir(), name));
+      db = await ffi.databaseFactoryFfi.openDatabase(await path(), options: options);
     } else {
-      // Android / mobile: standard plugin-backed factory.
-      db = await sq.databaseFactory.openDatabase(p.join(await sq.getDatabasesPath(), name));
+      db = await sq.databaseFactory.openDatabase(await path(), options: options);
     }
-    final store = LocalStore._(db);
-    await store.initSchema();
-    await store.loadWatermarks();
-    return _instance = store;
+    return _instance = LocalStore._(db);
+  }
+
+  /// v1.x kept one plaintext database per Supabase account. v2 starts fresh
+  /// and doesn't read them, so remove them rather than leave financial data
+  /// lying around unencrypted.
+  static Future<void> _deleteLegacyFiles() async {
+    final dir = Directory(await _dir());
+    if (!await dir.exists()) return;
+    await for (final f in dir.list()) {
+      final name = p.basename(f.path);
+      if (f is File && name.startsWith('pocketsense') && name.contains('.sqlite')) {
+        await f.delete();
+      }
+    }
   }
 
   static Future<void> closeCurrent() async {
@@ -61,96 +98,80 @@ class LocalStore implements Outbox, SyncStore {
 
   /// Real SQLite in memory, for tests that must exercise sqflite's actual
   /// row shape (a hand-written fake once hid a column-key mismatch).
-  static Future<LocalStore> openInMemoryForTest() async {
+  static Future<LocalStore> openInMemoryForTest({bool seed = false, Map<String, String> categoryNames = const {}}) async {
     ffi.sqfliteFfiInit();
     // singleInstance: false → a fresh, isolated DB per call (the default reuses one).
-    final store = LocalStore._(await ffi.databaseFactoryFfi.openDatabase(sq.inMemoryDatabasePath,
-        options: sq.OpenDatabaseOptions(singleInstance: false)));
-    await store.initSchema();
-    return store;
+    final db = await ffi.databaseFactoryFfi.openDatabase(sq.inMemoryDatabasePath,
+        options: sq.OpenDatabaseOptions(
+          singleInstance: false,
+          version: schemaVersion,
+          onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+          onCreate: (db, _) => createSchema(db, seed: seed, categoryNames: categoryNames),
+        ));
+    return LocalStore._(db);
   }
 
-  /// Schema mirrors Postgres column-for-column so rows round-trip unchanged.
-  Future<void> initSchema() async {
+  static Future<void> createSchema(sq.Database db, {bool seed = true, Map<String, String> categoryNames = const {}}) async {
+    // NOCASE: "Food" and "food" are the same category to a person.
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, type TEXT NOT NULL,
+      CREATE TABLE categories (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE, type TEXT NOT NULL,
         color TEXT NOT NULL, icon TEXT NOT NULL DEFAULT 'tag',
         created_at TEXT, updated_at TEXT
-      );
+      )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS transactions (
+      CREATE TABLE transactions (
         id INTEGER PRIMARY KEY, amount_cents INTEGER NOT NULL, type TEXT NOT NULL,
         date TEXT NOT NULL, description TEXT NOT NULL, merchant TEXT,
-        category_id INTEGER REFERENCES categories(id), source TEXT NOT NULL DEFAULT 'manual',
-        reference TEXT, notes TEXT, created_at TEXT, updated_at TEXT
-      );
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        source TEXT NOT NULL DEFAULT 'manual', reference TEXT, notes TEXT,
+        created_at TEXT, updated_at TEXT
+      )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS budgets (
-        id INTEGER PRIMARY KEY, category_id INTEGER NOT NULL REFERENCES categories(id),
+      CREATE TABLE budgets (
+        id INTEGER PRIMARY KEY,
+        category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
         limit_cents INTEGER NOT NULL, period TEXT NOT NULL DEFAULT 'monthly',
         active INTEGER NOT NULL DEFAULT 1, created_at TEXT, updated_at TEXT
-      );
+      )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS recurring_expenses (
+      CREATE TABLE recurring_expenses (
         id INTEGER PRIMARY KEY, description TEXT NOT NULL, amount_cents INTEGER NOT NULL,
         type TEXT NOT NULL DEFAULT 'expense', frequency TEXT NOT NULL, anchor_date TEXT NOT NULL,
-        category_id INTEGER REFERENCES categories(id), merchant TEXT, notes TEXT,
-        active INTEGER NOT NULL DEFAULT 1, last_posted TEXT,
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        merchant TEXT, notes TEXT, active INTEGER NOT NULL DEFAULT 1, last_posted TEXT,
         created_at TEXT, updated_at TEXT
-      );
+      )
     ''');
-    // "table" is a reserved keyword in SQLite — quote it everywhere.
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS outbox (
-        seq INTEGER PRIMARY KEY AUTOINCREMENT, "table" TEXT NOT NULL, op TEXT NOT NULL,
-        payload TEXT NOT NULL
-      );
-    ''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS sync_watermarks (
-        "table" TEXT PRIMARY KEY, ts TEXT NOT NULL
-      );
-    ''');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(date)');
-    await _addColumnIfMissing('recurring_expenses', 'type', "TEXT NOT NULL DEFAULT 'expense'");
-    // Server rows now carry their owner; the mirror must accept the column.
-    for (final t in const ['categories', 'transactions', 'budgets', 'recurring_expenses']) {
-      await _addColumnIfMissing(t, 'user_id', 'TEXT');
-    }
+    await db.execute('CREATE INDEX idx_tx_date ON transactions(date)');
+    if (seed) await _seedCategories(db, categoryNames);
   }
 
-  /// CREATE TABLE IF NOT EXISTS won't touch an existing table, so columns
-  /// added after first release have to be patched onto older installs.
-  Future<void> _addColumnIfMissing(String table, String column, String decl) async {
-    final cols = await db.rawQuery('PRAGMA table_info($table)');
-    if (cols.any((c) => c['name'] == column)) return;
-    await db.execute('ALTER TABLE $table ADD COLUMN $column $decl');
-  }
-
-  // ── Generic row access (used by sync + repo reads) ────────────────────
-
-  @override
-  Future<Map<String, dynamic>> allRows(String table) async {
-    final rows = await db.query(table);
-    return {for (final r in rows) r['id'].toString(): r};
-  }
-
-  /// SQLite stores booleans as integers; PostgREST returns real bools.
-  static Object? _normalize(Object? v) => v is bool ? (v ? 1 : 0) : v;
-
-  @override
-  Future<void> upsertMany(String table, List<Map<String, dynamic>> rows) async {
+  static Future<void> _seedCategories(sq.Database db, Map<String, String> names) async {
+    // Same id scheme as newRowId() in repo.dart (epoch-ms × 1000 + n).
+    final base = DateTime.now().millisecondsSinceEpoch * 1000;
+    final now = nowIso();
     final batch = db.batch();
-    for (final r in rows) {
-      batch.insert(table, {for (final e in r.entries) e.key: _normalize(e.value)},
-          conflictAlgorithm: sq.ConflictAlgorithm.replace);
+    for (final (i, c) in defaultCategories.indexed) {
+      batch.insert('categories', {
+        'id': base + i + 1,
+        'name': names[c.key] ?? c.name,
+        'type': c.type,
+        'color': c.color,
+        'icon': c.icon,
+        'created_at': now,
+        'updated_at': now,
+      });
     }
     await batch.commit(noResult: true);
   }
+
+  // ── Row access ────────────────────────────────────────────────────────
+
+  static Object? _normalize(Object? v) => v is bool ? (v ? 1 : 0) : v;
 
   Future<List<Map<String, dynamic>>?> selectRows(String table, {String? where, List<Object?>? whereArgs}) async {
     final rows = await db.query(table, where: where, whereArgs: whereArgs);
@@ -158,79 +179,23 @@ class LocalStore implements Outbox, SyncStore {
   }
 
   Future<int> insertRow(String table, Map<String, dynamic> values) async {
-    return db.insert(table, {for (final e in values.entries) e.key: _normalize(e.value)});
+    final id = await db.insert(table, {for (final e in values.entries) e.key: _normalize(e.value)});
+    notifyChanged();
+    return id;
   }
 
   Future<int> updateRow(String table, int id, Map<String, dynamic> values) async {
-    return db.update(table, {for (final e in values.entries) e.key: _normalize(e.value)},
+    final n = await db.update(table, {for (final e in values.entries) e.key: _normalize(e.value)},
         where: 'id = ?', whereArgs: [id]);
+    notifyChanged();
+    return n;
   }
 
   Future<int> deleteRow(String table, int id) async {
-    return db.delete(table, where: 'id = ?', whereArgs: [id]);
+    final n = await db.delete(table, where: 'id = ?', whereArgs: [id]);
+    notifyChanged();
+    return n;
   }
 
-  Future<void> deleteIds(String table, List<int> ids) async {
-    if (ids.isEmpty) return;
-    final batch = db.batch();
-    for (final id in ids) {
-      batch.delete(table, where: 'id = ?', whereArgs: [id]);
-    }
-    await batch.commit(noResult: true);
-  }
-
-  /// Stamp a locally-authored row with a fresh updated_at before it is stored.
   static String nowIso() => DateTime.now().toUtc().toIso8601String();
-
-  // ── Watermarks ────────────────────────────────────────────────────────
-
-  @override
-  String? watermarkFor(String table) {
-    // Synchronous read via a cached map refreshed on set; cheap enough.
-    return _wmCache[table];
-  }
-
-  final Map<String, String> _wmCache = {};
-
-  Future<void> loadWatermarks() async {
-    final rows = await db.query('sync_watermarks');
-    _wmCache.clear();
-    for (final r in rows) {
-      final table = r['table']?.toString() ?? '';
-      final ts = r['ts']?.toString() ?? '';
-      if (table.isNotEmpty && ts.isNotEmpty) {
-        _wmCache[table] = ts;
-      }
-    }
-  }
-
-  @override
-  Future<void> setWatermark(String table, DateTime ts) async {
-    final iso = ts.toUtc().toIso8601String();
-    _wmCache[table] = iso;
-    await db.insert('sync_watermarks', {'"table"': table, 'ts': iso},
-        conflictAlgorithm: sq.ConflictAlgorithm.replace);
-  }
-
-  // ── Outbox ────────────────────────────────────────────────────────────
-
-  /// Fired after every queued mutation so the app can schedule a push.
-  void Function()? onAppend;
-
-  @override
-  Future<int> append({required String table, required String op, required Map<String, dynamic> payload}) async {
-    final seq = await db.insert('outbox', {'"table"': table, 'op': op, 'payload': jsonEncode(payload)});
-    onAppend?.call();
-    return seq;
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> pending() async {
-    return db.query('outbox', orderBy: 'seq ASC');
-  }
-
-  @override
-  Future<void> ack(int seq) async {
-    await db.delete('outbox', where: 'seq = ?', whereArgs: [seq]);
-  }
 }

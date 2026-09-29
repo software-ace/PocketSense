@@ -6,7 +6,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
-import '../widgets/sync_indicator.dart';
+import '../widgets/data_aware.dart';
 import '../utils/voice_parser.dart';
 import '../widgets/voice_entry_sheet.dart';
 import 'settings_screen.dart';
@@ -17,7 +17,7 @@ class TransactionsScreen extends StatefulWidget {
   State<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
-class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware {
+class _TransactionsScreenState extends State<TransactionsScreen> with DataAware {
   final _repo = FinanceRepo();
   final _searchCtrl = TextEditingController();
   String? _typeFilter; // null=all, 'income', 'expense'
@@ -158,7 +158,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
         actions: [
           if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: 'Add by voice', onPressed: _addByVoice),
           IconButton(icon: const Icon(Icons.add), tooltip: 'Add transaction', onPressed: _addTransaction),
-          const SyncIndicator(),
           const SettingsButton(),
         ],
       ),
@@ -199,7 +198,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SyncAware 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
-        actions: const [SyncIndicator(), SettingsButton()],
+        actions: const [SettingsButton()],
       ),
       // Both ways to add sit in thumb reach; the app bar keeps only status.
       floatingActionButton: voiceEntrySupported

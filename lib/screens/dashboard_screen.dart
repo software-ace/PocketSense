@@ -9,7 +9,7 @@ import '../models/models.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
-import '../widgets/sync_indicator.dart';
+import '../widgets/data_aware.dart';
 import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
+class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   final _repo = FinanceRepo();
   bool _loading = true;
   Object? _error;
@@ -82,9 +82,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SyncAware {
     final desktop = PlatformUi.isDesktop(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false, actions: const [SyncIndicator(), SettingsButton()]),
+      appBar: AppBar(title: Text(desktop ? 'Overview' : 'Home'), centerTitle: false, actions: const [SettingsButton()]),
       body: RefreshIndicator(
-        onRefresh: () => syncAndReload(_load),
+        onRefresh: () => _load(),
         child: CustomScrollView(
           slivers: [
             if (_loading)

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
@@ -13,31 +11,24 @@ void main() {
     LocalStore.overrideInstanceForTest(store);
   });
 
-  Future<List<Map<String, dynamic>>> outbox() async =>
-      [for (final r in await store.pending()) {'op': r['op'], ...jsonDecode(r['payload'] as String) as Map<String, dynamic>}];
-
   group('recurring type', () {
     test('defaults to expense', () async {
       await repo.insertRecurring(description: 'Rent', amountCents: 50000, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1));
       expect((await repo.recurring()).single.type, 'expense');
     });
 
-    test('income round-trips and is queued with its id and type', () async {
+    test('income round-trips', () async {
       final id = await repo.insertRecurring(
           description: 'Salary', amountCents: 300000, type: 'income', frequency: 'monthly', anchorDate: DateTime(2026, 9, 25));
-      expect((await repo.recurring()).single.type, 'income');
-
-      final queued = (await outbox()).single;
-      expect(queued['op'], 'insert');
-      expect(queued['id'], id, reason: 'server must receive the same id the device uses');
-      expect(queued['type'], 'income');
+      final r = (await repo.recurring()).single;
+      expect(r.id, id);
+      expect(r.type, 'income');
     });
 
     test('update can switch an item to income', () async {
       final id = await repo.insertRecurring(description: 'Refund', amountCents: 1000, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1));
       await repo.updateRecurring(id, description: 'Refund', amountCents: 1000, type: 'income', frequency: 'monthly', anchorDate: DateTime(2026, 9, 1));
       expect((await repo.recurring()).single.type, 'income');
-      expect((await outbox()).last['type'], 'income');
     });
 
     test('posting an income item records an income transaction', () async {

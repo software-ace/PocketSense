@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:math';
 
 import '../models/models.dart';
 import '../utils/budget_period.dart';
 import 'local_store.dart';
-import 'sync_controller.dart';
 
 DateTime _dateOnly(dynamic raw) {
   final s = raw.toString().substring(0, 10);
@@ -12,11 +10,8 @@ DateTime _dateOnly(dynamic raw) {
   return DateTime(int.tryParse(p[0]) ?? 0, int.tryParse(p[1]) ?? 1, int.tryParse(p[2]) ?? 1);
 }
 
-// Ids are chosen on the device and sent with the insert. Previously the insert
-// payload dropped the id, so Postgres assigned a different one and every later
-// update/delete targeted a local id the server didn't have. Epoch-ms × 1000 +
-// random keeps ids unique across devices and far above the table's own
-// identity sequence, while staying below 2^53 for safe JSON round-trips.
+// Epoch-ms × 1000 + random: unique without a sequence, and below 2^53 so
+// ids survive a JSON backup round-trip unchanged.
 final _rng = Random();
 int _lastId = 0;
 int newRowId() {
@@ -27,20 +22,10 @@ int newRowId() {
 
 String _isoDate(DateTime d) => d.toIso8601String().substring(0, 10);
 
-/// Offline-first data-access layer. Reads come from the local SQLite mirror;
-/// writes apply locally AND queue to the outbox for push to Supabase. Screens
-/// are unchanged — they talk to this same interface as before.
+/// Data-access layer over the on-device [LocalStore]. Screens create one
+/// wherever they need it; it holds no state of its own.
 class FinanceRepo {
-  /// Gates every read until the first sync round-trip completes (or times out),
-  /// so screens never render an empty DB that is merely mid-seed.
-  Future<LocalStore> get _db async {
-    try {
-      await SyncController.instance.ready.timeout(const Duration(seconds: 15));
-    } on TimeoutException {
-      // Slow or offline first sync: show whatever is cached rather than an error.
-    }
-    return LocalStore.instance();
-  }
+  Future<LocalStore> get _db => LocalStore.instance();
 
   // ── Categories ───────────────────────────────────────────────────────
 
@@ -59,7 +44,6 @@ class FinanceRepo {
     final id = newRowId();
     final row = {'id': id, 'name': name, 'type': type, 'color': color, 'icon': icon, 'updated_at': LocalStore.nowIso()};
     await store.insertRow('categories', row);
-    await store.append(table: 'categories', op: 'insert', payload: row);
     return id;
   }
 
@@ -67,13 +51,11 @@ class FinanceRepo {
     final store = await _db;
     final values = {'name': name, 'type': type, 'color': color, 'icon': icon, 'updated_at': LocalStore.nowIso()};
     await store.updateRow('categories', id, values);
-    await store.append(table: 'categories', op: 'update', payload: {'id': id, ...values});
   }
 
   Future<void> deleteCategory(int id) async {
     final store = await _db;
     await store.deleteRow('categories', id);
-    await store.append(table: 'categories', op: 'delete', payload: {'id': id});
   }
 
   // ── Transactions ─────────────────────────────────────────────────────
@@ -184,7 +166,6 @@ class FinanceRepo {
     if (categoryId != null) row['category_id'] = categoryId;
     if (notes != null) row['notes'] = notes;
     await store.insertRow('transactions', row);
-    await store.append(table: 'transactions', op: 'insert', payload: row);
     return id;
   }
 
@@ -208,13 +189,11 @@ class FinanceRepo {
     if (merchant != null) values['merchant'] = merchant;
     if (categoryId != null) values['category_id'] = categoryId;
     await store.updateRow('transactions', id, values);
-    await store.append(table: 'transactions', op: 'update', payload: {'id': id, ...values});
   }
 
   Future<void> deleteTransaction(int id) async {
     final store = await _db;
     await store.deleteRow('transactions', id);
-    await store.append(table: 'transactions', op: 'delete', payload: {'id': id});
   }
 
   // ── Budgets ──────────────────────────────────────────────────────────
@@ -274,7 +253,6 @@ class FinanceRepo {
     final id = newRowId();
     final row = {'id': id, 'category_id': categoryId, 'limit_cents': limitCents, 'period': period, 'active': 1, 'updated_at': LocalStore.nowIso()};
     await store.insertRow('budgets', row);
-    await store.append(table: 'budgets', op: 'insert', payload: row);
     return id;
   }
 
@@ -282,13 +260,11 @@ class FinanceRepo {
     final store = await _db;
     final values = {'category_id': categoryId, 'limit_cents': limitCents, 'period': period, 'updated_at': LocalStore.nowIso()};
     await store.updateRow('budgets', id, values);
-    await store.append(table: 'budgets', op: 'update', payload: {'id': id, ...values});
   }
 
   Future<void> deleteBudget(int id) async {
     final store = await _db;
     await store.deleteRow('budgets', id);
-    await store.append(table: 'budgets', op: 'delete', payload: {'id': id});
   }
 
   // ── Recurring expenses ───────────────────────────────────────────────
@@ -336,7 +312,6 @@ class FinanceRepo {
     if (merchant != null) row['merchant'] = merchant;
     if (notes != null) row['notes'] = notes;
     await store.insertRow('recurring_expenses', row);
-    await store.append(table: 'recurring_expenses', op: 'insert', payload: row);
     return id;
   }
 
@@ -355,20 +330,17 @@ class FinanceRepo {
     if (notes != null) values['notes'] = notes;
     if (active != null) values['active'] = active ? 1 : 0;
     await store.updateRow('recurring_expenses', id, values);
-    await store.append(table: 'recurring_expenses', op: 'update', payload: {'id': id, ...values});
   }
 
   Future<void> deleteRecurring(int id) async {
     final store = await _db;
     await store.deleteRow('recurring_expenses', id);
-    await store.append(table: 'recurring_expenses', op: 'delete', payload: {'id': id});
   }
 
   Future<void> toggleRecurring(int id, bool active) async {
     final store = await _db;
     final values = {'active': active ? 1 : 0, 'updated_at': LocalStore.nowIso()};
     await store.updateRow('recurring_expenses', id, values);
-    await store.append(table: 'recurring_expenses', op: 'update', payload: {'id': id, ...values});
   }
 
   /// Record this recurring expense as a transaction dated today, then advance last_posted.
@@ -390,11 +362,9 @@ class FinanceRepo {
     if (r.categoryId != null) txRow['category_id'] = r.categoryId;
     if (r.merchant != null && r.merchant!.isNotEmpty) txRow['merchant'] = r.merchant;
     await store.insertRow('transactions', txRow);
-    await store.append(table: 'transactions', op: 'insert', payload: txRow);
 
     final recValues = {'last_posted': _isoDate(today), 'updated_at': LocalStore.nowIso()};
     await store.updateRow('recurring_expenses', r.id, recValues);
-    await store.append(table: 'recurring_expenses', op: 'update', payload: {'id': r.id, ...recValues});
   }
 
   // ── Aggregates (computed over local rows) ────────────────────────────

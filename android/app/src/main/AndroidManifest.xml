@@ -1,7 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Required for Supabase REST calls; without it every network request
-         fails silently on Android 9+ and the offline-first store stays empty. -->
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- No INTERNET permission: the app is fully offline. The speech
+         recognizer runs in its own process with its own permissions. -->
     <!-- Voice entry in Activity (speech_to_text). Asked for at first use, not
          at install; Bluetooth permissions are omitted, so a headset mic is not
          specifically requested, only whatever the recognizer uses. -->
