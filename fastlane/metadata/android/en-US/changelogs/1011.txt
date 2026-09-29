@@ -1,0 +1,7 @@
+First release on F-Droid.
+• Fully offline: no account, no internet permission.
+• Encrypted database, optional PIN and fingerprint/face lock.
+• Jordanian dinars with three decimals.
+• English and Arabic.
+• JSON backup export and import.
+• First-run welcome: import a backup or start fresh.

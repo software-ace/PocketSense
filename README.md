@@ -53,7 +53,7 @@ A private, offline personal finance tracker for Android and Linux, in Jordanian 
 
 ## Install
 
-Download from the [latest release](../../releases/latest).
+Download from the [latest release](../../releases/latest). An F-Droid build is being prepared; see [`fdroid/`](fdroid/README.md).
 
 **Android:** pick the APK for your phone.
 
@@ -147,3 +147,8 @@ test/          unit and widget tests
 - Android and Linux only. Biometric unlock is Android-only.
 - Voice entry understands English sentences only.
 - Arabic month names follow the standard (سبتمبر) rather than the Levantine (أيلول) names.
+
+## License
+Pocket Sense is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
+
+The bundled Noto Sans Arabic font is under the SIL Open Font License 1.1 (`assets/fonts/OFL.txt`).

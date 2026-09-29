@@ -1,0 +1,26 @@
+Pocket Sense tracks your income, spending, budgets and bills without an account and without the internet. Everything stays on your phone in an encrypted database, and leaves it only when you export a backup yourself.
+
+<b>Private by design</b>
+<ul>
+<li>No sign-in, no servers, no ads, no analytics. The app does not request internet access.</li>
+<li>Your data is encrypted with SQLCipher, using a key kept in the Android Keystore.</li>
+<li>Optional app lock with a 4–6 digit PIN, and fingerprint or face unlock.</li>
+</ul>
+
+<b>Made for Jordan</b>
+<ul>
+<li>Amounts in Jordanian dinars with three decimals (JOD 12.500).</li>
+<li>Full Arabic interface, right to left, with Latin digits.</li>
+</ul>
+
+<b>Features</b>
+<ul>
+<li>Home: this month's income, spending and net, a 30-day spending chart and a breakdown by category.</li>
+<li>Activity: add, edit, search and filter transactions, with merchant, category and notes.</li>
+<li>Voice entry (English): say "Spent 3.5 on lunch at Reem yesterday" and check the filled-in form.</li>
+<li>Budgets: weekly or monthly limits per category, with progress and over-budget warnings.</li>
+<li>Recurring: bills, subscriptions and salary with due dates, posted as transactions in one tap.</li>
+<li>Backup: export everything to a JSON file and import it on another phone.</li>
+</ul>
+
+Voice entry uses your phone's speech recognizer. On most phones that is a separate app with its own privacy terms; the sentence itself is interpreted inside Pocket Sense.
