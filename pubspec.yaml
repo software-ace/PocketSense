@@ -34,12 +34,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   intl: ^0.20.2
   fl_chart: ^1.2.0
-  sqflite: ^2.4.1
   sqflite_common_ffi: ^2.3.6
   path: ^1.9.0
   speech_to_text: ^7.5.0
   sherpa_onnx: ^1.13.8
   record: ^7.1.1
+  sqflite_sqlcipher: ^3.4.1
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:
@@ -96,3 +97,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Encryption backend for sqflite_common_ffi (Linux, and unit tests on a Linux
+# host): the sqlite3 package's own SQLCipher build, checksum-verified and
+# bundled into the app. The system libsqlcipher can't be used: the GTK stack
+# already loads the system libsqlite3, and SQLCipher's internal sqlite3_*
+# calls bind to that copy (no -Bsymbolic) and crash. Android uses
+# sqflite_sqlcipher's SQLCipher from Maven Central instead and never loads
+# this, so it is set to `system` there, which also means F-Droid's Android
+# build downloads nothing.
+hooks:
+  user_defines:
+    sqlite3:
+      source:
+        linux: sqlcipher
+        default: system

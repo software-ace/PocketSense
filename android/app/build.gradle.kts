@@ -71,6 +71,7 @@ android {
             // publish in that case — see .github/workflows/release.yml.
             signingConfig = if (releaseStoreFile != null) signingConfigs.getByName("release")
                             else signingConfigs.getByName("debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

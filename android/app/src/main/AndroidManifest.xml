@@ -5,10 +5,16 @@
          at install; Bluetooth permissions are omitted, so a headset mic is not
          specifically requested, only whatever the recognizer uses. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Backups are off: the database key lives in the Android Keystore, which
+         is never backed up, so a restored database could not be opened.
+         Settings → Backup (JSON export) is the way to move data. -->
     <application
         android:label="Pocket Sense"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

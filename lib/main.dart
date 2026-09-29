@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'data/db_key.dart';
 import 'data/local_store.dart';
 import 'shell.dart';
 
@@ -52,7 +53,11 @@ class _BootState extends State<Boot> {
       future: _opening,
       builder: (context, snap) {
         if (snap.hasError) {
-          return StartupError(error: snap.error!, onRetry: () => setState(() => _opening = _open()));
+          return StartupError(
+            error: snap.error!,
+            onRetry: () => setState(() => _opening = _open()),
+            onErase: snap.error is DbKeyLost ? () => setState(() => _opening = LocalStore.eraseAll().then((_) => _open())) : null,
+          );
         }
         if (snap.connectionState != ConnectionState.done) return const _Splash();
         return const Shell();
@@ -62,10 +67,32 @@ class _BootState extends State<Boot> {
 }
 
 class StartupError extends StatelessWidget {
-  const StartupError({super.key, required this.error, required this.onRetry});
+  const StartupError({super.key, required this.error, required this.onRetry, this.onErase});
 
   final Object error;
   final VoidCallback onRetry;
+
+  /// Offered only when the data is unrecoverable ([DbKeyLost]).
+  final VoidCallback? onErase;
+
+  Future<void> _confirmErase(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Erase all data?'),
+        content: const Text('Everything stored in Pocket Sense on this device is deleted. This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Erase'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) onErase!();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +112,10 @@ class StartupError extends StatelessWidget {
                 Text('$error', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 24),
                 FilledButton(onPressed: onRetry, child: const Text('Try again')),
+                if (onErase != null) ...[
+                  const SizedBox(height: 8),
+                  TextButton(onPressed: () => _confirmErase(context), child: const Text('Erase and start over')),
+                ],
               ]),
             ),
           ),

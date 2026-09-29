@@ -2,10 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqflite/sqflite.dart' as sq;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
+import 'package:sqflite_sqlcipher/sqflite.dart' as sq;
 
 import '../utils/app_dirs.dart';
+import 'db_key.dart';
 
 /// Starter categories created with a new database. `key` identifies each one
 /// so the name can be supplied in the user's language at first launch; after
@@ -26,8 +27,8 @@ const defaultCategories = <({String key, String name, String type, String color,
   (key: 'otherIncome', name: 'Other Income', type: 'income', color: '#475569', icon: 'plus-circle'),
 ];
 
-/// The app's only data store: one SQLite database on the device. Nothing
-/// leaves it except through an explicit backup export.
+/// The app's only data store: one SQLCipher-encrypted database on the device,
+/// keyed by [DbKey]. Nothing leaves it except through an explicit backup export.
 class LocalStore {
   static LocalStore? _instance;
 
@@ -61,19 +62,56 @@ class LocalStore {
   static Future<LocalStore> open({Map<String, String> categoryNames = const {}}) async {
     await closeCurrent();
     await _deleteLegacyFiles();
-    final options = sq.OpenDatabaseOptions(
-      version: schemaVersion,
-      onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
-      onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
-    );
+    final file = await path();
+    final key = await DbKey.obtain(dbExists: await File(file).exists());
     final sq.Database db;
     if (Platform.isLinux) {
-      ffi.sqfliteFfiInit();
-      db = await ffi.databaseFactoryFfi.openDatabase(await path(), options: options);
+      db = await openEncryptedFfi(file, key, categoryNames: categoryNames);
     } else {
-      db = await sq.databaseFactory.openDatabase(await path(), options: options);
+      db = await sq.openDatabase(file,
+          password: key,
+          version: schemaVersion,
+          onConfigure: _configure,
+          onCreate: (db, _) => createSchema(db, categoryNames: categoryNames));
     }
     return _instance = LocalStore._(db);
+  }
+
+  /// Linux: sqflite_common_ffi on the system libsqlcipher (see hooks: in
+  /// pubspec.yaml). [hexKey] is a raw 256-bit key, so SQLCipher skips its
+  /// passphrase KDF. The key must be the very first statement.
+  @visibleForTesting
+  static Future<sq.Database> openEncryptedFfi(String file, String hexKey, {Map<String, String> categoryNames = const {}}) {
+    ffi.sqfliteFfiInit();
+    return ffi.databaseFactoryFfi.openDatabase(file,
+        options: sq.OpenDatabaseOptions(
+          version: schemaVersion,
+          onConfigure: (db) async {
+            await db.execute('''PRAGMA key = "x'$hexKey'"''');
+            await _configure(db);
+          },
+          onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
+        ));
+  }
+
+  static Future<void> _configure(sq.Database db) async {
+    // Plain SQLite silently ignores PRAGMA key and would write an unencrypted
+    // file. SQLCipher answers cipher_version; refuse to continue without it.
+    final v = await db.rawQuery('PRAGMA cipher_version');
+    if (v.isEmpty || (v.first.values.first?.toString() ?? '').isEmpty) {
+      await db.close();
+      throw StateError('SQLCipher is not available, so the database would not be encrypted. '
+          'On Linux, install SQLCipher (libsqlcipher).');
+    }
+    await db.execute('PRAGMA foreign_keys = ON');
+  }
+
+  /// Deletes the database file and its key. Used by "erase all data".
+  static Future<void> eraseAll() async {
+    await closeCurrent();
+    final f = File(await path());
+    if (await f.exists()) await f.delete();
+    await DbKey.delete();
   }
 
   /// v1.x kept one plaintext database per Supabase account. v2 starts fresh
