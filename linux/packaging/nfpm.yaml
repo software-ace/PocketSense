@@ -1,0 +1,61 @@
+# .deb and .rpm from the Flutter release bundle (build/linux/x64/release/bundle).
+# Run from the repo root:  VERSION=2.0.1 nfpm package -f linux/packaging/nfpm.yaml -p deb
+name: pocket-sense
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: misc
+priority: optional
+maintainer: software-ace <a.abuyahia@protonmail.com>
+description: |
+  Offline, encrypted personal finance tracker.
+  Tracks income, expenses, budgets and recurring bills in Jordanian dinars,
+  in English or Arabic. Nothing leaves the device: the database is encrypted
+  with a key kept in your desktop keyring.
+homepage: https://github.com/software-ace/PocketSense
+license: GPL-3.0-or-later
+
+contents:
+  # The bundle finds its lib/ and data/ next to the real executable, so it
+  # stays together under /opt and /usr/bin only holds a symlink.
+  # type: tree keeps lib/ and data/; a plain directory src is flattened.
+  - src: build/linux/x64/release/bundle
+    dst: /opt/pocket-sense
+    type: tree
+  - src: /opt/pocket-sense/pocket_sense
+    dst: /usr/bin/pocket-sense
+    type: symlink
+  - src: linux/packaging/ace.software.pocketsense.desktop
+    dst: /usr/share/applications/ace.software.pocketsense.desktop
+  # Same artwork as the store listing.
+  - src: fastlane/metadata/android/en-US/images/icon.png
+    dst: /usr/share/icons/hicolor/512x512/apps/ace.software.pocketsense.png
+  - src: LICENSE
+    dst: /usr/share/licenses/pocket-sense/LICENSE
+
+overrides:
+  deb:
+    depends:
+      - libc6 (>= 2.35) # CI builds on Ubuntu 22.04
+      - libgtk-3-0t64 | libgtk-3-0 # renamed in Ubuntu 24.04 / Debian 13
+      - libsecret-1-0
+      - libsqlite3-0
+      # Loaded at run time by Flutter, so not among the linked libraries.
+      - libegl1
+      - libgles2
+    recommends:
+      - pulseaudio-utils # parecord, for voice entry
+  rpm:
+    # By library rather than package name, so the same package resolves on
+    # Fedora and openSUSE, which name these packages differently.
+    depends:
+      - libgtk-3.so.0()(64bit)
+      - libsecret-1.so.0()(64bit)
+      - libsqlite3.so.0()(64bit)
+      - libEGL.so.1()(64bit) # these two are loaded at run time by Flutter
+      - libGLESv2.so.2()(64bit)
+    recommends:
+      - pulseaudio-utils # parecord, for voice entry
+
+rpm:
+  compression: zstd # as Fedora's own packages use

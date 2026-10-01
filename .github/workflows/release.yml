@@ -157,24 +157,46 @@ jobs:
       - name: Build Linux bundle
         run: flutter build linux --release
 
-      # The bundle is self-contained (engine, plugins and SQLCipher are in
-      # bundle/lib); users need GTK 3 and a Secret Service. Unpacks to PocketSense/.
+      # Pinned and checksummed: these tools end up shaping what users install.
+      - name: Install packaging tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL -o nfpm.tar.gz https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_Linux_x86_64.tar.gz
+          echo "0660ca602b2d2d2ae4781a06c692b3eeb9d437ffea05b831d76e41f4a3188783  nfpm.tar.gz" | sha256sum -c
+          tar -xzf nfpm.tar.gz -C "$RUNNER_TEMP/bin" nfpm
+          curl -fsSL -o "$RUNNER_TEMP/bin/appimagetool" https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage
+          echo "ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0  $RUNNER_TEMP/bin/appimagetool" | sha256sum -c
+          chmod +x "$RUNNER_TEMP/bin/appimagetool"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      # Four ways to get the same bundle (engine, plugins and SQLCipher are in
+      # bundle/lib):
+      # - tarball: unpacks to PocketSense/; the user installs GTK 3 etc.
+      # - .deb / .rpm: install to /opt/pocket-sense with a menu entry, and
+      #   pull in GTK 3, libsecret and the GL libraries (linux/packaging/nfpm.yaml).
+      # - AppImage: one executable file, using the system's GTK 3 and keyring.
+      # Package versions come from pubspec.yaml, so manual runs from a branch work too.
       - name: Package
         run: |
           mkdir -p dist
-          tar -C build/linux/x64/release -czf "dist/PocketSense-${GITHUB_REF_NAME}-linux-x64.tar.gz" \
+          name="PocketSense-${GITHUB_REF_NAME}-linux-x64"
+          version=$(sed -n 's/^version: *\([^+]*\)+.*/\1/p' pubspec.yaml)
+          tar -C build/linux/x64/release -czf "dist/${name}.tar.gz" \
             --transform 's,^bundle,PocketSense,' bundle
+          VERSION="$version" nfpm package -f linux/packaging/nfpm.yaml -p deb -t "dist/${name}.deb"
+          VERSION="$version" nfpm package -f linux/packaging/nfpm.yaml -p rpm -t "dist/${name}.rpm"
+          linux/packaging/build-appimage.sh "$version" "dist/${name}.AppImage"
           ls -lh dist
 
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${GITHUB_REF_NAME}" dist/*.tar.gz --clobber
+        run: gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
 
       - name: Upload artifact (manual runs)
         if: "!startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v4
         with:
           name: PocketSense-linux
-          path: dist/*.tar.gz
+          path: dist/*

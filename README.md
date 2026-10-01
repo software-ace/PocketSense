@@ -65,19 +65,21 @@ Download from the [latest release](../../releases/latest). An F-Droid build is b
 
 Requires Android 7.0 (API 24) or later.
 
-**Linux (x86_64):** download `PocketSense-<version>-linux-x64.tar.gz`, then:
+**Linux (x86_64):** pick one of these:
 
-```sh
-tar -xzf PocketSense-<version>-linux-x64.tar.gz
-./PocketSense/pocket_sense
-```
+| File | How to install |
+|---|---|
+| `PocketSense-<version>-linux-x64.deb` | Debian, Ubuntu, Mint: `sudo apt install ./PocketSense-<version>-linux-x64.deb` |
+| `PocketSense-<version>-linux-x64.rpm` | Fedora, openSUSE: `sudo dnf install ./PocketSense-<version>-linux-x64.rpm` (or `zypper install`) |
+| `PocketSense-<version>-linux-x64.AppImage` | Any distro: `chmod +x` it and run it |
+| `PocketSense-<version>-linux-x64.tar.gz` | Any distro: `tar -xzf` it and run `./PocketSense/pocket_sense` |
 
-It needs:
-- GTK 3 (installed on most desktops).
+The .deb and .rpm add Pocket Sense to your app menu (and `pocket-sense` to the terminal) and install what it needs. With the AppImage or the tarball, make sure you have:
+- GTK 3 and OpenGL ES (EGL/GLES), which almost every desktop already has.
 - A running Secret Service for the encryption key: GNOME Keyring or KWallet, which most desktops already run. Without one, the app explains the problem instead of starting.
-- For voice entry, `parecord`, which comes with PulseAudio or PipeWire's pulse tools (`pulseaudio-utils` on Debian/Ubuntu, `libpulse` on Arch).
+- For voice entry, `parecord`, which comes with PulseAudio or PipeWire's pulse tools (`pulseaudio-utils` on Debian/Ubuntu/Fedora, `libpulse` on Arch). The .deb and .rpm recommend it.
 
-SQLCipher is bundled. It's built on Ubuntu 22.04, so it runs on distros with glibc 2.35 or newer.
+SQLCipher is bundled. Everything is built on Ubuntu 22.04, so it runs on distros with glibc 2.35 or newer.
 
 ## Development
 
@@ -113,7 +115,7 @@ Pushing a tag like `v2.0.0` runs `.github/workflows/release.yml`, which:
 2. checks that the tag matches the version in `pubspec.yaml`, then builds one APK per CPU type. The version name and build number come from `pubspec.yaml`, the same place F-Droid reads them,
 3. signs the APKs with the release key and checks each signature against the key's fingerprint,
 4. publishes a GitHub Release using the notes in `.github/release-notes/<tag>.md`, or generated notes if that file is missing,
-5. then builds the Linux bundle on Ubuntu 22.04 and attaches it to that release as `PocketSense-<tag>-linux-x64.tar.gz`.
+5. then builds the Linux bundle on Ubuntu 22.04 and attaches it to that release as `PocketSense-<tag>-linux-x64` .tar.gz, .deb, .rpm and .AppImage. The packaging files are in `linux/packaging/`.
 
 **To cut a release:** bump `version:` in `pubspec.yaml`, always increasing the number after `+`, then commit and tag `v<version>`.
 
