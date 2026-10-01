@@ -272,6 +272,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter an amount above zero, with at most 3 decimals.';
 
   @override
+  String get enterAmount => 'Enter an amount';
+
+  @override
+  String get enterDescription => 'Enter a description';
+
+  @override
+  String get enterName => 'Enter a name';
+
+  @override
+  String get chooseCategory => 'Choose a category';
+
+  @override
   String activeBudgets(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

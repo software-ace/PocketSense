@@ -273,6 +273,9 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   // Anchor date drives every future due date (weekday / day-of-month).
   late DateTime _anchor = widget.existing?.anchorDate ?? DateTime.now();
   bool _saving = false;
+  final _formKey = GlobalKey<FormState>();
+  // Errors show only after a save attempt, then update as the user types.
+  var _autovalidate = AutovalidateMode.disabled;
 
   Future<void> _pickAnchor() async {
     final picked = await showDatePicker(
@@ -295,9 +298,13 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
+      return;
+    }
     final desc = _descCtrl.text.trim();
-    final fils = parseAmount(_amtCtrl.text) ?? 0;
-    if (desc.isEmpty || fils <= 0 || _saving) return;
+    final fils = parseAmount(_amtCtrl.text)!;
     setState(() => _saving = true);
     try {
       final repo = FinanceRepo();
@@ -326,7 +333,10 @@ class _RecurringDialogState extends State<_RecurringDialog> {
     return AlertDialog(
       title: Text(widget.existing == null ? l.newRecurringItem : l.editRecurringItem),
       content: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child: Form(
+          key: _formKey,
+          autovalidateMode: _autovalidate,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<String>(
@@ -343,7 +353,13 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _descCtrl, autofocus: widget.existing == null, decoration: InputDecoration(labelText: l.description), onSubmitted: (_) => _save()),
+          TextFormField(
+            controller: _descCtrl,
+            autofocus: widget.existing == null,
+            decoration: InputDecoration(labelText: l.description),
+            validator: (v) => (v ?? '').trim().isEmpty ? l.enterDescription : null,
+            onFieldSubmitted: (_) => _save(),
+          ),
           const SizedBox(height: 16),
           AmountField(controller: _amtCtrl, label: l.amount),
           const SizedBox(height: 16),
@@ -386,7 +402,8 @@ class _RecurringDialogState extends State<_RecurringDialog> {
               onChanged: (v) => setState(() => _active = v),
             ),
           ],
-        ]),
+          ]),
+        ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),

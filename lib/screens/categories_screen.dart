@@ -241,6 +241,9 @@ class _CategoryDialogState extends State<_CategoryDialog> {
   late String _type = widget.existing?.type ?? 'expense';
   late String _color = widget.existing?.color ?? _CategoriesScreenState._swatches[0];
   bool _saving = false;
+  final _formKey = GlobalKey<FormState>();
+  // Errors show only after a save attempt, then update as the user types.
+  var _autovalidate = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -249,8 +252,12 @@ class _CategoryDialogState extends State<_CategoryDialog> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
+      return;
+    }
     final name = _nameCtrl.text.trim();
-    if (name.isEmpty || _saving) return;
     setState(() => _saving = true);
     try {
       final repo = FinanceRepo();
@@ -275,8 +282,17 @@ class _CategoryDialogState extends State<_CategoryDialog> {
     return AlertDialog(
       title: Text(widget.existing == null ? l.newCategory : l.editCategory),
       content: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          TextField(controller: _nameCtrl, autofocus: widget.existing == null, decoration: InputDecoration(labelText: l.name), onSubmitted: (_) => _save()),
+        child: Form(
+          key: _formKey,
+          autovalidateMode: _autovalidate,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          TextFormField(
+            controller: _nameCtrl,
+            autofocus: widget.existing == null,
+            decoration: InputDecoration(labelText: l.name),
+            validator: (v) => (v ?? '').trim().isEmpty ? l.enterName : null,
+            onFieldSubmitted: (_) => _save(),
+          ),
           const SizedBox(height: 16),
           SegmentedButton<String>(
             segments: [
@@ -306,7 +322,8 @@ class _CategoryDialogState extends State<_CategoryDialog> {
                 ),
               ),
           ]),
-        ]),
+          ]),
+        ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),

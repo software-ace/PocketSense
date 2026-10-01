@@ -425,6 +425,9 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
   late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
   List<dynamic> _cats = [];
+  final _formKey = GlobalKey<FormState>();
+  // Errors show only after a save attempt, then update as the user types.
+  var _autovalidate = AutovalidateMode.disabled;
 
   static DateTime _today() {
     final n = DateTime.now();
@@ -474,7 +477,10 @@ class _TxFormSheetState extends State<_TxFormSheet> {
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        child: Form(
+          key: _formKey,
+          autovalidateMode: _autovalidate,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text(isEdit ? l.editTransaction : (widget.heard != null ? l.checkAndSave : l.newTransaction), style: Theme.of(context).textTheme.titleLarge),
           if (widget.heard != null) ...[
             const SizedBox(height: 8),
@@ -525,11 +531,11 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () {
-              final fils = parseAmount(_amtCtrl.text) ?? 0;
-              if (fils <= 0) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.enterPositiveAmount)));
+              if (!_formKey.currentState!.validate()) {
+                setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
                 return;
               }
+              final fils = parseAmount(_amtCtrl.text)!;
               final desc = _descCtrl.text.trim();
               final merch = _merchCtrl.text.trim();
               // Saved as typed (maybe empty): the fallback title is filled in when
@@ -538,7 +544,8 @@ class _TxFormSheetState extends State<_TxFormSheet> {
             },
             child: Text(l.save),
           ),
-        ]),
+          ]),
+        ),
       ),
     );
   }

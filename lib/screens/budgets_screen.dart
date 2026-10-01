@@ -204,6 +204,9 @@ class _BudgetDialogState extends State<_BudgetDialog> {
   late final _amtCtrl = TextEditingController(text: widget.existing != null ? amountToInput(widget.existing!.limitFils) : '');
   late String _period = widget.existing?.period ?? 'monthly';
   bool _saving = false;
+  final _formKey = GlobalKey<FormState>();
+  // Errors show only after a save attempt, then update as the user types.
+  var _autovalidate = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -212,8 +215,12 @@ class _BudgetDialogState extends State<_BudgetDialog> {
   }
 
   Future<void> _save() async {
-    final fils = parseAmount(_amtCtrl.text) ?? 0;
-    if (_catId == null || fils <= 0 || _saving) return;
+    if (_saving) return;
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
+      return;
+    }
+    final fils = parseAmount(_amtCtrl.text)!;
     setState(() => _saving = true);
     try {
       final repo = FinanceRepo();
@@ -239,10 +246,14 @@ class _BudgetDialogState extends State<_BudgetDialog> {
     return AlertDialog(
       title: Text(widget.existing == null ? l.newBudget : l.editBudget),
       content: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child: Form(
+          key: _formKey,
+          autovalidateMode: _autovalidate,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           DropdownButtonFormField<int>(
             initialValue: _catId,
             decoration: InputDecoration(labelText: l.category),
+            validator: (v) => v == null ? l.chooseCategory : null,
             items: expenseCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
@@ -262,7 +273,8 @@ class _BudgetDialogState extends State<_BudgetDialog> {
             selected: {_period},
             onSelectionChanged: (s) => setState(() => _period = s.first),
           ),
-        ]),
+          ]),
+        ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),

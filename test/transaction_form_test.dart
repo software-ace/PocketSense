@@ -1,39 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
 
-import 'helpers/localized_app.dart';
+import 'helpers/screen_with_db.dart';
 
 void main() {
-  setUp(() async {
-    LocalStore.overrideInstanceForTest(await LocalStore.openInMemoryForTest(seed: true));
-  });
-
-  // The database is real (sqflite ffi), so its futures need real time.
-  // Pumps until the loading spinner is gone (it never settles while shown).
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 50; i++) {
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-      await tester.pump(const Duration(milliseconds: 50));
-      if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
-    }
-    await tester.pumpAndSettle();
-  }
+  setUp(useSeededTestDb);
 
   Future<void> openAddSheet(WidgetTester tester) async {
-    // Phone-sized, so the mobile layout and the whole sheet fit.
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.7;
-    addTearDown(tester.view.reset);
-    await tester.pumpWidget(localizedApp(const TransactionsScreen()));
-    await settle(tester);
+    await pumpScreenWithDb(tester, const TransactionsScreen());
     await tester.tap(find.text('Add'));
-    await settle(tester);
-    // The sheet loads its categories after it opens, with no spinner.
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
-    await tester.pumpAndSettle();
+    await settleWithDb(tester);
   }
 
   Future<void> openCategories(WidgetTester tester) async {
@@ -62,9 +40,9 @@ void main() {
   testWidgets('an untitled transaction is saved untitled and titled when shown', (tester) async {
     await openAddSheet(tester);
 
-    await tester.enterText(find.widgetWithText(TextField, 'Amount'), '5');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Amount'), '5');
     await tester.tap(find.text('Save'));
-    await settle(tester);
+    await settleWithDb(tester);
 
     final saved = (await tester.runAsync(() => FinanceRepo().transactions()))!.single;
     // Not the word "Transaction" in whatever language was on at the time.

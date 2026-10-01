@@ -584,6 +584,30 @@ abstract class AppLocalizations {
   /// **'Enter an amount above zero, with at most 3 decimals.'**
   String get enterPositiveAmount;
 
+  /// No description provided for @enterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount'**
+  String get enterAmount;
+
+  /// No description provided for @enterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a description'**
+  String get enterDescription;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get enterName;
+
+  /// No description provided for @chooseCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get chooseCategory;
+
   /// No description provided for @activeBudgets.
   ///
   /// In en, this message translates to:

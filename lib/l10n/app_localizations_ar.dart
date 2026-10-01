@@ -272,6 +272,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل مبلغًا أكبر من صفر، بثلاث منازل عشرية على الأكثر.';
 
   @override
+  String get enterAmount => 'أدخل المبلغ';
+
+  @override
+  String get enterDescription => 'أدخل وصفًا';
+
+  @override
+  String get enterName => 'أدخل اسمًا';
+
+  @override
+  String get chooseCategory => 'اختر فئة';
+
+  @override
   String activeBudgets(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

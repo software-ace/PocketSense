@@ -137,6 +137,10 @@
     }
   },
   "enterPositiveAmount": "Enter an amount above zero, with at most 3 decimals.",
+  "enterAmount": "Enter an amount",
+  "enterDescription": "Enter a description",
+  "enterName": "Enter a name",
+  "chooseCategory": "Choose a category",
   "activeBudgets": "{count, plural, =0{No active budgets} =1{1 active budget} other{{count} active budgets}}",
   "@activeBudgets": {
     "placeholders": {
