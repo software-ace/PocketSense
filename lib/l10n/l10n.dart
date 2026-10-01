@@ -37,3 +37,12 @@ Map<String, Set<String>> starterCategoryDefaultNames() {
   }
   return result;
 }
+
+/// The language the app runs in: the one chosen in Settings, else the
+/// device's when it's supported, else English. (Not the first supported
+/// locale: that list is alphabetical, so a German or French phone would
+/// get Arabic.)
+Locale resolveAppLocale(Locale? chosen, Locale? device) =>
+    chosen ??
+    AppLocalizations.supportedLocales.firstWhere((s) => s.languageCode == device?.languageCode,
+        orElse: () => const Locale('en'));

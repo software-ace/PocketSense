@@ -55,9 +55,8 @@ class PocketSenseApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        localeResolutionCallback: (device, supported) {
-          final resolved = locale ??
-              supported.firstWhere((s) => s.languageCode == device?.languageCode, orElse: () => supported.first);
+        localeResolutionCallback: (device, _) {
+          final resolved = resolveAppLocale(locale, device);
           AppSettings.applyToIntl(resolved);
           return resolved;
         },
