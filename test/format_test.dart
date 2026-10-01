@@ -1,4 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:pocket_sense/settings/app_settings.dart';
 import 'package:pocket_sense/utils/format.dart';
 
 void main() {
@@ -69,5 +73,21 @@ void main() {
   test('currencyAffix follows the language', () {
     expect(currencyAffix(locale: 'en'), (prefix: 'JOD ', suffix: null));
     expect(currencyAffix(locale: 'ar'), (prefix: null, suffix: ' د.أ'));
+  });
+
+  group('formatDate', () {
+    // The app gets this from Flutter's localization delegates.
+    setUpAll(() => initializeDateFormatting());
+    tearDown(() => Intl.defaultLocale = null);
+
+    test('English: month first', () {
+      AppSettings.applyToIntl(const Locale('en'));
+      expect(formatDate('2026-10-01'), 'Oct 1, 2026');
+    });
+
+    test('Arabic: day first, no English comma', () {
+      AppSettings.applyToIntl(const Locale('ar'));
+      expect(formatDate('2026-10-01'), '1 أكتوبر 2026');
+    });
   });
 }

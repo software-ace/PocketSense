@@ -128,7 +128,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       context: context,
       builder: (c) => AlertDialog(
         title: Text(c.l10n.deleteTransactionTitle),
-        content: Text('${t.description} (${formatMoney(t.amountFils)})'),
+        content: Text('${t.description.isNotEmpty ? t.description : (t.merchant ?? c.l10n.transactionFallback)} (${formatMoney(t.amountFils)})'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.cancel)),
           FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(c.l10n.delete)),
@@ -268,7 +268,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
             final fmt = DateFormat.yMMMd();
             return DataRow(cells: [
               DataCell(Text(fmt.format(t.date), style: const TextStyle(fontSize: 13))),
-              DataCell(Text(t.description.isNotEmpty ? t.description : (t.merchant ?? '—'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis, maxLines: 1)),
+              DataCell(Text(t.description.isNotEmpty ? t.description : (t.merchant ?? context.l10n.transactionFallback), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis, maxLines: 1)),
               DataCell(Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: _catColor(t).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text(t.categoryName ?? l.uncategorized, style: TextStyle(fontSize: 12, color: _catColor(t))))),
               DataCell(Text(t.merchant ?? '—', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis, maxLines: 1)),
               DataCell(Text(t.type == 'income' ? l.income : l.expense, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Colors.green : Colors.redAccent))),
@@ -467,6 +467,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   @override
   Widget build(BuildContext context) {
     final cats = _cats.cast<Category>();
+    final typeCats = cats.where((c) => c.type == _type).toList();
     final isEdit = widget.existing != null;
     final l = context.l10n;
     return Padding(
@@ -490,7 +491,11 @@ class _TxFormSheetState extends State<_TxFormSheet> {
               ButtonSegment(value: 'income', label: Text(l.income)),
             ],
             selected: {_type},
-            onSelectionChanged: (s) => setState(() => _type = s.first),
+            onSelectionChanged: (s) => setState(() {
+              _type = s.first;
+              // An expense category can't stay selected on an income, and vice versa.
+              if (!cats.any((c) => c.id == _catId && c.type == _type)) _catId = null;
+            }),
           ),
           const SizedBox(height: 16),
           AmountField(controller: _amtCtrl, label: l.amount),
@@ -510,10 +515,11 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 12),
           DropdownButtonFormField<int>(
             // Categories load async; only select once the item exists.
-            key: ValueKey(cats.length),
-            initialValue: cats.any((c) => c.id == _catId) ? _catId : null,
+            // Rebuilt when the type flips too, so a cleared selection shows as cleared.
+            key: ValueKey('${cats.length}-$_type'),
+            initialValue: typeCats.any((c) => c.id == _catId) ? _catId : null,
             decoration: InputDecoration(labelText: l.categoryOptional),
-            items: cats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+            items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 20),
@@ -526,8 +532,9 @@ class _TxFormSheetState extends State<_TxFormSheet> {
               }
               final desc = _descCtrl.text.trim();
               final merch = _merchCtrl.text.trim();
-              final effectiveDesc = desc.isNotEmpty ? desc : (merch.isNotEmpty ? merch : l.transactionFallback);
-              Navigator.pop(context, _TxDraft(fils, _type, effectiveDesc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
+              // Saved as typed (maybe empty): the fallback title is filled in when
+              // shown, so it follows the UI language instead of the one at save time.
+              Navigator.pop(context, _TxDraft(fils, _type, desc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
             },
             child: Text(l.save),
           ),

@@ -83,5 +83,7 @@ DateTime? parseDate(dynamic raw) {
 String formatDate(dynamic raw) {
   final dt = parseDate(raw);
   if (dt == null) return '';
-  return DateFormat('MMM d, yyyy').format(dt.toLocal());
+  // A skeleton, not a fixed pattern: day/month order and punctuation follow
+  // the locale (Arabic reads "1 أكتوبر 2026", not "أكتوبر 1, 2026").
+  return DateFormat.yMMMd().format(dt.toLocal());
 }
