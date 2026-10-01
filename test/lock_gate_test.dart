@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/l10n/app_localizations.dart';
 import 'package:pocket_sense/security/app_lock.dart';
 import 'package:pocket_sense/security/lock_gate.dart';
 
@@ -55,6 +56,35 @@ void main() {
 
     await typePin(tester, '2468');
     expect(appVisible(tester), isTrue);
+  });
+
+  // As in main.dart: above the app's Navigator, so there are two Navigators
+  // under MaterialApp's one HeroController.
+  testWidgets('after unlocking, the app can still push routes', (tester) async {
+    await tester.runAsync(() => AppLock.instance.setPin('2468'));
+    await tester.pumpWidget(MaterialApp(
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) => LockGate(onEraseAll: () async => erased++, child: child!),
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('pushed page'))),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    ));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+    await typePin(tester, '2468');
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('pushed page'), findsOneWidget);
   });
 
   testWidgets('forgot PIN erases only after two confirmations', (tester) async {

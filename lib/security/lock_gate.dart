@@ -70,9 +70,14 @@ class _LockGateState extends State<LockGate> {
       if (locked == null) const ColoredBox(color: Colors.black, child: SizedBox.expand()),
       if (locked == true)
         // Its own Navigator: the app's is underneath, and "Forgot PIN" needs dialogs.
-        Navigator(
-          onGenerateRoute: (_) => MaterialPageRoute(
-            builder: (_) => LockScreen(onUnlocked: () => setState(() => _locked = false), onEraseAll: _erase),
+        // HeroControllerScope.none: otherwise it takes MaterialApp's HeroController
+        // from the app's Navigator and leaves it ownerless when unlocked, which
+        // breaks every later push (buttons stop working, only the nav bar survives).
+        HeroControllerScope.none(
+          child: Navigator(
+            onGenerateRoute: (_) => MaterialPageRoute(
+              builder: (_) => LockScreen(onUnlocked: () => setState(() => _locked = false), onEraseAll: _erase),
+            ),
           ),
         ),
     ]);
