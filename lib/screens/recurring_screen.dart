@@ -210,7 +210,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
         child: ListTile(
           onTap: () => _edit(r),
           onLongPress: () => _longPressSheet(r),
-          leading: CircleAvatar(child: Icon(_isIncome(r) ? Icons.savings_outlined : Icons.event_repeat)),
+          leading: CircleAvatar(child: Icon(_isIncome(r) ? Icons.arrow_upward : Icons.event_repeat)),
           title: Row(children: [
             Expanded(child: Text(r.description)),
             if (!r.active) ...[
