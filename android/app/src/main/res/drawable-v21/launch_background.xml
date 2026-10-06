@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Plain background only — the app draws its own branded splash (SplashGate)
+     once the engine is up, so no icon here to avoid a double-splash flash. -->
+<color xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/splash_bg" />

@@ -1,0 +1,3 @@
+• Backups are now encrypted with a password you choose.
+• Automatic backup: once a day to a folder you pick, keeping the last 10.
+• New About screen with the version, licenses and a link to the source code.

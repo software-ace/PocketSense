@@ -1,0 +1,1 @@
+• Simpler, smaller data storage under the hood. Nothing changes in how the app looks or works, and your data is kept.

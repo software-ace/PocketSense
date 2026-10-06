@@ -1,0 +1,3 @@
+• Sync between your devices: pair your phone with your computer or another phone, and keep the same data on both over your Wi-Fi. No server, no internet.
+• Turn it on in Settings → Sync, then open Pair a device on both and check the 6-digit codes match.
+• The app now requests network access, used only for sync on your local network, and only when you turn it on.

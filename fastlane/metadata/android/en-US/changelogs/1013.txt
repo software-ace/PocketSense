@@ -1,0 +1,1 @@
+• Recurring items now show the right next due date: yearly items keep their month, quarterly ones come every 3 months, and bi-weekly ones stay on their week.

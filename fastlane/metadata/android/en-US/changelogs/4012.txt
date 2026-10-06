@@ -1,0 +1,2 @@
+• Forms now say what's missing when you save with a required field empty.
+• If your phone's language isn't English or Arabic, the app now opens in English instead of Arabic.

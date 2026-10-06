@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Pocket Sense
+Name[ar]=Pocket Sense
+Comment=Offline, encrypted personal finance tracker
+Comment[ar]=متتبّع مالي شخصي مشفّر يعمل دون اتصال
+Exec=pocket-sense
+Icon=ace.software.pocketsense
+Terminal=false
+Categories=Office;Finance;
+Keywords=money;budget;expenses;income;finance;
+StartupNotify=true
+StartupWMClass=ace.software.pocketsense

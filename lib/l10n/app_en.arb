@@ -1,0 +1,657 @@
+{
+  "@@locale": "en",
+  "appTitle": "Pocket Sense",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "save": "Save",
+  "edit": "Edit",
+  "retry": "Retry",
+  "tryAgain": "Try again",
+  "add": "Add",
+  "newItem": "New",
+  "more": "More",
+  "done": "Done",
+  "all": "All",
+  "expense": "Expense",
+  "income": "Income",
+  "category": "Category",
+  "categoryOptional": "Category (optional)",
+  "amount": "Amount",
+  "date": "Date",
+  "description": "Description",
+  "descriptionOptional": "Description (optional)",
+  "merchant": "Merchant",
+  "merchantOptional": "Merchant (optional)",
+  "notesOptional": "Notes (optional)",
+  "notesHint": "Any extra details…",
+  "type": "Type",
+  "uncategorized": "Uncategorized",
+  "transactionFallback": "Transaction",
+  "deleteFailed": "Delete failed: {error}",
+  "@deleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteNamedTitle": "Delete \"{name}\"?",
+  "@deleteNamedTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoad": "Could not load",
+  "navHome": "Home",
+  "navOverview": "Overview",
+  "navActivity": "Activity",
+  "navBudgets": "Budgets",
+  "navRecurring": "Recurring",
+  "settings": "Settings",
+  "startupErrorTitle": "Couldn't open your data",
+  "keyringUnavailable": "The system keyring is unavailable ({detail}). Pocket Sense keeps its encryption key there. On Linux, make sure a Secret Service provider such as GNOME Keyring or KWallet is running and unlocked.",
+  "@keyringUnavailable": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "dbKeyLost": "Your data is encrypted, but its key is no longer in the system keyring, so it can't be opened. You can erase it and start over.",
+  "eraseAllTitle": "Erase all data?",
+  "eraseAllBody": "Everything stored in Pocket Sense on this device is deleted. This cannot be undone. Synced devices keep their data, and stop syncing with this one.",
+  "erase": "Erase",
+  "eraseAndStartOver": "Erase and start over",
+  "catGroceries": "Groceries",
+  "catDining": "Dining Out",
+  "catTransport": "Transport",
+  "catHousing": "Housing",
+  "catUtilities": "Utilities",
+  "catEntertainment": "Entertainment",
+  "catShopping": "Shopping",
+  "catHealth": "Health",
+  "catSubscriptions": "Subscriptions",
+  "catOtherExpense": "Other Expense",
+  "catSalary": "Salary",
+  "catFreelance": "Freelance",
+  "catOtherIncome": "Other Income",
+  "statIncomeMonth": "Income (mo)",
+  "statSpentMonth": "Spent (mo)",
+  "statNetMonth": "Net (mo)",
+  "statYearTotal": "Spent this year",
+  "chartDaily": "Daily Spending (30d)",
+  "chartByCategory": "By Category (30d)",
+  "recentActivity": "Recent Activity",
+  "noTransactionsYet": "No transactions yet",
+  "noData": "No data",
+  "noExpensesYet": "No expenses yet",
+  "addByVoice": "Add by voice",
+  "addTransaction": "Add transaction",
+  "searchTransactions": "Search transactions…",
+  "search": "Search…",
+  "noTransactionsHint": "Tap Add to record your first entry.",
+  "deleteTransactionTitle": "Delete transaction?",
+  "addFailed": "Failed to add: {error}",
+  "@addFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "updateFailed": "Failed to update: {error}",
+  "@updateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "editTransaction": "Edit transaction",
+  "newTransaction": "New transaction",
+  "checkAndSave": "Check and save",
+  "dateToday": "Today · {date}",
+  "@dateToday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dateYesterday": "Yesterday · {date}",
+  "@dateYesterday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "enterPositiveAmount": "Enter an amount above zero, with at most 3 decimals.",
+  "enterAmount": "Enter an amount",
+  "enterDescription": "Enter a description",
+  "enterName": "Enter a name",
+  "chooseCategory": "Choose a category",
+  "activeBudgets": "{count, plural, =0{No active budgets} =1{1 active budget} other{{count} active budgets}}",
+  "@activeBudgets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newBudget": "New budget",
+  "editBudget": "Edit budget",
+  "noBudgets": "No budgets set",
+  "noBudgetsHint": "Set a weekly or monthly limit per category to track spending.",
+  "deleteBudgetTitle": "Delete budget for \"{category}\"?",
+  "@deleteBudgetTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBudgetBody": "This will remove the spending limit. Existing transactions are unaffected.",
+  "periodThisWeek": "This week · {range}",
+  "@periodThisWeek": {
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "periodThisMonth": "This month · {month}",
+  "@periodThisMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "overBudgetBy": "Over budget by {amount}",
+  "@overBudgetBy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountRemaining": "{amount} remaining",
+  "@amountRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyLimit": "Weekly limit",
+  "monthlyLimit": "Monthly limit",
+  "freqWeekly": "Weekly",
+  "freqBiweekly": "Bi-weekly",
+  "freqMonthly": "Monthly",
+  "freqQuarterly": "Quarterly",
+  "freqYearly": "Yearly",
+  "recurringCount": "{count, plural, =0{No recurring items} =1{1 recurring item} other{{count} recurring items}}",
+  "@recurringCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newRecurring": "New recurring",
+  "noRecurring": "No recurring items",
+  "noRecurringHint": "Add salary, rent, subscriptions, and bills to see what is coming up.",
+  "postedAsTransaction": "Posted \"{name}\" as a transaction",
+  "@postedAsTransaction": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postFailed": "Post failed: {error}",
+  "@postFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteRecurringBody": "This recurring item will be removed. This cannot be undone.",
+  "frequency": "Frequency",
+  "nextDue": "Next Due",
+  "status": "Status",
+  "overdueDays": "{days, plural, =1{Overdue by 1 day} other{Overdue by {days} days}}",
+  "@overdueDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dueToday": "Due today",
+  "dueInDays": "{days, plural, =1{Due in 1 day} other{Due in {days} days}}",
+  "@dueInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inactive": "Inactive",
+  "paused": "Paused",
+  "postAsTransaction": "Post as transaction",
+  "postAsTransactionHint": "Records it today in Activity",
+  "recurringSuffix": "{name} (recurring)",
+  "@recurringSuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "newRecurringItem": "New recurring item",
+  "editRecurringItem": "Edit recurring item",
+  "firstDueDate": "First due date",
+  "active": "Active",
+  "showingInList": "Showing in list",
+  "hiddenFromList": "Hidden from list",
+  "categories": "Categories",
+  "categoriesSubtitle": "Income and expense categories",
+  "deleteCategoryBody": "Transactions tagged with this category will become uncategorized. Budgets for it will be removed. This cannot be undone.",
+  "categoriesShown": "{shown} of {total} categories",
+  "@categoriesShown": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "newCategory": "New category",
+  "editCategory": "Edit category",
+  "noCategories": "No categories",
+  "noExpenseCategories": "No expense categories",
+  "noIncomeCategories": "No income categories",
+  "noCategoriesHint": "Create one to start tagging transactions.",
+  "name": "Name",
+  "color": "Color",
+  "settingsData": "Data",
+  "settingsGeneral": "General",
+  "language": "Language",
+  "languageSystem": "System default",
+  "voiceDownloading": "Downloading speech model…",
+  "voiceListening": "Listening…",
+  "voiceStarting": "Starting…",
+  "voiceTitle": "Voice entry",
+  "voiceDownloadNote": "One-time download, about {mb} MB. After this, voice entry works offline.",
+  "@voiceDownloadNote": {
+    "placeholders": {
+      "mb": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceHint": "Try: \"Spent 3.5 on lunch at Reem\"\n\"Received 500 from Acme yesterday\"",
+  "voiceDidntCatch": "Didn't catch that. Tap the mic and try again.",
+  "voiceMicPermissionOff": "Microphone permission is off. Allow it in Settings → Apps → Pocket Sense.",
+  "voiceNeedsConnection": "Speech recognition needs a connection on this phone, or an offline English speech pack.",
+  "voiceFailed": "Speech recognition failed ({detail}).",
+  "@voiceFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceUnavailable": "Speech recognition isn't available on this phone.",
+  "voiceModelDownloadFailed": "Couldn't download the speech model. Check your connection and try again.",
+  "voiceCouldntStart": "Speech recognition couldn't start ({detail}).",
+  "@voiceCouldntStart": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceNeedsParecord": "Can't open the microphone: voice entry needs parecord (from PulseAudio, or PipeWire's pulse tools).",
+  "voiceMicOpenFailed": "Couldn't open the microphone ({detail}).",
+  "@voiceMicOpenFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceMicStopped": "The microphone stopped ({detail}).",
+  "@voiceMicStopped": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "backup": "Backup",
+  "exportData": "Export data",
+  "exportDataSubtitle": "Save everything to an encrypted file",
+  "importData": "Import data",
+  "importDataSubtitle": "Replace everything with a backup file",
+  "exportDone": "Backup saved.",
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importConfirmTitle": "Replace all data?",
+  "importConfirmBody": "Everything currently in Pocket Sense is replaced by the backup. This cannot be undone.",
+  "importAction": "Replace",
+  "importDone": "{count, plural, =1{Restored 1 record.} other{Restored {count} records.}}",
+  "@importDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupNotJson": "This file isn't valid JSON, so nothing was changed.",
+  "backupNotABackup": "This isn't a Pocket Sense backup, so nothing was changed.",
+  "backupTooNew": "This backup comes from a newer version of Pocket Sense. Update the app, then try again.",
+  "backupWrongCurrency": "This backup uses another currency ({currency}), so nothing was changed.",
+  "@backupWrongCurrency": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "backupBadData": "The backup contains invalid data, so nothing was changed. ({detail})",
+  "@backupBadData": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "backupReadFailed": "Couldn't read the file: {error}",
+  "@backupReadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "backupPassword": "Backup password",
+  "backupPasswordSubtitle": "Encrypts your backup files",
+  "chooseBackupPassword": "Choose a backup password",
+  "backupPasswordWarning": "Backups are encrypted with this password. Pocket Sense remembers it on this device, but you'll need it to restore a backup anywhere else. If you forget it, your backups can't be opened.",
+  "backupPasswordChangeNote": "Backups you've already made keep the password they were made with.",
+  "passwordLabel": "Password",
+  "repeatPasswordLabel": "Repeat password",
+  "passwordTooShort": "Use at least {min} characters",
+  "@passwordTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordsDontMatch": "The passwords don't match",
+  "backupPasswordSaved": "Backup password saved.",
+  "encryptedBackupTitle": "This backup is encrypted",
+  "encryptedBackupBody": "Enter the password it was made with.",
+  "backupWrongPassword": "Wrong password, or the file is damaged. Nothing was changed.",
+  "preparingBackup": "Encrypting your backup…",
+  "unlock": "Unlock",
+  "autoBackup": "Automatic backup",
+  "autoBackupOff": "Off",
+  "autoBackupOn": "Daily, to {folder}",
+  "@autoBackupOn": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupLast": "Last backup: {date}",
+  "@autoBackupLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFailed": "Last automatic backup failed: {error}",
+  "@autoBackupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFolderUnusable": "Pocket Sense can't write to that folder. On Android, pick one inside Documents or Download.",
+  "security": "Security",
+  "appLock": "App lock",
+  "appLockSubtitle": "Ask for a PIN when opening Pocket Sense",
+  "changePin": "Change PIN",
+  "useBiometrics": "Unlock with fingerprint or face",
+  "enterPin": "Enter your PIN",
+  "enterCurrentPin": "Enter your current PIN",
+  "chooseNewPin": "Choose a PIN (4–6 digits)",
+  "confirmNewPin": "Enter the PIN again",
+  "pinsDontMatch": "The PINs don't match. Try again.",
+  "pinSet": "App lock is on.",
+  "pinChanged": "PIN changed.",
+  "wrongPin": "{remaining, plural, =0{Wrong PIN.} =1{Wrong PIN. 1 try left before a wait.} other{Wrong PIN. {remaining} tries left before a wait.}}",
+  "@wrongPin": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "tooManyAttempts": "{seconds, plural, =1{Too many wrong PINs. Try again in 1 second.} other{Too many wrong PINs. Try again in {seconds} seconds.}}",
+  "@tooManyAttempts": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "continueAction": "Continue",
+  "forgotPin": "Forgot PIN?",
+  "forgotPinBody": "Your PIN can't be recovered. The only way back in is to erase all data on this device and start over. If you have a backup file, you can import it afterwards.",
+  "biometricReason": "Unlock Pocket Sense",
+  "biometricUnlock": "Use fingerprint or face",
+  "deleteDigit": "Delete digit",
+  "onboardingStep": "Step {step} of {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeTitle": "Welcome to Pocket Sense",
+  "welcomeBody": "Your finances stay on this device, encrypted. Nothing is uploaded anywhere.",
+  "startFresh": "Start fresh",
+  "startFreshSubtitle": "Begin with empty data and starter categories",
+  "importBackupOption": "Import a backup",
+  "importBackupOptionSubtitle": "Restore your data from a Pocket Sense backup file",
+  "backupLaterHint": "You can import or export any time in Settings → Backup.",
+  "secureTitle": "Protect your data",
+  "secureBody": "Set a PIN so only you can open Pocket Sense.",
+  "setPin": "Set a PIN",
+  "skipForNow": "Skip for now",
+  "securityLaterHint": "You can change this any time in Settings → Security.",
+  "biometricOfferTitle": "Unlock with fingerprint or face?",
+  "biometricOfferBody": "Use your fingerprint or face instead of typing the PIN. The PIN always works too.",
+  "turnOn": "Turn on",
+  "notNow": "Not now",
+  "about": "About",
+  "aboutDescription": "A private, offline personal finance tracker. Your data stays encrypted on your device.",
+  "aboutLegalese": "© 2026 software-ace\nFree software under the GNU GPL v3 or later.",
+  "syncSection": "Sync",
+  "syncToggle": "Sync with your other devices",
+  "syncToggleSubtitle": "Keeps Pocket Sense the same on your devices over your own Wi-Fi. Nothing goes through the internet.",
+  "syncDeviceName": "This device's name",
+  "syncDeviceNameHint": "Your other devices see this device by this name",
+  "syncPairDevice": "Pair a device",
+  "syncPairDeviceSubtitle": "Open this on both devices, on the same Wi-Fi",
+  "syncVisibleAs": "Other devices see this one as {name}",
+  "@syncVisibleAs": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncPairHelp": "Open Settings → Sync → Pair a device on your other device too, then tap it below.",
+  "syncLooking": "Looking for devices…",
+  "syncNotFoundHint": "Nothing yet? Check that:\n• both devices are on the same Wi-Fi (guest networks often block this)\n• this screen is open on both\n• on Linux, the firewall allows port 47823 (TCP and UDP)",
+  "syncPairedTag": "Paired",
+  "syncConnecting": "Connecting…",
+  "syncCodeTitle": "Check the code",
+  "syncCodeBody": "Make sure {name} shows the same code:",
+  "@syncCodeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncIncomingTitle": "{name} wants to pair",
+  "@syncIncomingTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncCodesMatch": "Codes match",
+  "syncCodesDiffer": "They don't match",
+  "syncWaitingFor": "Waiting for {name} to confirm…",
+  "@syncWaitingFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncPairedWith": "Paired with {name}",
+  "@syncPairedWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncFirstTitle": "Both devices have data",
+  "syncFirstBody": "Combine the two, or replace what's on this device with {name}'s data?",
+  "@syncFirstBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncCombine": "Combine",
+  "syncReplace": "Replace this device's",
+  "syncReplaceTitle": "Replace this device's data?",
+  "syncReplaceBody": "Everything on this device is erased and replaced with {name}'s data. This cannot be undone, so you may want to export a backup first.",
+  "@syncReplaceBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncReplaceAction": "Replace",
+  "syncErrUnreachable": "Couldn't reach that device. Is Pocket Sense open on it, on the same Wi-Fi?",
+  "syncErrDeclined": "Pairing was declined, or took too long.",
+  "syncErrBusy": "That device is pairing with another one. Try again in a moment.",
+  "syncErrVersion": "Update Pocket Sense on both devices to the same version.",
+  "syncErrCode": "Pairing cancelled.",
+  "syncErrFailed": "Couldn't pair: {detail}",
+  "@syncErrFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStateSynced": "Synced {when}",
+  "@syncStateSynced": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStateNever": "Not synced yet",
+  "syncStateSyncing": "Syncing…",
+  "syncStateUnreachable": "Not found on this network",
+  "syncStateNeedsUpdate": "Update Pocket Sense on both devices to the same version",
+  "syncStateNotPaired": "That device no longer pairs with this one. Unpair it here, then pair again.",
+  "syncStateFailed": "The last sync failed",
+  "syncLastSeen": "{state} · last synced {when}",
+  "@syncLastSeen": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNow": "Sync now",
+  "syncUnpair": "Unpair",
+  "syncUnpairTitle": "Unpair {name}?",
+  "@syncUnpairTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncUnpairBody": "The data stays on both devices. They just stop sharing changes.",
+  "syncArrived": "{count, plural, =1{1 change} other{{count} changes}} from {name}",
+  "@syncArrived": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "importConfirmSynced": "Your synced devices get the same data at their next sync.",
+  "syncStartFailed": "Couldn't start sync: {detail}",
+  "@syncStartFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  }
+}
