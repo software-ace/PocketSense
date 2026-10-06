@@ -13,16 +13,28 @@ RepoType: git
 Repo: https://github.com/software-ace/PocketSense.git
 
 Builds:
-  - versionName: 2.2.1
-    versionCode: 1017
-    commit: d3ec68213708a839bfc894738f5cf864646b92c7
+  - versionName: 2.2.2
+    versionCode: 1018
+    commit: 3840a2bd86051349189e17942248b704576b2864
+    sudo:
+      - mkdir -p /home/runner/work/PocketSense
+      - chown -R vagrant /home/runner
     output: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+    binary: https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-armeabi-v7a.apk
     srclibs:
-      - flutter@3.47.6
+      - flutter@stable
     prebuild:
-      - export PUB_CACHE=$(pwd)/.pub-cache
+      - export flutterVersion=$(sed -n -E 's/^ +flutter[:] +([0-9.]+)$/\1/p' pubspec.yaml)
+      - git -C $$flutter$$ checkout -f $flutterVersion
+      - cd ..
+      - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
+      - pushd /home/runner/work/PocketSense/PocketSense
+      - export HOME=/home/runner PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
-      - $$flutter$$/bin/flutter pub get
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+      - sed -i '/build-id=none/!s/-Wl,/-Wl,--build-id=none,/' .pub-cache/hosted/pub.dev/jni-*/src/CMakeLists.txt
+      - popd
+      - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     scandelete:
       - .pub-cache/hosted/pub.dev/sherpa_onnx_android_*/android/src/main/jniLibs
       - .pub-cache/hosted/pub.dev/sherpa_onnx_linux-*/linux
@@ -33,20 +45,37 @@ Builds:
       - .pub-cache/hosted/pub.dev/fl_chart-*/build
       - .pub-cache/hosted/pub.dev/archive-*/web
     build:
-      - export PUB_CACHE=$(pwd)/.pub-cache
-      - export UNSIGNED_RELEASE=1
-      - $$flutter$$/bin/flutter build apk --release --split-per-abi --target-platform=android-arm
+      - cd ..
+      - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
+      - pushd /home/runner/work/PocketSense/PocketSense
+      - export HOME=/home/runner PUB_CACHE=$(pwd)/.pub-cache UNSIGNED_RELEASE=1
+      - $$flutter$$/bin/flutter build apk --release --split-per-abi
+      - popd
+      - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
+    ndk: r28c
 
-  - versionName: 2.2.1
-    versionCode: 2017
-    commit: d3ec68213708a839bfc894738f5cf864646b92c7
+  - versionName: 2.2.2
+    versionCode: 2018
+    commit: 3840a2bd86051349189e17942248b704576b2864
+    sudo:
+      - mkdir -p /home/runner/work/PocketSense
+      - chown -R vagrant /home/runner
     output: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+    binary: https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-arm64-v8a.apk
     srclibs:
-      - flutter@3.47.6
+      - flutter@stable
     prebuild:
-      - export PUB_CACHE=$(pwd)/.pub-cache
+      - export flutterVersion=$(sed -n -E 's/^ +flutter[:] +([0-9.]+)$/\1/p' pubspec.yaml)
+      - git -C $$flutter$$ checkout -f $flutterVersion
+      - cd ..
+      - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
+      - pushd /home/runner/work/PocketSense/PocketSense
+      - export HOME=/home/runner PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
-      - $$flutter$$/bin/flutter pub get
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+      - sed -i '/build-id=none/!s/-Wl,/-Wl,--build-id=none,/' .pub-cache/hosted/pub.dev/jni-*/src/CMakeLists.txt
+      - popd
+      - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     scandelete:
       - .pub-cache/hosted/pub.dev/sherpa_onnx_android_*/android/src/main/jniLibs
       - .pub-cache/hosted/pub.dev/sherpa_onnx_linux-*/linux
@@ -57,20 +86,37 @@ Builds:
       - .pub-cache/hosted/pub.dev/fl_chart-*/build
       - .pub-cache/hosted/pub.dev/archive-*/web
     build:
-      - export PUB_CACHE=$(pwd)/.pub-cache
-      - export UNSIGNED_RELEASE=1
-      - $$flutter$$/bin/flutter build apk --release --split-per-abi --target-platform=android-arm64
+      - cd ..
+      - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
+      - pushd /home/runner/work/PocketSense/PocketSense
+      - export HOME=/home/runner PUB_CACHE=$(pwd)/.pub-cache UNSIGNED_RELEASE=1
+      - $$flutter$$/bin/flutter build apk --release --split-per-abi
+      - popd
+      - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
+    ndk: r28c
 
-  - versionName: 2.2.1
-    versionCode: 4017
-    commit: d3ec68213708a839bfc894738f5cf864646b92c7
+  - versionName: 2.2.2
+    versionCode: 4018
+    commit: 3840a2bd86051349189e17942248b704576b2864
+    sudo:
+      - mkdir -p /home/runner/work/PocketSense
+      - chown -R vagrant /home/runner
     output: build/app/outputs/flutter-apk/app-x86_64-release.apk
+    binary: https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-x86_64.apk
     srclibs:
-      - flutter@3.47.6
+      - flutter@stable
     prebuild:
-      - export PUB_CACHE=$(pwd)/.pub-cache
+      - export flutterVersion=$(sed -n -E 's/^ +flutter[:] +([0-9.]+)$/\1/p' pubspec.yaml)
+      - git -C $$flutter$$ checkout -f $flutterVersion
+      - cd ..
+      - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
+      - pushd /home/runner/work/PocketSense/PocketSense
+      - export HOME=/home/runner PUB_CACHE=$(pwd)/.pub-cache
       - $$flutter$$/bin/flutter config --no-analytics
-      - $$flutter$$/bin/flutter pub get
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+      - sed -i '/build-id=none/!s/-Wl,/-Wl,--build-id=none,/' .pub-cache/hosted/pub.dev/jni-*/src/CMakeLists.txt
+      - popd
+      - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     scandelete:
       - .pub-cache/hosted/pub.dev/sherpa_onnx_android_*/android/src/main/jniLibs
       - .pub-cache/hosted/pub.dev/sherpa_onnx_linux-*/linux
@@ -81,9 +127,16 @@ Builds:
       - .pub-cache/hosted/pub.dev/fl_chart-*/build
       - .pub-cache/hosted/pub.dev/archive-*/web
     build:
-      - export PUB_CACHE=$(pwd)/.pub-cache
-      - export UNSIGNED_RELEASE=1
-      - $$flutter$$/bin/flutter build apk --release --split-per-abi --target-platform=android-x64
+      - cd ..
+      - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
+      - pushd /home/runner/work/PocketSense/PocketSense
+      - export HOME=/home/runner PUB_CACHE=$(pwd)/.pub-cache UNSIGNED_RELEASE=1
+      - $$flutter$$/bin/flutter build apk --release --split-per-abi
+      - popd
+      - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
+    ndk: r28c
+
+AllowedAPKSigningKeys: 511ce20e8711c8d4001d9be45c8ec3b7c81969afdce062425b440f2abd6f0daa
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
@@ -92,5 +145,5 @@ VercodeOperation:
   - 2000 + %c
   - 4000 + %c
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.2.1
-CurrentVersionCode: 4017
+CurrentVersion: 2.2.2
+CurrentVersionCode: 4018
