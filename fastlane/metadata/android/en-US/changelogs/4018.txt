@@ -1,0 +1,2 @@
+• F-Droid and GitHub builds are now identical and both signed by the developer, so you can switch between them without reinstalling.
+• No changes to how the app works.
