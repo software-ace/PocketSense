@@ -10,24 +10,66 @@ A private personal finance tracker for Android and Linux. It works fully offline
 
 There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
+## Screenshots
+
+![Home on the desktop: monthly totals, a 30-day spending chart and spending by category](docs/screenshots/desktop-home.png)
+
+| Home | Activity | New entry | Budgets | Recurring |
+|---|---|---|---|---|
+| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
+
+<details>
+<summary>More: sync, Arabic, and the desktop layout</summary>
+
+| Settings → Sync | Pairing |
+|---|---|
+| ![Sync settings with two paired devices](fastlane/metadata/android/en-US/images/phoneScreenshots/7_sync.png) | ![Pairing: both devices show the same 6-digit code](fastlane/metadata/android/en-US/images/phoneScreenshots/8_pair.png) |
+
+| الرئيسية | الحركات | الميزانيات | الإعدادات |
+|---|---|---|---|
+| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
+
+![Home on the desktop, in Arabic](docs/screenshots/desktop-home-ar.png)
+![Activity on the desktop](docs/screenshots/desktop-activity.png)
+![Budgets on the desktop](docs/screenshots/desktop-budgets.png)
+![Recurring on the desktop](docs/screenshots/desktop-recurring.png)
+![Pairing on the desktop](docs/screenshots/desktop-sync.png)
+
+</details>
+
+The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import data** to try the app with three months of entries.
+
 ## Features
 
+**Tracking money**
 - **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, a breakdown by category, and recent entries.
-- **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, swipe to delete, long-press for more.
+- **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
   - On Linux it runs an offline model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), about 45 MB, downloaded once on first use).
 - **Budgets:** a weekly (Monday to Sunday) or monthly limit per expense category, with progress, what's left, and a warning when you go over.
 - **Recurring:** bills, subscriptions and salary, repeating weekly, every two weeks, monthly, quarterly or yearly from a first due date. Each shows when it's next due. **Post as transaction** records it in one tap, and an item can be paused instead of deleted.
+- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 13 common ones (groceries, dining out, rent, salary…). Deleting a category keeps its entries, uncategorized, and removes its budget.
+
+**Made for Jordan, in two languages**
 - **Dinars:** amounts have three decimals, shown as **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.
-- **Layout:** a bottom tab bar on phones, and a side rail with wider layouts on windows 900 px or wider.
-- **Sync between your devices:** pair your phone and computer, or two people's phones, and they keep the same data over your Wi-Fi, peer to peer. There's no server and no internet involved.
-  - **Settings → Sync** turns it on (it's off by default). Then open **Pair a device** on both devices, tap the other one, and check both screens show the same 6-digit code.
-  - Devices sync when the app opens or comes back, when a paired device appears on the network, and a couple of seconds after each change. A device passes on what it got from another, so A ↔ B ↔ C keeps all three the same.
-  - When both devices already have data at pairing, the one that tapped can combine the two or replace its own with the other's.
-  - If two devices change the same entry while apart, the later change wins. Two categories with the same name merge into one.
-  - Sync runs only while the app is open; two phones sync when both have it open.
+
+**Fits the device**
+- **Layout:** a bottom tab bar on phones, and a side rail with wider layouts, including tables, on windows 900 px or wider.
+- **Light and dark:** follows the system theme.
+- **First run:** a short welcome lets you start fresh or import a backup, then offers to set a PIN (and fingerprint or face on Android). Both can be changed later in Settings.
+- **About:** version, license, a link to the source code, and the licenses of everything bundled.
+
+**Sync between your devices**
+- Pair your phone and computer, or two people's phones, and they keep the same data over your Wi-Fi, peer to peer. There's no server and no internet involved.
+- **Settings → Sync** turns it on (it's off by default). Then open **Pair a device** on both devices, tap the other one, and check both screens show the same 6-digit code.
+- Devices sync when the app opens or comes back, when a paired device appears on the network, and a couple of seconds after each change. A device passes on what it got from another, so A ↔ B ↔ C keeps all three the same.
+- When both devices already have data at pairing, the one that tapped can combine the two or replace its own with the other's.
+- If two devices change the same entry while apart, the later change wins. Two categories with the same name merge into one.
+- Sync runs only while the app is open; two phones sync when both have it open.
+
+**Security and backups**, in detail below: an encrypted database, an optional PIN with fingerprint or face unlock, encrypted backup files, and automatic daily backups to a folder you choose.
 
 ## Privacy and security
 
@@ -86,6 +128,23 @@ flutter test
 
 `test/desktop_speech_test.dart` runs the real speech model, but only when `SPEECH_MODEL_DIR=<dir>` is set.
 
+### Screenshots and demo data
+
+`docs/demo-backup.json` is an unencrypted backup with three months of made-up entries, budgets and recurring items (dated up to October 2026). `test/backup_test.dart` checks it still imports.
+
+`integration_test/take_screenshots.sh` retakes every screenshot from the real app, filled with that file:
+
+```sh
+integration_test/take_screenshots.sh           # Linux, then a running Android emulator
+integration_test/take_screenshots.sh linux     # just docs/screenshots/desktop-*.png
+integration_test/take_screenshots.sh android   # just fastlane/…/phoneScreenshots (English and Arabic)
+```
+
+- On Linux it uses an in-memory database and settings, so your own data is never touched.
+- On Android it installs a debug build on the emulator, and the demo data replaces that install's data.
+- It saves the app's own pixels, so there's no status bar or window frame. The desktop shots are 1280×800 at 1.5×.
+- The sync shots fake the paired and nearby devices on screen; sync itself never starts, so nothing is sent and no sync key is created.
+
 ### How it's put together
 
 ```
@@ -97,11 +156,14 @@ lib/
   l10n/        English and Arabic strings (ARB) and the generated code
   voice/       speech engines: Android recognizer, Linux offline model
   models/      row models and the starter categories
-  screens/     Home, Activity, Budgets, Recurring, Categories, Settings
+  screens/     Home, Activity, Budgets, Recurring, Categories, Settings, Sync
   utils/       money and date formatting, recurring dates, voice parsing
   widgets/     shared widgets: amount field, empty/error states, voice sheet
 linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script
 fdroid/           F-Droid build recipe
+fastlane/         store listing: descriptions, changelogs, phone screenshots
+integration_test/ the screenshot run (see above)
+docs/             demo backup and desktop screenshots
 ```
 
 **Storage**

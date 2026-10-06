@@ -212,7 +212,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       // Both ways to add sit in thumb reach; the app bar keeps only status.
       floatingActionButton: voiceEntrySupported
           ? _AddSplitFab(onVoice: _addByVoice, onAdd: _addTransaction)
-          : FloatingActionButton.extended(onPressed: _addTransaction, icon: const Icon(Icons.add), label: Text(l.add)),
+          : FloatingActionButton.extended(heroTag: null, onPressed: _addTransaction, icon: const Icon(Icons.add), label: Text(l.add)),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

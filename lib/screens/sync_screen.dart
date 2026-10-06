@@ -214,7 +214,7 @@ class _PairScreenState extends State<PairScreen> {
     final route = DialogRoute<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => _CodeDialog(title: ctx.l10n.syncIncomingTitle(request.name), name: request.name, code: request.code),
+      builder: (ctx) => PairCodeDialog(title: ctx.l10n.syncIncomingTitle(request.name), name: request.name, code: request.code),
     );
     // The other device gave up: close the prompt.
     unawaited(request.cancelled.future.then((_) {
@@ -248,7 +248,7 @@ class _PairScreenState extends State<PairScreen> {
         final ok = await nav.push(DialogRoute<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (_) => _CodeDialog(title: l.syncCodeTitle, name: name, code: code),
+          builder: (_) => PairCodeDialog(title: l.syncCodeTitle, name: name, code: code),
         ));
         waiting.value = l.syncWaitingFor(name);
         return ok ?? false;
@@ -375,8 +375,8 @@ class _PairScreenState extends State<PairScreen> {
 }
 
 /// The 6-digit code, large and grouped 3 + 3, with Match / Don't match.
-class _CodeDialog extends StatelessWidget {
-  const _CodeDialog({required this.title, required this.name, required this.code});
+class PairCodeDialog extends StatelessWidget {
+  const PairCodeDialog({super.key, required this.title, required this.name, required this.code});
   final String title;
   final String name;
   final String code;

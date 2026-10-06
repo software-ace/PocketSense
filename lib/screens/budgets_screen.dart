@@ -99,7 +99,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
 
     return Scaffold(
       appBar: AppBar(title: Text(l.navBudgets), actions: const [SyncButton(), SettingsButton()]),
-      floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
+      floatingActionButton: desktop ? null : FloatingActionButton.extended(heroTag: null, onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: _loading

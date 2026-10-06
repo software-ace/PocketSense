@@ -23,9 +23,9 @@ Future<void> main() async {
   runApp(const PocketSenseApp());
 }
 
-ThemeData _theme(Brightness brightness, Color seed) => ThemeData(
+ThemeData appTheme(Brightness brightness) => ThemeData(
       brightness: brightness,
-      colorSchemeSeed: seed,
+      colorSchemeSeed: brightness == Brightness.light ? const Color(0xFF4F46E5) : const Color(0xFF818CF8),
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       // Arabic glyphs come from the bundled font; Latin text keeps the
@@ -71,8 +71,8 @@ class PocketSenseApp extends StatelessWidget {
           AppSettings.applyToIntl(resolved);
           return resolved;
         },
-        theme: _theme(Brightness.light, const Color(0xFF4F46E5)),
-        darkTheme: _theme(Brightness.dark, const Color(0xFF818CF8)),
+        theme: appTheme(Brightness.light),
+        darkTheme: appTheme(Brightness.dark),
         // Above the Navigator, so the lock covers every route and dialog.
         builder: (context, child) => LockGate(onEraseAll: _eraseAndRestart, child: child!),
         home: ValueListenableBuilder<int>(

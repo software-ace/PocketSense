@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/backup.dart';
@@ -45,6 +46,12 @@ void main() {
     final summary = await Backup.import(fresh, json);
     expect(summary, (categories: 2, transactions: 2, budgets: 1, recurring: 1));
     expect(await dump(fresh), await dump(store));
+  });
+
+  // The README screenshots are taken with this file; it must keep importing.
+  test('the demo backup in docs/ imports', () async {
+    final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
+    expect(summary, (categories: 13, transactions: 180, budgets: 6, recurring: 8));
   });
 
   test('import replaces what was there and notifies listeners', () async {
