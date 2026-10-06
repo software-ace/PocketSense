@@ -2,6 +2,7 @@ Categories:
   - Finance Manager
 License: GPL-3.0-or-later
 AuthorName: software-ace
+AuthorEmail: a.abuyahia@protonmail.com
 SourceCode: https://github.com/software-ace/PocketSense
 IssueTracker: https://github.com/software-ace/PocketSense/issues
 Changelog: https://github.com/software-ace/PocketSense/releases
@@ -14,7 +15,7 @@ Repo: https://github.com/software-ace/PocketSense.git
 Builds:
   - versionName: 2.2.1
     versionCode: 1017
-    commit: v2.2.1
+    commit: d3ec68213708a839bfc894738f5cf864646b92c7
     output: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
     srclibs:
       - flutter@3.47.6
@@ -38,7 +39,7 @@ Builds:
 
   - versionName: 2.2.1
     versionCode: 2017
-    commit: v2.2.1
+    commit: d3ec68213708a839bfc894738f5cf864646b92c7
     output: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
     srclibs:
       - flutter@3.47.6
@@ -62,7 +63,7 @@ Builds:
 
   - versionName: 2.2.1
     versionCode: 4017
-    commit: v2.2.1
+    commit: d3ec68213708a839bfc894738f5cf864646b92c7
     output: build/app/outputs/flutter-apk/app-x86_64-release.apk
     srclibs:
       - flutter@3.47.6
