@@ -30,6 +30,7 @@ Builds:
       - .pub-cache/hosted/pub.dev/*/example
       - .pub-cache/hosted/pub.dev/*/extension/devtools
       - .pub-cache/hosted/pub.dev/fl_chart-*/build
+      - .pub-cache/hosted/pub.dev/archive-*/web
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - export UNSIGNED_RELEASE=1
@@ -53,6 +54,7 @@ Builds:
       - .pub-cache/hosted/pub.dev/*/example
       - .pub-cache/hosted/pub.dev/*/extension/devtools
       - .pub-cache/hosted/pub.dev/fl_chart-*/build
+      - .pub-cache/hosted/pub.dev/archive-*/web
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - export UNSIGNED_RELEASE=1
@@ -76,6 +78,7 @@ Builds:
       - .pub-cache/hosted/pub.dev/*/example
       - .pub-cache/hosted/pub.dev/*/extension/devtools
       - .pub-cache/hosted/pub.dev/fl_chart-*/build
+      - .pub-cache/hosted/pub.dev/archive-*/web
     build:
       - export PUB_CACHE=$(pwd)/.pub-cache
       - export UNSIGNED_RELEASE=1

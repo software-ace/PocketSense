@@ -9,6 +9,7 @@
 - `scandelete` removes things from the pub cache that never reach the APK but that the scanner rejects:
   - sherpa-onnx's prebuilt speech libraries (the Linux app's offline voice model; Android uses the phone's recognizer and never loads them). The Android package is `ffiPlugin`-only, so nothing loads them at startup either.
   - plugins' `example/` apps, a devtools web extension, and a package's shipped test build output.
+  - a demo page with a `.zip` in `archive`, which Flutter's own command-line tool fetches into the same cache (it's not an app dependency).
 - The `hooks:` block in `pubspec.yaml` sets the sqlite3 package to `system` on Android, so the build downloads no native binaries. SQLCipher comes from Maven Central (`net.zetetic:sqlcipher-android`).
 
 This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are clean, and its source scanner reports 0 problems on a fresh clone with these `scandelete` paths, after which the APK still builds. It was *not* run through a full `fdroid build` on F-Droid's build server.
