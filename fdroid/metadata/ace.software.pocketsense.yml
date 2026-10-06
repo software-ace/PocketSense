@@ -12,9 +12,9 @@ RepoType: git
 Repo: https://github.com/software-ace/PocketSense.git
 
 Builds:
-  - versionName: 2.2.0
-    versionCode: 1016
-    commit: v2.2.0
+  - versionName: 2.2.1
+    versionCode: 1017
+    commit: v2.2.1
     output: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
     srclibs:
       - flutter@3.47.5
@@ -35,9 +35,9 @@ Builds:
       - export UNSIGNED_RELEASE=1
       - $$flutter$$/bin/flutter build apk --release --split-per-abi --target-platform=android-arm
 
-  - versionName: 2.2.0
-    versionCode: 2016
-    commit: v2.2.0
+  - versionName: 2.2.1
+    versionCode: 2017
+    commit: v2.2.1
     output: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
     srclibs:
       - flutter@3.47.5
@@ -58,9 +58,9 @@ Builds:
       - export UNSIGNED_RELEASE=1
       - $$flutter$$/bin/flutter build apk --release --split-per-abi --target-platform=android-arm64
 
-  - versionName: 2.2.0
-    versionCode: 4016
-    commit: v2.2.0
+  - versionName: 2.2.1
+    versionCode: 4017
+    commit: v2.2.1
     output: build/app/outputs/flutter-apk/app-x86_64-release.apk
     srclibs:
       - flutter@3.47.5
@@ -88,5 +88,5 @@ VercodeOperation:
   - 2000 + %c
   - 4000 + %c
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.2.0
-CurrentVersionCode: 4016
+CurrentVersion: 2.2.1
+CurrentVersionCode: 4017

@@ -14,7 +14,7 @@
 This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are clean, and its source scanner reports 0 problems on a fresh clone with these `scandelete` paths, after which the APK still builds. It was *not* run through a full `fdroid build` on F-Droid's build server.
 
 ## Submitting
-1. Tag the release the recipe points at (`commit: v2.2.0`), so the tag exists on GitHub.
+1. Tag the release the recipe points at (`commit: v2.2.1`), so the tag exists on GitHub.
 2. Fork https://gitlab.com/fdroid/fdroiddata, copy `metadata/ace.software.pocketsense.yml` into its `metadata/`, and open a merge request using the "App inclusion" template.
 3. F-Droid's CI runs `fdroid build` on the MR. If the Flutter version is no longer in their `srclibs`, bump `flutter@…` to one that is.
 
