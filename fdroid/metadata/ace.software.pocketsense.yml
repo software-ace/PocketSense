@@ -13,14 +13,15 @@ RepoType: git
 Repo: https://github.com/software-ace/PocketSense.git
 
 Builds:
-  - versionName: 2.2.2
-    versionCode: 1018
-    commit: 3840a2bd86051349189e17942248b704576b2864
+  - versionName: 2.2.3
+    versionCode: 1019
+    commit: 193085b9325f0cf862f6bb60cbdb044561f13480
     sudo:
       - mkdir -p /home/runner/work/PocketSense
       - chown -R vagrant /home/runner
     output: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-    binary: https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-armeabi-v7a.apk
+    binary: 
+      https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-armeabi-v7a.apk
     srclibs:
       - flutter@stable
     prebuild:
@@ -54,14 +55,15 @@ Builds:
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     ndk: r28c
 
-  - versionName: 2.2.2
-    versionCode: 2018
-    commit: 3840a2bd86051349189e17942248b704576b2864
+  - versionName: 2.2.3
+    versionCode: 2019
+    commit: 193085b9325f0cf862f6bb60cbdb044561f13480
     sudo:
       - mkdir -p /home/runner/work/PocketSense
       - chown -R vagrant /home/runner
     output: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-    binary: https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-arm64-v8a.apk
+    binary: 
+      https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-arm64-v8a.apk
     srclibs:
       - flutter@stable
     prebuild:
@@ -95,14 +97,15 @@ Builds:
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     ndk: r28c
 
-  - versionName: 2.2.2
-    versionCode: 4018
-    commit: 3840a2bd86051349189e17942248b704576b2864
+  - versionName: 2.2.3
+    versionCode: 4019
+    commit: 193085b9325f0cf862f6bb60cbdb044561f13480
     sudo:
       - mkdir -p /home/runner/work/PocketSense
       - chown -R vagrant /home/runner
     output: build/app/outputs/flutter-apk/app-x86_64-release.apk
-    binary: https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-x86_64.apk
+    binary: 
+      https://github.com/software-ace/PocketSense/releases/download/v%v/PocketSense-v%v-x86_64.apk
     srclibs:
       - flutter@stable
     prebuild:
@@ -145,5 +148,5 @@ VercodeOperation:
   - 2000 + %c
   - 4000 + %c
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.2.2
-CurrentVersionCode: 4018
+CurrentVersion: 2.2.3
+CurrentVersionCode: 4019
