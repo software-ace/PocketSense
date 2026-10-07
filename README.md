@@ -181,7 +181,7 @@ docs/             demo backup and desktop screenshots
 ### Releasing
 
 1. Bump `version:` in `pubspec.yaml`, always raising the number after `+`.
-2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<1000+N>.txt`, `<2000+N>.txt` and `<4000+N>.txt`, where `N` is that number.
+2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`, where `N` is that number (one per APK: versionCode is `N × 10 + ABI`).
 3. Write the release notes in `.github/release-notes/v<version>.md`.
 4. Commit, then push a `v<version>` tag.
 

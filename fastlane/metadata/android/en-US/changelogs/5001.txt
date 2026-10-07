@@ -1,0 +1,1 @@
+• Version numbers for each phone type now follow F-Droid's scheme. No changes to how the app works.

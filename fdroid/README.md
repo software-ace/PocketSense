@@ -3,7 +3,7 @@
 `metadata/ace.software.pocketsense.yml` is the build recipe for [fdroiddata](https://gitlab.com/fdroid/fdroiddata). The store listing (descriptions, changelogs, icon) lives in `fastlane/metadata/android/`, where F-Droid reads it straight from this repo.
 
 ## How the recipe builds
-- One build per CPU type, with versionCode `1000 × ABI + N`: armeabi-v7a `1000 + N`, arm64-v8a `2000 + N`, x86_64 `4000 + N`. `N` is the number after `+` in `pubspec.yaml`, and it's the same scheme Flutter's `--split-per-abi` uses for the GitHub APKs.
+- One build per CPU type, with versionCode `N × 10 + ABI`: armeabi-v7a `N1`, arm64-v8a `N2`, x86_64 `N3`, where `N` is the number after `+` in `pubspec.yaml`. `android/app/build.gradle.kts` sets this for the GitHub APKs too, replacing Flutter's `1000 × ABI + N`, as F-Droid asks, so a newer version always has the higher code whatever the ABI. The build number jumped to 500 at v2.2.4 so the new codes (5001+) stay above the old ones (up to 4019) and updates still install.
 - **Reproducible builds:** F-Droid rebuilds each APK and publishes *ours*, the GitHub release APK named in `binary:`, only if its rebuild is identical apart from the signature. `AllowedAPKSigningKeys` is our release certificate. So F-Droid users get developer-signed APKs and can switch to or from the GitHub ones without reinstalling. For the two builds to match, the recipe copies `.github/workflows/release.yml` exactly:
   - It builds in CI's checkout path, `/home/runner/work/PocketSense/PocketSense`, with `HOME=/home/runner`: Dart's compiled code embeds the source path.
   - It uses the Flutter version pinned in `pubspec.yaml` (`environment: flutter:`); CI reads the same line.
@@ -31,7 +31,7 @@ This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are cl
 ## Later releases
 Nothing to do in fdroiddata: `UpdateCheckMode: Tags` finds new `v*` tags, reads the version from `pubspec.yaml`, and adds builds automatically. Just:
 - bump `version:` in `pubspec.yaml` (always raise the `+N`),
-- add `fastlane/metadata/android/<lang>/changelogs/<1000+N>.txt`, `<2000+N>.txt` and `<4000+N>.txt`,
+- add `fastlane/metadata/android/<lang>/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`,
 - tag `v<version>`.
 
 To upgrade Flutter, change `environment: flutter:` in `pubspec.yaml`. CI and F-Droid both read it, so there's nothing to change in the recipe.
