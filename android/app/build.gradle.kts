@@ -56,6 +56,13 @@ android {
         }
     }
 
+    // AGP otherwise adds a dependency list, encrypted for Google Play, to the
+    // APK signing block; F-Droid rejects APKs that carry it.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     // sherpa-onnx is only for Linux voice entry; Android uses the phone's own
     // recognizer and never loads these (~27 MB per APK otherwise).
     packaging {
