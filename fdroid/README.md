@@ -13,13 +13,10 @@
   - Both use the same command, `flutter build apk --release --split-per-abi`, building all three ABIs; the native-assets manifest differs if only one is built.
 - `UNSIGNED_RELEASE=1` makes Gradle leave the APK unsigned for F-Droid to compare. (Without it, a keyless build falls back to debug signing.)
 - `PUB_CACHE` is inside the source tree so the scanner can see every dependency.
-- `scandelete` removes things from the pub cache that never reach the APK but that the scanner rejects:
-  - sherpa-onnx's prebuilt speech libraries (the Linux app's offline voice model; Android uses the phone's recognizer and never loads them). The Android package is `ffiPlugin`-only, so nothing loads them at startup either.
-  - plugins' `example/` apps, a devtools web extension, and a package's shipped test build output.
-  - a demo page with a `.zip` in `archive`, which Flutter's own command-line tool fetches into the same cache (it's not an app dependency).
+- `scandelete: .pub-cache` deletes the whole pub cache after `prebuild`, as the F-Droid reviewer asked, so the scanner skips third-party package files (prebuilt sherpa-onnx libraries, example apps and the like). `flutter build` then fetches the packages again; that still reproduces, because the build path is the same as CI's.
 - The `hooks:` block in `pubspec.yaml` sets the sqlite3 package to `system` on Android, so the build downloads no native binaries. SQLCipher comes from Maven Central (`net.zetetic:sqlcipher-android`).
 
-This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are clean, and its source scanner reports 0 problems on a fresh clone with these `scandelete` paths. Reproducibility was checked by running the recipe's commands in a `debian:trixie` container with F-Droid's paths and its default JDK: for all three ABIs, `apksigcopier compare` against the CI-built APKs passes. It was *not* run through a full `fdroid build` on F-Droid's build server.
+This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are clean, and its source scanner reported 0 problems. Reproducibility was checked by running the recipe's commands in a `debian:trixie` container with F-Droid's paths and its default JDK: for all three ABIs, `apksigcopier compare` against the CI-built APKs passes. It was *not* run through a full `fdroid build` on F-Droid's build server.
 
 **If a release stops matching**, F-Droid silently skips that version. Usually the cause is a change on one side only: a Flutter bump that doesn't go through `pubspec.yaml`, a CI step that changes the build, or a new native dependency that embeds paths.
 
@@ -36,4 +33,3 @@ Nothing to do in fdroiddata: `UpdateCheckMode: Tags` finds new `v*` tags, reads 
 
 To upgrade Flutter, change `environment: flutter:` in `pubspec.yaml`. CI and F-Droid both read it, so there's nothing to change in the recipe.
 
-If a dependency upgrade makes a `scandelete` path stop matching, F-Droid's build fails with "Some glob paths did not match". Remove that line from the recipe in fdroiddata.

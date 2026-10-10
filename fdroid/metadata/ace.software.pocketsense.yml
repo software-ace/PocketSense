@@ -37,14 +37,7 @@ Builds:
       - popd
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     scandelete:
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_android_*/android/src/main/jniLibs
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_linux-*/linux
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_ios-*/ios
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_web-*/assets
-      - .pub-cache/hosted/pub.dev/*/example
-      - .pub-cache/hosted/pub.dev/*/extension/devtools
-      - .pub-cache/hosted/pub.dev/fl_chart-*/build
-      - .pub-cache/hosted/pub.dev/archive-*/web
+      - .pub-cache
     build:
       - cd ..
       - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
@@ -79,14 +72,7 @@ Builds:
       - popd
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     scandelete:
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_android_*/android/src/main/jniLibs
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_linux-*/linux
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_ios-*/ios
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_web-*/assets
-      - .pub-cache/hosted/pub.dev/*/example
-      - .pub-cache/hosted/pub.dev/*/extension/devtools
-      - .pub-cache/hosted/pub.dev/fl_chart-*/build
-      - .pub-cache/hosted/pub.dev/archive-*/web
+      - .pub-cache
     build:
       - cd ..
       - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
@@ -121,14 +107,7 @@ Builds:
       - popd
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     scandelete:
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_android_*/android/src/main/jniLibs
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_linux-*/linux
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_ios-*/ios
-      - .pub-cache/hosted/pub.dev/sherpa_onnx_web-*/assets
-      - .pub-cache/hosted/pub.dev/*/example
-      - .pub-cache/hosted/pub.dev/*/extension/devtools
-      - .pub-cache/hosted/pub.dev/fl_chart-*/build
-      - .pub-cache/hosted/pub.dev/archive-*/web
+      - .pub-cache
     build:
       - cd ..
       - mv ace.software.pocketsense /home/runner/work/PocketSense/PocketSense
