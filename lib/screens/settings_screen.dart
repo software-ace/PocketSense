@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -208,6 +209,17 @@ class _SecuritySectionState extends State<_SecuritySection> {
             onChanged: _toggleBiometrics,
           ),
       ],
+      if (defaultTargetPlatform == TargetPlatform.android)
+        ValueListenableBuilder(
+          valueListenable: AppSettings.privateScreen,
+          builder: (context, on, _) => SwitchListTile(
+            secondary: const Icon(Icons.visibility_off_outlined),
+            title: Text(l.privateScreen),
+            subtitle: Text(l.privateScreenSubtitle),
+            value: on,
+            onChanged: AppSettings.setPrivateScreen,
+          ),
+        ),
     ]);
   }
 }

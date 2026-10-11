@@ -1310,6 +1310,18 @@ abstract class AppLocalizations {
   /// **'Unlock with fingerprint or face'**
   String get useBiometrics;
 
+  /// No description provided for @privateScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Private screen'**
+  String get privateScreen;
+
+  /// No description provided for @privateScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Pocket Sense in recent apps, and block screenshots and screen recording'**
+  String get privateScreenSubtitle;
+
   /// No description provided for @enterPin.
   ///
   /// In en, this message translates to:

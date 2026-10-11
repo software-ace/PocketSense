@@ -202,6 +202,8 @@
   "appLockSubtitle": "طلب رمز PIN عند فتح Pocket Sense",
   "changePin": "تغيير رمز PIN",
   "useBiometrics": "الفتح بالبصمة أو الوجه",
+  "privateScreen": "شاشة خاصة",
+  "privateScreenSubtitle": "إخفاء Pocket Sense في التطبيقات الأخيرة، ومنع لقطات الشاشة وتسجيلها",
   "enterPin": "أدخل رمز PIN",
   "enterCurrentPin": "أدخل رمز PIN الحالي",
   "chooseNewPin": "اختر رمز PIN (من 4 إلى 6 أرقام)",

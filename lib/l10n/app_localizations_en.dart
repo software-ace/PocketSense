@@ -741,6 +741,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get useBiometrics => 'Unlock with fingerprint or face';
 
   @override
+  String get privateScreen => 'Private screen';
+
+  @override
+  String get privateScreenSubtitle =>
+      'Hide Pocket Sense in recent apps, and block screenshots and screen recording';
+
+  @override
   String get enterPin => 'Enter your PIN';
 
   @override

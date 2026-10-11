@@ -450,6 +450,8 @@
   "appLockSubtitle": "Ask for a PIN when opening Pocket Sense",
   "changePin": "Change PIN",
   "useBiometrics": "Unlock with fingerprint or face",
+  "privateScreen": "Private screen",
+  "privateScreenSubtitle": "Hide Pocket Sense in recent apps, and block screenshots and screen recording",
   "enterPin": "Enter your PIN",
   "enterCurrentPin": "Enter your current PIN",
   "chooseNewPin": "Choose a PIN (4–6 digits)",

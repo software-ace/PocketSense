@@ -756,6 +756,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get useBiometrics => 'الفتح بالبصمة أو الوجه';
 
   @override
+  String get privateScreen => 'شاشة خاصة';
+
+  @override
+  String get privateScreenSubtitle =>
+      'إخفاء Pocket Sense في التطبيقات الأخيرة، ومنع لقطات الشاشة وتسجيلها';
+
+  @override
   String get enterPin => 'أدخل رمز PIN';
 
   @override

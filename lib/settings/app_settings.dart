@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +18,7 @@ class AppSettings {
   static const _autoErrorKey = 'autoBackup.error';
   static const _syncOnKey = 'sync.enabled';
   static const _syncNameKey = 'sync.name';
+  static const _privateScreenKey = 'privateScreen';
 
   /// The chosen UI language, or null to follow the system.
   static final ValueNotifier<Locale?> locale = ValueNotifier(null);
@@ -34,6 +37,12 @@ class AppSettings {
   /// default), and the name other devices see this one by.
   static final sync = ValueNotifier<({bool enabled, String name})>((enabled: false, name: ''));
 
+  /// Android: hide the app in recent apps and block screenshots and screen
+  /// recordings. On by default; MainActivity starts with it on, so it holds
+  /// before this is even read.
+  static final privateScreen = ValueNotifier(true);
+  static const _window = MethodChannel('pocketsense/window');
+
   static final _prefs = SharedPreferencesAsync();
 
   static Future<void> load() async {
@@ -47,6 +56,8 @@ class AppSettings {
         error: await _prefs.getString(_autoErrorKey),
       );
       sync.value = (enabled: await _prefs.getBool(_syncOnKey) ?? false, name: await _prefs.getString(_syncNameKey) ?? '');
+      privateScreen.value = await _prefs.getBool(_privateScreenKey) ?? true;
+      if (!privateScreen.value) await _applyPrivateScreen();
     } catch (_) {
       // Unreadable preferences: follow the system language, show onboarding.
     }
@@ -77,6 +88,16 @@ class AppSettings {
     sync.value = (enabled: enabled ?? sync.value.enabled, name: name ?? sync.value.name);
     if (enabled != null) await _prefs.setBool(_syncOnKey, enabled);
     if (name != null) await _prefs.setString(_syncNameKey, name);
+  }
+
+  static Future<void> setPrivateScreen(bool on) async {
+    privateScreen.value = on;
+    await _prefs.setBool(_privateScreenKey, on);
+    await _applyPrivateScreen();
+  }
+
+  static Future<void> _applyPrivateScreen() async {
+    if (defaultTargetPlatform == TargetPlatform.android) await _window.invokeMethod('setSecure', privateScreen.value);
   }
 
   static Future<void> setLocale(Locale? value) async {

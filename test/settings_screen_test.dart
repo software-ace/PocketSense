@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' show DateFormat;
@@ -76,5 +78,29 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(find.text('Choose a backup password'), findsNothing);
+  });
+
+  testWidgets('Private screen (Android) is on by default, and turning it off is saved and sent to Android', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final sent = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('pocketsense/window'), (call) async {
+      sent.add(call.arguments);
+      return null;
+    });
+    await AppSettings.load();
+    expect(AppSettings.privateScreen.value, isTrue);
+    expect(sent, isEmpty, reason: 'MainActivity already starts with it on');
+
+    await openSettings(tester);
+    final toggle = find.widgetWithText(SwitchListTile, 'Private screen');
+    await tester.scrollUntilVisible(toggle, 200);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(sent, [false]);
+
+    await AppSettings.load();
+    expect(AppSettings.privateScreen.value, isFalse);
+    expect(sent, [false, false], reason: 'applied again at the next launch');
+    debugDefaultTargetPlatformOverride = null;
   });
 }

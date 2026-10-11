@@ -16,7 +16,8 @@ class MainActivity : FlutterFragmentActivity() {
     private var multicastLock: WifiManager.MulticastLock? = null
 
     // Keeps balances out of the recent-apps preview, screenshots and screen
-    // recordings, as banking apps do.
+    // recordings, as banking apps do. On from the start; Settings → Security
+    // can turn it off (pocketsense/window below).
     override fun onCreate(savedInstanceState: Bundle?) {
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         super.onCreate(savedInstanceState)
@@ -40,6 +41,15 @@ class MainActivity : FlutterFragmentActivity() {
                     result.success(null)
                 }
                 else -> result.notImplemented()
+            }
+        }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "pocketsense/window").setMethodCallHandler { call, result ->
+            if (call.method == "setSecure") {
+                if (call.arguments as Boolean) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                result.success(null)
+            } else {
+                result.notImplemented()
             }
         }
     }
