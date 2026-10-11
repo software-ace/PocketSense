@@ -1,1 +1,1 @@
-• Your balances no longer show in the recent-apps screen, and the app can't be captured in screenshots or screen recordings.
+• Private screen: your balances no longer show in the recent-apps screen, and the app can't be captured in screenshots or screen recordings. On by default; turn it off in Settings → Security.
