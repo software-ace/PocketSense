@@ -82,6 +82,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - **Pairing** exchanges public keys in the open and has both screens show a 6-digit code, the way Bluetooth pairing does. Checking the codes match is what stops a device in the middle from passing itself off as yours: it would have a one-in-a-million chance of getting the same code on both.
   - Unpairing stops sharing; the data stays on both devices. Erasing all data unpairs this device from all the others.
 - **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet).
+- **Private screen:** on Android the app is hidden in the recent-apps preview and can't be captured in screenshots or screen recordings.
 - **App lock:** **Settings → Security** sets a 4–6 digit PIN. It's asked for at launch and after 30 seconds in the background, and on Android you can also use a fingerprint or face. After 5 wrong PINs you have to wait, 30 seconds at first and then longer.
 - **A forgotten PIN can't be recovered.** The lock screen offers to erase everything, after which you can import a backup with your backup password.
 - **Backups:** **Settings → Backup** exports everything to a file encrypted with a backup password (AES-256-GCM, key from PBKDF2), and imports it back. **Automatic backup** writes one a day to a folder you pick (on Android, inside Documents or Download) and keeps the last 10.
@@ -115,6 +116,8 @@ The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` comma
 - GTK 3 and EGL/GLES, which almost every desktop already has.
 - A running keyring (GNOME Keyring or KWallet). Without one, the app explains the problem instead of opening.
 - `parecord` for voice entry: `pulseaudio-utils` on Debian, Ubuntu and Fedora, `libpulse` on Arch.
+
+Each release also has `SHA256SUMS-linux.txt`. Check a download with `sha256sum -c --ignore-missing SHA256SUMS-linux.txt`.
 
 Updating keeps your data: the database lives in `~/.local/share/pocket_sense/` on Linux, not inside the app.
 

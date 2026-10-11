@@ -2,6 +2,8 @@ package ace.software.pocketsense
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import android.os.Bundle
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -12,6 +14,13 @@ class MainActivity : FlutterFragmentActivity() {
     // Android drops incoming multicast to save battery unless an app holds
     // this lock; sync's device discovery needs it while sync is running.
     private var multicastLock: WifiManager.MulticastLock? = null
+
+    // Keeps balances out of the recent-apps preview, screenshots and screen
+    // recordings, as banking apps do.
+    override fun onCreate(savedInstanceState: Bundle?) {
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
