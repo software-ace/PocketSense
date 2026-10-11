@@ -189,7 +189,8 @@ docs/             demo backup and desktop screenshots
 1. Bump `version:` in `pubspec.yaml`, always raising the number after `+`.
 2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`, where `N` is that number (one per APK: versionCode is `N × 10 + ABI`).
 3. Write the release notes in `.github/release-notes/v<version>.md`.
-4. Commit, then push a `v<version>` tag.
+4. Update this README for anything the release changes that users or contributors would notice: features, settings, privacy, install, build steps.
+5. Commit, then push a `v<version>` tag.
 
 The tag runs `.github/workflows/release.yml`, which:
 - runs the analyzer and tests;
