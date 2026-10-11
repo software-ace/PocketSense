@@ -73,10 +73,13 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 ## Privacy and security
 
-- **No internet:** no account, no servers, no analytics. The network is used only for sync with your own devices on the local network, when you turn it on, and on Linux for the one-time voice model download. Android requires the internet permission for any network use, even local, so the app requests it.
+- **No internet:** no account, no servers, no analytics, no update checks. The app makes no network connections at all unless you turn on sync, which only talks to your own devices on the local network. On Linux it also downloads the voice model once, when you first use voice entry. Android requires the internet permission for any network use, even local, so the app requests it.
+  - On Android, voice entry uses the phone's own speech recognizer. Depending on the phone, that recognizer may go online; that's the recognizer app's traffic, not Pocket Sense's.
 - **Sync:** only while it's on and the app is open does the app listen for other devices, on port 47823 (TCP and UDP). It talks only to private network addresses (192.168.x.x, 10.x.x.x and similar).
-  - Each device has its own X25519 key in the Android Keystore or your keyring. Pairing compares a 6-digit code, the way Bluetooth pairing does, so a device in the middle can't pass itself off as yours.
-  - Everything synced is encrypted and authenticated (AES-256-GCM) with the key the two devices share. A device you haven't paired gets nothing.
+  - **Your data is end-to-end encrypted.** Each device has its own X25519 key in the Android Keystore or your keyring, and two paired devices derive a shared key from theirs (HKDF-SHA256). Every entry, category, budget and recurring item they exchange is encrypted and authenticated with AES-256-GCM. Each message is bound to its sender, receiver and request, so it can't be replayed elsewhere.
+  - A device you haven't paired gets no data. It can only ask to pair while you have **Pair a device** open, and you then approve it by comparing codes.
+  - **What others on your Wi-Fi can see:** discovery announcements (UDP multicast to 224.0.0.167) are unencrypted. They carry the app's name, a device ID (a hash of its public key) and, only while **Pair a device** is open, the device's name. Sync messages travel over plain HTTP with encrypted bodies, so the devices' addresses, the timing and size of messages, and the sender's device ID are visible, but never their contents.
+  - **Pairing** exchanges public keys in the open and has both screens show a 6-digit code, the way Bluetooth pairing does. Checking the codes match is what stops a device in the middle from passing itself off as yours: it would have a one-in-a-million chance of getting the same code on both.
   - Unpairing stops sharing; the data stays on both devices. Erasing all data unpairs this device from all the others.
 - **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet).
 - **App lock:** **Settings → Security** sets a 4–6 digit PIN. It's asked for at launch and after 30 seconds in the background, and on Android you can also use a fingerprint or face. After 5 wrong PINs you have to wait, 30 seconds at first and then longer.
