@@ -13,9 +13,9 @@ RepoType: git
 Repo: https://github.com/software-ace/PocketSense.git
 
 Builds:
-  - versionName: 2.2.4
-    versionCode: 5001
-    commit: ebea6e72e112c24b7041f02a1665db52a88dd15a
+  - versionName: 2.2.5
+    versionCode: 5011
+    commit: d383fdf5d2d4dca74c145d9fd4f8d31a3bba7d3c
     sudo:
       - mkdir -p /home/runner/work/PocketSense
       - chown -R vagrant /home/runner
@@ -48,9 +48,9 @@ Builds:
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     ndk: r28c
 
-  - versionName: 2.2.4
-    versionCode: 5002
-    commit: ebea6e72e112c24b7041f02a1665db52a88dd15a
+  - versionName: 2.2.5
+    versionCode: 5012
+    commit: d383fdf5d2d4dca74c145d9fd4f8d31a3bba7d3c
     sudo:
       - mkdir -p /home/runner/work/PocketSense
       - chown -R vagrant /home/runner
@@ -83,9 +83,9 @@ Builds:
       - mv /home/runner/work/PocketSense/PocketSense ace.software.pocketsense
     ndk: r28c
 
-  - versionName: 2.2.4
-    versionCode: 5003
-    commit: ebea6e72e112c24b7041f02a1665db52a88dd15a
+  - versionName: 2.2.5
+    versionCode: 5013
+    commit: d383fdf5d2d4dca74c145d9fd4f8d31a3bba7d3c
     sudo:
       - mkdir -p /home/runner/work/PocketSense
       - chown -R vagrant /home/runner
@@ -127,5 +127,5 @@ VercodeOperation:
   - '%c * 10 + 2'
   - '%c * 10 + 3'
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 2.2.4
-CurrentVersionCode: 5003
+CurrentVersion: 2.2.5
+CurrentVersionCode: 5013
