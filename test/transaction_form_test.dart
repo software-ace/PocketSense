@@ -37,6 +37,15 @@ void main() {
     expect(find.text('Groceries'), findsNothing);
   });
 
+  testWidgets('Save sits above the navigation bar', (tester) async {
+    // 3-button navigation: a 48 dp bar the app is drawn behind (Android 15+).
+    tester.view.padding = tester.view.viewPadding = const FakeViewPadding(bottom: 48 * 2.7);
+    await openAddSheet(tester);
+
+    final screen = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(tester.getRect(find.widgetWithText(FilledButton, 'Save')).bottom, lessThanOrEqualTo(screen - 48));
+  });
+
   testWidgets('an untitled transaction is saved untitled and titled when shown', (tester) async {
     await openAddSheet(tester);
 

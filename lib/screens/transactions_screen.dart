@@ -477,7 +477,8 @@ class _TxFormSheetState extends State<_TxFormSheet> {
     final l = context.l10n;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SingleChildScrollView(
+      // Keeps Save above the navigation bar: Android 15+ draws apps behind it.
+      child: SafeArea(child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
@@ -548,7 +549,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           ),
           ]),
         ),
-      ),
+      )),
     );
   }
 }
