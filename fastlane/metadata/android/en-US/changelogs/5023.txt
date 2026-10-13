@@ -1,0 +1,1 @@
+• Fixed: with 3-button navigation, the Save button of the transaction form sat behind the navigation bar, so tapping it could press Home instead.
