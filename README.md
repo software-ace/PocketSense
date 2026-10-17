@@ -98,6 +98,8 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 On Android, the easiest way is [F-Droid](https://f-droid.org/packages/ace.software.pocketsense/), which keeps the app updated. Or download from the [latest release](../../releases/latest). F-Droid publishes the same APKs, signed with the same key, so you can switch between the two without reinstalling or losing data.
 
+Installed the APK from GitHub? [Obtainium](https://github.com/ImranR98/Obtainium) can watch this repo's releases and install updates for you. F-Droid already does that on its own.
+
 **Android 7.0 or later:**
 
 | File | For |
