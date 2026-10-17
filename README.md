@@ -93,7 +93,9 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 ## Install
 
-Download from the [latest release](../../releases/latest). An F-Droid build is being prepared; see [`fdroid/`](fdroid/README.md).
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/ace.software.pocketsense/)
+
+On Android, the easiest way is [F-Droid](https://f-droid.org/packages/ace.software.pocketsense/), which keeps the app updated. Or download from the [latest release](../../releases/latest). F-Droid publishes the same APKs, signed with the same key, so you can switch between the two without reinstalling or losing data.
 
 **Android 7.0 or later:**
 

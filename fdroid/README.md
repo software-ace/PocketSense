@@ -16,14 +16,12 @@
 - `scandelete: .pub-cache` deletes the whole pub cache after `prebuild`, as the F-Droid reviewer asked, so the scanner skips third-party package files (prebuilt sherpa-onnx libraries, example apps and the like). `flutter build` then fetches the packages again; that still reproduces, because the build path is the same as CI's.
 - The `hooks:` block in `pubspec.yaml` sets the sqlite3 package to `system` on Android, so the build downloads no native binaries. SQLCipher comes from Maven Central (`net.zetetic:sqlcipher-android`).
 
-This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are clean, and its source scanner reported 0 problems. Reproducibility was checked by running the recipe's commands in a `debian:trixie` container with F-Droid's paths and its default JDK: for all three ABIs, `apksigcopier compare` against the CI-built APKs passes. It was *not* run through a full `fdroid build` on F-Droid's build server.
+This was checked with fdroidserver 2.4.5: `fdroid lint` and `rewritemeta` are clean, and its source scanner reported 0 problems. Reproducibility was checked by running the recipe's commands in a `debian:trixie` container with F-Droid's paths and its default JDK: for all three ABIs, `apksigcopier compare` against the CI-built APKs passes. F-Droid's build server confirms it on every release: it publishes our APKs only when its rebuild matches.
 
 **If a release stops matching**, F-Droid silently skips that version. Usually the cause is a change on one side only: a Flutter bump that doesn't go through `pubspec.yaml`, a CI step that changes the build, or a new native dependency that embeds paths.
 
-## Submitting
-1. Tag the release the recipe points at (`commit:` the full hash of `v2.2.1`, which fdroiddata requires instead of a tag), so the tag exists on GitHub.
-2. Fork https://gitlab.com/fdroid/fdroiddata, copy `metadata/ace.software.pocketsense.yml` into its `metadata/`, and open a merge request using the "App inclusion" template.
-3. F-Droid's CI runs `fdroid build` on the MR. If the Flutter version is no longer in their `srclibs`, bump `flutter@…` to one that is.
+## Published
+Pocket Sense is on F-Droid: https://f-droid.org/packages/ace.software.pocketsense/. It was added by [fdroiddata!51569](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/51569), merged at v2.2.7. The live recipe is `metadata/ace.software.pocketsense.yml` in fdroiddata; the copy here is for reference. A change to the recipe itself, such as a new build step, needs a new merge request there.
 
 ## Later releases
 Nothing to do in fdroiddata: `UpdateCheckMode: Tags` finds new `v*` tags, reads the version from `pubspec.yaml`, and adds builds automatically. Just:
