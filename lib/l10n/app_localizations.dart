@@ -332,6 +332,12 @@ abstract class AppLocalizations {
   /// **'The system keyring is unavailable ({detail}). Pocket Sense keeps its encryption key there. On Linux, make sure a Secret Service provider such as GNOME Keyring or KWallet is running and unlocked.'**
   String keyringUnavailable(String detail);
 
+  /// No description provided for @keystoreUnavailableAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Android\'s keystore, which holds Pocket Sense\'s encryption key, didn\'t respond ({detail}). Nothing was deleted. Try again, or restart your phone if it keeps happening.'**
+  String keystoreUnavailableAndroid(String detail);
+
   /// No description provided for @dbKeyLost.
   ///
   /// In en, this message translates to:

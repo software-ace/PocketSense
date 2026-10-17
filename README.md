@@ -82,6 +82,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - **Pairing** exchanges public keys in the open and has both screens show a 6-digit code, the way Bluetooth pairing does. Checking the codes match is what stops a device in the middle from passing itself off as yours: it would have a one-in-a-million chance of getting the same code on both.
   - Unpairing stops sharing; the data stays on both devices. Erasing all data unpairs this device from all the others.
 - **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet).
+  - If the keystore doesn't respond, the app says so and offers **Try again**. It never deletes anything to get past the error, and with a PIN set it stays locked until the PIN can be checked.
 - **Private screen:** on Android the app is hidden in the recent-apps preview and can't be captured in screenshots or screen recordings. It's on by default; **Settings → Security → Private screen** turns it off, e.g. to take a screenshot.
 - **App lock:** **Settings → Security** sets a 4–6 digit PIN. It's asked for at launch and after 30 seconds in the background, and on Android you can also use a fingerprint or face. After 5 wrong PINs you have to wait, 30 seconds at first and then longer.
 - **A forgotten PIN can't be recovered.** The lock screen offers to erase everything, after which you can import a backup with your backup password.
@@ -176,7 +177,7 @@ docs/             demo backup and desktop screenshots
 
 **Storage**
 - `lib/data/local_store.dart` owns the one database and its versioned schema (`schemaVersion`). Add an `onUpgrade` step whenever the schema changes.
-- `lib/data/db_key.dart` creates the key on first launch and reads it from the OS keystore afterwards.
+- `lib/data/db_key.dart` creates the key on first launch and reads it from the OS keystore afterwards. Every secret (database key, PIN, backup password, sync key) goes through its `secureStorage`, which turns off the Android plugin's `resetOnError`: left on, a Keystore error at startup makes the plugin delete everything it stores. Don't create another `FlutterSecureStorage`.
 - **Android:** `sqflite_sqlcipher`, with SQLCipher from Maven Central.
 - **Linux and unit tests:** `sqflite_common_ffi` with the `sqlite3` package's own SQLCipher build, chosen by the `hooks:` block in `pubspec.yaml`.
 - Linux can't use the system `libsqlcipher`: GTK already loads the system `libsqlite3`, and SQLCipher's calls would bind to that copy and crash.

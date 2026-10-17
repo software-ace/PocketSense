@@ -135,6 +135,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String keystoreUnavailableAndroid(String detail) {
+    return 'Android\'s keystore, which holds Pocket Sense\'s encryption key, didn\'t respond ($detail). Nothing was deleted. Try again, or restart your phone if it keeps happening.';
+  }
+
+  @override
   String get dbKeyLost =>
       'Your data is encrypted, but its key is no longer in the system keyring, so it can\'t be opened. You can erase it and start over.';
 

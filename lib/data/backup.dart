@@ -3,10 +3,10 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart' show ConflictAlgorithm;
 
 import '../security/pbkdf2.dart';
+import 'db_key.dart';
 import 'local_store.dart';
 
 /// Why a backup file was refused. Shown to the user, so each has its own
@@ -215,7 +215,7 @@ class Backup {
 class BackupPassword {
   BackupPassword._();
 
-  static const _storage = FlutterSecureStorage();
+  static const _storage = secureStorage;
   static const _name = 'pocketsense.backup_password.v1';
   static const minLength = 8;
 

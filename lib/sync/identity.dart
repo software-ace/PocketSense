@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../data/db_key.dart';
 
@@ -24,7 +23,7 @@ class SyncIdentity {
   final List<int> publicKey;
   final String id;
 
-  static const _storage = FlutterSecureStorage();
+  static const _storage = secureStorage;
   static const _name = 'pocketsense.sync_key.v1';
   static final _x25519 = X25519();
   static final _aes = AesGcm.with256bits();

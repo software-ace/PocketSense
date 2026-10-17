@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
+import '../widgets/startup_error.dart';
 import 'app_lock.dart';
 import 'biometrics.dart';
 import 'pin_pad.dart';
@@ -26,19 +27,26 @@ class LockGate extends StatefulWidget {
 
 class _LockGateState extends State<LockGate> {
   bool? _locked; // null while checking whether the lock is on
+  Object? _error; // the keystore couldn't say
   DateTime? _hiddenAt;
   late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
+    _check();
+    _lifecycle = AppLifecycleListener(onHide: _onHide, onShow: _onShow);
+  }
+
+  // Fails closed: if the keystore can't say whether a PIN is set, the app
+  // stays covered until it can, or a later retry could open it without one.
+  void _check() {
+    if (_error != null) setState(() => _error = null);
     AppLock.instance.enabled.then((on) {
       if (mounted) setState(() => _locked = on);
-    }, onError: (_) {
-      // Keystore unreachable: Boot reports it (the database key lives there too).
-      if (mounted) setState(() => _locked = false);
+    }, onError: (Object e) {
+      if (mounted) setState(() => _error = e);
     });
-    _lifecycle = AppLifecycleListener(onHide: _onHide, onShow: _onShow);
   }
 
   @override
@@ -53,7 +61,7 @@ class _LockGateState extends State<LockGate> {
     final hidden = _hiddenAt;
     _hiddenAt = null;
     if (hidden == null || DateTime.now().difference(hidden) < widget.relockAfter) return;
-    if (await AppLock.instance.enabled && mounted) setState(() => _locked = true);
+    _check();
   }
 
   Future<void> _erase() async {
@@ -64,10 +72,13 @@ class _LockGateState extends State<LockGate> {
 
   @override
   Widget build(BuildContext context) {
-    final locked = _locked;
+    final locked = _error != null ? null : _locked;
     return Stack(children: [
       Offstage(offstage: locked != false, child: TickerMode(enabled: locked == false, child: widget.child)),
-      if (locked == null) const ColoredBox(color: Colors.black, child: SizedBox.expand()),
+      if (_error != null)
+        StartupError(error: _error!, onRetry: _check)
+      else if (locked == null)
+        const ColoredBox(color: Colors.black, child: SizedBox.expand()),
       if (locked == true)
         // Its own Navigator: the app's is underneath, and "Forgot PIN" needs dialogs.
         // HeroControllerScope.none: otherwise it takes MaterialApp's HeroController

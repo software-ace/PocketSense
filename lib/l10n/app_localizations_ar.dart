@@ -135,6 +135,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String keystoreUnavailableAndroid(String detail) {
+    return 'لم يستجب مخزن المفاتيح في أندرويد، حيث يحتفظ Pocket Sense بمفتاح التشفير ($detail). لم يُحذف شيء. حاول مرة أخرى، أو أعد تشغيل هاتفك إذا تكرّر ذلك.';
+  }
+
+  @override
   String get dbKeyLost =>
       'بياناتك مشفّرة، لكن مفتاحها لم يعد موجودًا في حافظة المفاتيح، لذا لا يمكن فتحها. يمكنك مسحها والبدء من جديد.';
 

@@ -3,8 +3,9 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
+import '../data/db_key.dart';
 import 'pbkdf2.dart';
 
 /// Where the lock keeps its secrets. The app uses the OS keystore; tests
@@ -16,13 +17,20 @@ abstract class SecretStore {
 }
 
 class _KeystoreSecretStore implements SecretStore {
-  static const _s = FlutterSecureStorage();
   @override
-  Future<String?> read(String key) => _s.read(key: key);
+  Future<String?> read(String key) => _keystore(() => secureStorage.read(key: key));
   @override
-  Future<void> write(String key, String value) => _s.write(key: key, value: value);
+  Future<void> write(String key, String value) => _keystore(() => secureStorage.write(key: key, value: value));
   @override
-  Future<void> delete(String key) => _s.delete(key: key);
+  Future<void> delete(String key) => _keystore(() => secureStorage.delete(key: key));
+
+  static Future<T> _keystore<T>(Future<T> Function() op) async {
+    try {
+      return await op();
+    } on PlatformException catch (e) {
+      throw KeyStoreUnavailable(e.message ?? e.code);
+    }
+  }
 }
 
 sealed class PinResult {}

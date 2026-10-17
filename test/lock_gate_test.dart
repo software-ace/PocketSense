@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/data/db_key.dart';
 import 'package:pocket_sense/l10n/app_localizations.dart';
 import 'package:pocket_sense/security/app_lock.dart';
 import 'package:pocket_sense/security/lock_gate.dart';
@@ -104,4 +105,33 @@ void main() {
     expect(await tester.runAsync(() => AppLock.instance.enabled), isFalse);
     expect(appVisible(tester), isTrue);
   });
+
+  // A keystore error used to open the app as if no PIN were set; a retry
+  // that then reached the data would have skipped the PIN.
+  testWidgets('if the keystore fails, the app stays hidden until a retry can check the PIN', (tester) async {
+    final flaky = _FlakyStore();
+    AppLock.instance = AppLock(store: flaky, iterations: 1000);
+    await tester.runAsync(() => AppLock.instance.setPin('2468'));
+    flaky.failing = true;
+    await pumpGate(tester);
+    expect(appVisible(tester), isFalse);
+    expect(find.textContaining("Android's keystore"), findsOneWidget);
+
+    flaky.failing = false;
+    await tester.tap(find.text('Try again'));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your PIN'), findsOneWidget);
+    expect(appVisible(tester), isFalse);
+  });
+}
+
+class _FlakyStore extends MemorySecretStore {
+  bool failing = false;
+
+  @override
+  Future<String?> read(String key) async {
+    if (failing) throw KeyStoreUnavailable('KeyStoreException');
+    return super.read(key);
+  }
 }

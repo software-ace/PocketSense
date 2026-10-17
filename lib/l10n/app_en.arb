@@ -67,6 +67,14 @@
       }
     }
   },
+  "keystoreUnavailableAndroid": "Android's keystore, which holds Pocket Sense's encryption key, didn't respond ({detail}). Nothing was deleted. Try again, or restart your phone if it keeps happening.",
+  "@keystoreUnavailableAndroid": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "dbKeyLost": "Your data is encrypted, but its key is no longer in the system keyring, so it can't be opened. You can erase it and start over.",
   "eraseAllTitle": "Erase all data?",
   "eraseAllBody": "Everything stored in Pocket Sense on this device is deleted. This cannot be undone. Synced devices keep their data, and stop syncing with this one.",
