@@ -31,8 +31,9 @@ modules:
   - name: PocketSense
     buildsystem: simple
     build-options:
-      # Flutter's Linux build uses clang.
-      append-path: /usr/lib/sdk/llvm22/bin
+      # Flutter's Linux build uses clang. flatpak-flutter rewrites the
+      # flutter/bin entry to where its SDK module installs Flutter.
+      append-path: /usr/lib/sdk/llvm22/bin:/run/build/PocketSense/flutter/bin
       prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
     build-commands:
       # SQLCipher's single-file source; its build brings its own Tcl (jimsh).
