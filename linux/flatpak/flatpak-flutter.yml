@@ -54,7 +54,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/software-ace/PocketSense.git
-        branch: 6-flatpak
+        branch: flatpak
       - type: git
         url: https://github.com/flutter/flutter.git
         tag: 3.47.6
