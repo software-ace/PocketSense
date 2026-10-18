@@ -1,0 +1,21 @@
+# Replaces the hooks: block of pubspec.yaml in the Flatpak build. Flathub
+# builds offline and from source, so instead of downloading sqlite3.dart's
+# prebuilt SQLCipher, its hook compiles the SQLCipher amalgamation the
+# manifest generates, with the options sqlite3.dart uses for that prebuilt
+# (tool/build_sqlite.dart at sqlite3-3.6.0), against the runtime's OpenSSL.
+hooks:
+  user_defines:
+    sqlite3:
+      source: source
+      path: sqlcipher/sqlite3.c
+      additional_libraries:
+        - crypto
+      defines:
+        defines:
+          - SQLITE_HAS_CODEC
+          - SQLITE_TEMP_STORE=2
+          - SQLITE_EXTRA_INIT=sqlcipher_extra_init
+          - SQLITE_EXTRA_SHUTDOWN=sqlcipher_extra_shutdown
+          - HAVE_USLEEP
+          - SQLITE_USE_URI
+          - SQLITE_ENABLE_MEMORY_MANAGEMENT

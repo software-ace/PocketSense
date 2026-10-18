@@ -31,7 +31,10 @@ abstract class SpeechEngine {
 }
 
 /// Android uses the phone's recognizer; Linux uses the bundled offline model.
-bool get voiceEntrySupported => Platform.isAndroid || Platform.isLinux;
+/// Not in the Flatpak: Flathub builds everything from source, and the
+/// recognizer's libraries (sherpa-onnx, ONNX Runtime) come prebuilt.
+bool get voiceEntrySupported =>
+    Platform.isAndroid || (Platform.isLinux && !Platform.environment.containsKey('FLATPAK_ID'));
 
 /// [l10n] words the problems an engine reports to the user.
 SpeechEngine createSpeechEngine(AppLocalizations l10n) =>

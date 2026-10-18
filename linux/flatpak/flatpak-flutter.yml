@@ -1,0 +1,62 @@
+# Flatpak build of Pocket Sense, as a template for flatpak-flutter
+# (https://github.com/TheAppgineer/flatpak-flutter), which turns it into
+# io.github.software_ace.PocketSense.yml: the Flutter SDK and every pub
+# package as pinned sources, so the build runs offline as Flathub requires.
+#
+# Differences from the other Linux downloads:
+# - SQLCipher is compiled from source (sqlcipher-hooks.yaml), not downloaded.
+# - No voice entry: its libraries come prebuilt, and Flathub builds from
+#   source. The app hides it when FLATPAK_ID is set; the libraries are
+#   removed from the bundle below.
+# - Data lives in ~/.var/app/io.github.software_ace.PocketSense/data.
+app-id: io.github.software_ace.PocketSense
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.llvm22
+command: pocket-sense
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # Sync with your own devices on the local network (off until turned on).
+  - --share=network
+  # The database key lives in the desktop keyring (Secret Service).
+  - --talk-name=org.freedesktop.secrets
+modules:
+  - name: PocketSense
+    buildsystem: simple
+    build-options:
+      # Flutter's Linux build uses clang.
+      append-path: /usr/lib/sdk/llvm22/bin
+      prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
+    build-commands:
+      # SQLCipher's single-file source; its build brings its own Tcl (jimsh).
+      - cd sqlcipher && ./configure && make sqlite3.c
+      - sed -i '/^hooks:/,$d' pubspec.yaml && cat linux/flatpak/sqlcipher-hooks.yaml >> pubspec.yaml
+      # On Wayland the window's app ID must match the desktop file, or the
+      # dock shows a generic icon.
+      - sed -i 's/^set(APPLICATION_ID .*/set(APPLICATION_ID "io.github.software_ace.PocketSense")/' linux/CMakeLists.txt
+      - flutter build linux --release --no-pub
+      - mkdir -p /app/lib/pocket-sense /app/bin
+      - cp -a build/linux/x64/release/bundle/. /app/lib/pocket-sense/
+      - rm /app/lib/pocket-sense/lib/libonnxruntime.so /app/lib/pocket-sense/lib/libsherpa-onnx-c-api.so /app/lib/pocket-sense/lib/libsherpa-onnx-cxx-api.so
+      - ln -s /app/lib/pocket-sense/pocket_sense /app/bin/pocket-sense
+      - sed -e 's/^Icon=.*/Icon=io.github.software_ace.PocketSense/' -e 's/^StartupWMClass=.*/StartupWMClass=io.github.software_ace.PocketSense/' linux/packaging/ace.software.pocketsense.desktop > io.github.software_ace.PocketSense.desktop
+      - install -Dm644 io.github.software_ace.PocketSense.desktop /app/share/applications/io.github.software_ace.PocketSense.desktop
+      - install -Dm644 fastlane/metadata/android/en-US/images/icon.png /app/share/icons/hicolor/512x512/apps/io.github.software_ace.PocketSense.png
+      - install -Dm644 linux/flatpak/io.github.software_ace.PocketSense.metainfo.xml /app/share/metainfo/io.github.software_ace.PocketSense.metainfo.xml
+    sources:
+      - type: git
+        url: https://github.com/software-ace/PocketSense.git
+        branch: 6-flatpak
+      - type: git
+        url: https://github.com/flutter/flutter.git
+        tag: 3.47.6
+        dest: flutter
+      - type: archive
+        url: https://github.com/sqlcipher/sqlcipher/archive/refs/tags/v4.19.0.tar.gz
+        sha256: 7075f96cbabe45b4ecfc2e6b1745a625f856f695b0827a5506ce9ed85b906aa0
+        dest: sqlcipher
