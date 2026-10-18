@@ -45,7 +45,7 @@ modules:
       - flutter build linux --release --no-pub
       - mkdir -p /app/lib/pocket-sense /app/bin
       - cp -a build/linux/x64/release/bundle/. /app/lib/pocket-sense/
-      - rm /app/lib/pocket-sense/lib/libonnxruntime.so /app/lib/pocket-sense/lib/libsherpa-onnx-c-api.so /app/lib/pocket-sense/lib/libsherpa-onnx-cxx-api.so
+      - rm /app/lib/pocket-sense/lib/libonnxruntime.so /app/lib/pocket-sense/lib/libsherpa-onnx-c-api.so
       - ln -s /app/lib/pocket-sense/pocket_sense /app/bin/pocket-sense
       - sed -e 's/^Icon=.*/Icon=io.github.software_ace.PocketSense/' -e 's/^StartupWMClass=.*/StartupWMClass=io.github.software_ace.PocketSense/' linux/packaging/ace.software.pocketsense.desktop > io.github.software_ace.PocketSense.desktop
       - install -Dm644 io.github.software_ace.PocketSense.desktop /app/share/applications/io.github.software_ace.PocketSense.desktop
