@@ -5,6 +5,8 @@
 #
 # Differences from the other Linux downloads:
 # - SQLCipher is compiled from source (sqlcipher-hooks.yaml), not downloaded.
+#   foreign.json turns off flatpak-flutter's own sqlite3 handling, which
+#   would add sqlite3.dart's prebuilt libsqlite3 as a source.
 # - No voice entry: its libraries come prebuilt, and Flathub builds from
 #   source. The app hides it when FLATPAK_ID is set; the libraries are
 #   removed from the bundle below.
