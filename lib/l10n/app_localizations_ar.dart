@@ -214,6 +214,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chartByCategory => 'حسب الفئة (30 يومًا)';
 
   @override
+  String get chartByMerchant => 'حسب المتجر (30 يومًا)';
+
+  @override
+  String get noMerchant => 'بدون متجر';
+
+  @override
+  String get otherMerchants => 'أخرى';
+
+  @override
+  String get chartMonthly => 'الدخل والإنفاق (6 أشهر)';
+
+  @override
+  String get chartPace => 'هذا الشهر مقابل الشهر الماضي';
+
+  @override
+  String get chartWeekday => 'حسب أيام الأسبوع (المتوسط اليومي لـ 12 أسبوعًا)';
+
+  @override
+  String get thisMonth => 'هذا الشهر';
+
+  @override
+  String get lastMonth => 'الشهر الماضي';
+
+  @override
   String get recentActivity => 'آخر الحركات';
 
   @override

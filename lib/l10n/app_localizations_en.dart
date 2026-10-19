@@ -214,6 +214,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartByCategory => 'By Category (30d)';
 
   @override
+  String get chartByMerchant => 'By Merchant (30d)';
+
+  @override
+  String get noMerchant => 'No merchant';
+
+  @override
+  String get otherMerchants => 'Other';
+
+  @override
+  String get chartMonthly => 'Income vs Spending (6 months)';
+
+  @override
+  String get chartPace => 'This Month vs Last Month';
+
+  @override
+  String get chartWeekday => 'By Weekday (12-week daily average)';
+
+  @override
+  String get thisMonth => 'This month';
+
+  @override
+  String get lastMonth => 'Last month';
+
+  @override
   String get recentActivity => 'Recent Activity';
 
   @override

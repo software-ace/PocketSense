@@ -15,7 +15,7 @@ Pocket Sense tracks your income, spending, budgets and bills without an account 
 
 <b>Features</b>
 <ul>
-<li>Home: this month's income, spending and net, a 30-day spending chart and a breakdown by category.</li>
+<li>Home: this month's income, spending and net, a 30-day spending chart, breakdowns by category and by merchant, income vs spending over 6 months, this month against last, and spending by weekday.</li>
 <li>Activity: add, edit, search and filter transactions, with merchant, category and notes.</li>
 <li>Voice entry (English): say "Spent 3.5 on lunch at Reem yesterday" and check the filled-in form.</li>
 <li>Budgets: weekly or monthly limits per category, with progress and over-budget warnings.</li>

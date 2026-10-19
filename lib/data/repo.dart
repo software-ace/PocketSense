@@ -307,6 +307,66 @@ class FinanceRepo {
     return map.values.toList()..sort((a, b) => b.fils.compareTo(a.fils));
   }
 
+  /// Expense fils per merchant, largest first. Names match ignoring case and
+  /// surrounding spaces, and show as last typed; [label] is null for
+  /// expenses without a merchant.
+  Future<List<({String? label, int fils})>> spendingByMerchant(DateTime from, DateTime to) async {
+    final txs = await transactions(from: from, to: to, type: 'expense', limit: 1000);
+    final map = <String, ({String? label, int fils})>{};
+    for (final t in txs) {
+      final name = t.merchant?.trim() ?? '';
+      final existing = map[name.toLowerCase()];
+      map[name.toLowerCase()] = (label: existing?.label ?? (name.isEmpty ? null : name), fils: (existing?.fils ?? 0) + t.amountFils);
+    }
+    return map.values.toList()..sort((a, b) => b.fils.compareTo(a.fils));
+  }
+
+  /// Income and expense fils per calendar month, oldest first: the [months]
+  /// months up to and including [now]'s.
+  Future<List<({DateTime month, int income, int expense})>> monthlyTotals(DateTime now, {int months = 6}) async {
+    final first = DateTime(now.year, now.month - months + 1);
+    final txs = await transactions(from: first, to: now, limit: 1 << 30);
+    final income = List.filled(months, 0), expense = List.filled(months, 0);
+    for (final t in txs) {
+      final i = (t.date.year - first.year) * 12 + t.date.month - first.month;
+      if (t.type == 'income') {
+        income[i] += t.amountFils;
+      } else {
+        expense[i] += t.amountFils;
+      }
+    }
+    return [for (var i = 0; i < months; i++) (month: DateTime(first.year, first.month + i), income: income[i], expense: expense[i])];
+  }
+
+  /// Expense fils spent so far by each day of the month, for comparing the
+  /// pace of spending: this month up to [now]'s day, and all of last month.
+  Future<({List<int> thisMonth, List<int> lastMonth})> monthPace(DateTime now) async {
+    final txs = await transactions(from: DateTime(now.year, now.month - 1), to: now, type: 'expense', limit: 1 << 30);
+    final thisDaily = List.filled(now.day, 0);
+    final lastDaily = List.filled(DateTime(now.year, now.month, 0).day, 0);
+    for (final t in txs) {
+      (t.date.month == now.month ? thisDaily : lastDaily)[t.date.day - 1] += t.amountFils;
+    }
+    List<int> running(List<int> daily) {
+      var sum = 0;
+      return [for (final f in daily) sum += f];
+    }
+
+    return (thisMonth: running(thisDaily), lastMonth: running(lastDaily));
+  }
+
+  /// Average expense fils per weekday, Monday first, over the [weeks] weeks
+  /// ending with [now]'s day, so every weekday counts exactly [weeks] times.
+  Future<List<int>> weekdayAverages(DateTime now, {int weeks = 12}) async {
+    final from = DateTime(now.year, now.month, now.day - weeks * 7 + 1);
+    final txs = await transactions(from: from, to: now, type: 'expense', limit: 1 << 30);
+    final totals = List.filled(7, 0);
+    for (final t in txs) {
+      totals[t.date.weekday - 1] += t.amountFils;
+    }
+    return [for (final f in totals) (f / weeks).round()];
+  }
+
   /// Daily expense fils for the last [days] days ending at [end].
   Future<List<({DateTime day, int fils})>> dailySpending(
       {required DateTime end, int days = 30}) async {

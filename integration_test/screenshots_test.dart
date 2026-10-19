@@ -68,6 +68,24 @@ void main() {
     await FinanceRepo().localizeStarterCategories(starterCategoryNames(lookupAppLocalizations(l)), starterCategoryDefaultNames());
   }
 
+  // Home scrolled down to the trend charts: steps down until the card is
+  // built (slivers far below aren't), then puts it at the top.
+  Future<void> scrollToTrends(WidgetTester tester) async {
+    final title = find.text(lookupAppLocalizations(locale.value).chartMonthly);
+    final pos = tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+    while (title.evaluate().isEmpty) {
+      pos.jumpTo(pos.pixels + 300);
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    await Scrollable.ensureVisible(tester.element(title), alignment: 0.02);
+  }
+
+  Future<void> scrollToTop(WidgetTester tester) async {
+    tester.state<ScrollableState>(find.byType(Scrollable).first).position.jumpTo(0);
+    await tester.pumpAndSettle();
+  }
+
   // Sync as it looks with two paired devices. Only what the screens show is
   // faked: the service never starts, so no sockets and no sync key.
   Future<void> syncShots(WidgetTester tester, {required String me, String? settingsPath, required String pairPath}) async {
@@ -154,6 +172,9 @@ void main() {
         final dir = 'fastlane/metadata/android/$lang/images/phoneScreenshots';
         await tab(tester, (l) => l.navHome);
         await shot(tester, '$dir/1_home.png');
+        await scrollToTrends(tester);
+        await shot(tester, '$dir/1_home_charts.png');
+        await scrollToTop(tester);
         await tab(tester, (l) => l.navActivity);
         await shot(tester, '$dir/2_activity.png');
         await tester.tap(find.descendant(of: find.byType(TransactionsScreen), matching: find.byIcon(Icons.add)).first);
@@ -174,6 +195,9 @@ void main() {
     } else {
       const dir = 'docs/screenshots';
       await shot(tester, '$dir/desktop-home.png');
+      await scrollToTrends(tester);
+      await shot(tester, '$dir/desktop-charts.png');
+      await scrollToTop(tester);
       await tab(tester, (l) => l.navActivity);
       await shot(tester, '$dir/desktop-activity.png');
       await tab(tester, (l) => l.navBudgets);

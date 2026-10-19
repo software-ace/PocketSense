@@ -12,11 +12,13 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 
 ## Screenshots
 
-![Home on the desktop: monthly totals, a 30-day spending chart and spending by category](docs/screenshots/desktop-home.png)
+![Home on the desktop: monthly totals, a 30-day spending chart, and spending by category and by merchant](docs/screenshots/desktop-home.png)
 
-| Home | Activity | New entry | Budgets | Recurring |
-|---|---|---|---|---|
-| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
+![Further down Home: income vs spending over 6 months, this month against last, and spending by weekday](docs/screenshots/desktop-charts.png)
+
+| Home | Charts | Activity | New entry | Budgets | Recurring |
+|---|---|---|---|---|---|
+| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
 
 <details>
 <summary>More: sync, Arabic, and the desktop layout</summary>
@@ -25,9 +27,9 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 |---|---|
 | ![Sync settings with two paired devices](fastlane/metadata/android/en-US/images/phoneScreenshots/7_sync.png) | ![Pairing: both devices show the same 6-digit code](fastlane/metadata/android/en-US/images/phoneScreenshots/8_pair.png) |
 
-| الرئيسية | الحركات | الميزانيات | الإعدادات |
-|---|---|---|---|
-| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
+| الرئيسية | المخططات | الحركات | الميزانيات | الإعدادات |
+|---|---|---|---|---|
+| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
 
 ![Home on the desktop, in Arabic](docs/screenshots/desktop-home-ar.png)
 ![Activity on the desktop](docs/screenshots/desktop-activity.png)
@@ -42,7 +44,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 ## Features
 
 **Tracking money**
-- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, a breakdown by category, and recent entries.
+- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other), income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries.
 - **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
