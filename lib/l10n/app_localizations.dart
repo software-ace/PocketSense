@@ -482,6 +482,54 @@ abstract class AppLocalizations {
   /// **'By Category (30d)'**
   String get chartByCategory;
 
+  /// No description provided for @chartByMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'By Merchant (30d)'**
+  String get chartByMerchant;
+
+  /// No description provided for @noMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'No merchant'**
+  String get noMerchant;
+
+  /// No description provided for @otherMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get otherMerchants;
+
+  /// No description provided for @chartMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Income vs Spending (6 months)'**
+  String get chartMonthly;
+
+  /// No description provided for @chartPace.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month vs Last Month'**
+  String get chartPace;
+
+  /// No description provided for @chartWeekday.
+  ///
+  /// In en, this message translates to:
+  /// **'By Weekday (12-week daily average)'**
+  String get chartWeekday;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get thisMonth;
+
+  /// No description provided for @lastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get lastMonth;
+
   /// No description provided for @recentActivity.
   ///
   /// In en, this message translates to:

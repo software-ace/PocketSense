@@ -30,6 +30,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   ({int income, int expense})? _year;
   List<Transaction> _recent = [];
   List<({String? label, int fils, String? color})> _byCategory = [];
+  List<({String? label, int fils})> _byMerchant = [];
+  List<({DateTime month, int income, int expense})> _monthly = [];
+  ({List<int> thisMonth, List<int> lastMonth}) _pace = (thisMonth: const [], lastMonth: const []);
+  List<int> _weekday = const [];
   List<({DateTime day, int fils})> _daily = [];
 
   @override
@@ -58,6 +62,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _repo.transactions(limit: 8),
         _repo.spendingByCategory(thirtyDaysAgo, now),
         _repo.dailySpending(end: now, days: 30),
+        _repo.spendingByMerchant(thirtyDaysAgo, now),
+        _repo.monthlyTotals(now),
+        _repo.monthPace(now),
+        _repo.weekdayAverages(now),
       ]);
 
       if (!mounted) return;
@@ -67,6 +75,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _recent = results[2] as List<Transaction>;
         _byCategory = results[3] as List<({String? label, int fils, String? color})>;
         _daily = results[4] as List<({DateTime day, int fils})>;
+        _byMerchant = results[5] as List<({String? label, int fils})>;
+        _monthly = results[6] as List<({DateTime month, int income, int expense})>;
+        _pace = results[7] as ({List<int> thisMonth, List<int> lastMonth});
+        _weekday = results[8] as List<int>;
         _loading = false;
       });
     } catch (e) {
@@ -125,35 +137,14 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             // Charts section
-            if (desktop)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 3, child: _chartCard(theme, l.chartDaily, _buildLineChart())),
-                      const SizedBox(width: 16),
-                      Expanded(flex: 2, child: _chartCard(theme, l.chartByCategory, _buildPieChart())),
-                    ],
-                  ),
-                ),
-              )
-            else ...[
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                  child: _chartCard(theme, l.chartDaily, _buildLineChart()),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                  child: _chartCard(theme, l.chartByCategory, _buildPieChart()),
-                ),
-              ),
-            ],
+            _padded(_chartCard(theme, l.chartDaily, _buildLineChart())),
+            _gap,
+            ..._pair(desktop, _chartCard(theme, l.chartByCategory, _buildPieChart(_categorySlices())),
+                _chartCard(theme, l.chartByMerchant, _buildPieChart(_merchantSlices()))),
+            _gap,
+            _padded(_chartCard(theme, l.chartMonthly, _buildMonthlyChart())),
+            _gap,
+            ..._pair(desktop, _chartCard(theme, l.chartPace, _buildPaceChart()), _chartCard(theme, l.chartWeekday, _buildWeekdayChart())),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             // Recent activity
@@ -182,6 +173,16 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       ),
     );
   }
+
+  Widget _padded(Widget child) =>
+      SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)), child: child));
+
+  static const _gap = SliverToBoxAdapter(child: SizedBox(height: 12));
+
+  // Two cards: side by side on desktop, one under the other on a phone.
+  List<Widget> _pair(bool desktop, Widget a, Widget b) => desktop
+      ? [_padded(Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: a), const SizedBox(width: 16), Expanded(child: b)]))]
+      : [_padded(a), _gap, _padded(b)];
 
   Widget _statCard(ThemeData theme, String label, String value, IconData icon, Color accent) {
     return Card(
@@ -284,6 +285,175 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     ));
   }
 
+  static const _indigo = Color(0xFF4F46E5);
+
+  // Shared by the trend charts: amounts on the left, [label] under each x.
+  FlTitlesData _axes(double step, String Function(int x) label, {double interval = 1}) => FlTitlesData(
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: true, interval: step, reservedSize: 44,
+              getTitlesWidget: (v, meta) => Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Text(compactAmount(v), style: const TextStyle(fontSize: 11), textAlign: TextAlign.right))),
+        ),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(showTitles: true, interval: interval, reservedSize: 24,
+              getTitlesWidget: (v, meta) => Padding(
+                  padding: const EdgeInsets.only(top: 4), child: Text(label(v.toInt()), style: const TextStyle(fontSize: 10)))),
+        ),
+        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      );
+
+  FlGridData _grid(double step) => FlGridData(
+        drawVerticalLine: false,
+        horizontalInterval: step,
+        getDrawingHorizontalLine: (v) => FlLine(color: const Color(0x1F000000), strokeWidth: 1),
+      );
+
+  double _maxY(int maxFils, double step) => ((maxFils / 1000) * 1.1 / step).ceil().clamp(1, 1 << 30) * step;
+
+  Widget _legend(List<(String, Color)> items) => Wrap(spacing: 16, children: [
+        for (final (label, color) in items)
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+            const SizedBox(width: 6),
+            Text(label, style: const TextStyle(fontSize: 12)),
+          ]),
+      ]);
+
+  BarTouchData _barTooltips() => BarTouchData(
+      touchTooltipData: BarTouchTooltipData(
+          getTooltipItem: (group, gi, rod, ri) => BarTooltipItem(formatMoney((rod.toY * 1000).round()),
+              TextStyle(color: rod.color, fontWeight: FontWeight.w600, fontSize: 12))));
+
+  // Income and spending side by side, one pair of bars per month.
+  Widget _buildMonthlyChart() {
+    final l = context.l10n;
+    final maxFils = _monthly.fold<int>(0, (a, m) => math.max(a, math.max(m.income, m.expense)));
+    if (maxFils == 0) return Center(child: Text(l.noData));
+    final step = _niceStep(maxFils / 1000 / 4);
+    BarChartRodData rod(int fils, Color color) =>
+        BarChartRodData(toY: fils / 1000, color: color, width: 10, borderRadius: const BorderRadius.vertical(top: Radius.circular(3)));
+
+    return Column(children: [
+      // Months read left to right in Arabic too, as on the daily chart.
+      Expanded(
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: BarChart(BarChartData(
+            maxY: _maxY(maxFils, step),
+            barGroups: [
+              for (final (i, m) in _monthly.indexed)
+                BarChartGroupData(x: i, barsSpace: 4, barRods: [rod(m.income, Colors.green), rod(m.expense, Colors.redAccent)]),
+            ],
+            gridData: _grid(step),
+            borderData: FlBorderData(show: false),
+            titlesData: _axes(step, (i) => DateFormat.MMM().format(_monthly[i].month)),
+            barTouchData: _barTooltips(),
+          )),
+        ),
+      ),
+      const SizedBox(height: 8),
+      _legend([(l.income, Colors.green), (l.expense, Colors.redAccent)]),
+    ]);
+  }
+
+  // Spent so far by each day of the month: this month against last month.
+  Widget _buildPaceChart() {
+    final l = context.l10n;
+    final maxFils = math.max(_pace.thisMonth.lastOrNull ?? 0, _pace.lastMonth.lastOrNull ?? 0);
+    if (maxFils == 0) return Center(child: Text(l.noData));
+    final step = _niceStep(maxFils / 1000 / 4);
+    final lastX = math.max(_pace.thisMonth.length, _pace.lastMonth.length) - 1;
+    const lastMonthColor = Color(0xFF9CA3AF);
+    LineChartBarData line(List<int> fils, Color color, {List<int>? dash}) => LineChartBarData(
+          spots: [for (final (i, f) in fils.indexed) FlSpot(i.toDouble(), f / 1000)],
+          color: color,
+          barWidth: 3,
+          dashArray: dash,
+          dotData: FlDotData(show: false),
+        );
+
+    return Column(children: [
+      Expanded(
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: LineChart(LineChartData(
+            minX: 0,
+            maxX: lastX.toDouble(),
+            minY: 0,
+            maxY: _maxY(maxFils, step),
+            lineBarsData: [line(_pace.lastMonth, lastMonthColor, dash: [6, 4]), line(_pace.thisMonth, _indigo)],
+            gridData: _grid(step),
+            borderData: FlBorderData(show: false),
+            // Days 1, 8, 15…; fl_chart also labels the axis end, which would
+            // crowd the last of those.
+            titlesData: _axes(step, (i) => i % 7 == 0 && lastX - i >= 3 ? '${i + 1}' : '', interval: 7),
+            lineTouchData: LineTouchData(
+                touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (spots) => [
+                          for (final s in spots)
+                            LineTooltipItem(formatMoney((s.y * 1000).round()),
+                                TextStyle(color: s.bar.color, fontWeight: FontWeight.w600, fontSize: 12)),
+                        ])),
+          )),
+        ),
+      ),
+      const SizedBox(height: 8),
+      _legend([(l.thisMonth, _indigo), (l.lastMonth, lastMonthColor)]),
+    ]);
+  }
+
+  // Average spent on each weekday, in the locale's week order (Saturday
+  // first in Arabic).
+  Widget _buildWeekdayChart() {
+    final maxFils = _weekday.fold<int>(0, math.max);
+    if (maxFils == 0) return Center(child: Text(context.l10n.noData));
+    final step = _niceStep(maxFils / 1000 / 4);
+    // firstDayOfWeekIndex counts from Sunday; _weekday starts on Monday.
+    final first = (MaterialLocalizations.of(context).firstDayOfWeekIndex + 6) % 7;
+    final order = [for (var k = 0; k < 7; k++) (first + k) % 7];
+
+    // 2026-10-19 was a Monday.
+    final days = [for (final d in order) DateTime(2026, 10, 19 + d)];
+
+    return LayoutBuilder(builder: (context, box) {
+      // Full names ("الأربعاء") can be wider than a bar's slot on a phone;
+      // then the one-letter forms.
+      String Function(DateTime) name = DateFormat.E().format;
+      final slot = (box.maxWidth - 44) / 7 - 4;
+      if (days.any((d) => _textWidth(name(d), 10) > slot)) name = DateFormat('EEEEE').format;
+
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: BarChart(BarChartData(
+          maxY: _maxY(maxFils, step),
+          barGroups: [
+            for (final (k, d) in order.indexed)
+              BarChartGroupData(x: k, barRods: [
+                BarChartRodData(toY: _weekday[d] / 1000, color: _indigo, width: 16, borderRadius: const BorderRadius.vertical(top: Radius.circular(3))),
+              ]),
+          ],
+          gridData: _grid(step),
+          borderData: FlBorderData(show: false),
+          titlesData: _axes(step, (k) => name(days[k])),
+          barTouchData: _barTooltips(),
+        )),
+      );
+    });
+  }
+
+  double _textWidth(String text, double fontSize) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.copyWith(fontSize: fontSize)),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width;
+  }
+
   static double _niceStep(double raw) {
     final mag = math.pow(10, (math.log(raw) / math.ln10).floor()).toDouble();
     final norm = raw / mag;
@@ -291,18 +461,32 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     return nice * mag;
   }
 
-  Widget _buildPieChart() {
-    if (_byCategory.isEmpty) return Center(child: Text(context.l10n.noExpensesYet));
-    final totalFils = _byCategory.fold<int>(0, (a, b) => a + b.fils);
+  List<({String label, int fils, Color color})> _categorySlices() => [
+        for (final c in _byCategory) (label: c.label ?? context.l10n.uncategorized, fils: c.fils, color: _hex(c.color)),
+      ];
+
+  static const _merchantColors = [Color(0xFF4F46E5), Color(0xFF0EA5E9), Color(0xFF10B981), Color(0xFFF59E0B), Color(0xFFEC4899)];
+
+  // The top 5, and everyone else as one slice: a pie can't show dozens.
+  List<({String label, int fils, Color color})> _merchantSlices() {
+    final l = context.l10n;
+    final rest = _byMerchant.skip(5).fold<int>(0, (a, m) => a + m.fils);
+    return [
+      for (final (i, m) in _byMerchant.take(5).indexed)
+        (label: m.label ?? l.noMerchant, fils: m.fils, color: m.label == null ? const Color(0xFF9CA3AF) : _merchantColors[i]),
+      if (rest > 0) (label: l.otherMerchants, fils: rest, color: const Color(0xFF6B7280)),
+    ];
+  }
+
+  Widget _buildPieChart(List<({String label, int fils, Color color})> slices) {
+    final totalFils = slices.fold<int>(0, (a, b) => a + b.fils);
     if (totalFils == 0) return Center(child: Text(context.l10n.noExpensesYet));
 
-    final sections = _byCategory.asMap().entries.map((e) {
-      final item = e.value;
+    final sections = slices.map((item) {
       final pct = item.fils / totalFils;
-      final color = _hex(item.color);
       return PieChartSectionData(
         value: pct,
-        color: color,
+        color: item.color,
         radius: 55,
         showTitle: pct > 0.08,
         title: '${(pct * 100).toInt()}%',
@@ -325,15 +509,15 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         Flexible(
           child: ListView.separated(
             shrinkWrap: true,
-            itemCount: _byCategory.take(5).length,
+            itemCount: slices.take(6).length,
             separatorBuilder: (_, _) => const SizedBox(height: 6),
             itemBuilder: (_, i) {
-              final c = _byCategory[i];
+              final c = slices[i];
               return Row(
                 children: [
-                  Container(width: 10, height: 10, decoration: BoxDecoration(color: _hex(c.color), borderRadius: BorderRadius.circular(3))),
+                  Container(width: 10, height: 10, decoration: BoxDecoration(color: c.color, borderRadius: BorderRadius.circular(3))),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(c.label ?? context.l10n.uncategorized, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+                  Expanded(child: Text(c.label, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
                   Text(formatMoney(c.fils), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ],
               );
