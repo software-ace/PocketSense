@@ -1,0 +1,1 @@
+• New charts on Home: spending by merchant, income vs spending over the last 6 months, this month against last month, and spending by weekday.
