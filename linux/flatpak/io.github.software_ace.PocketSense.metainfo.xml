@@ -99,6 +99,11 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="2.2.9" date="2026-10-19">
+      <description>
+        <p>New charts on Home: spending by merchant, income vs spending over 6 months, this month against last, and spending by weekday.</p>
+      </description>
+    </release>
     <release version="2.2.8" date="2026-10-17">
       <description>
         <p>On some phones, reopening the app could lose the encryption key. Keystore errors now show "Try again" and never delete anything, and with a PIN set the app stays locked if the keystore can't be read.</p>
