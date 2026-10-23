@@ -85,6 +85,9 @@ flutter:
     - assets/splash_icon.png
     - assets/github.png # GitHub mark (via Simple Icons, CC0), for About
     - assets/fonts/OFL.txt # shown under About → View licenses
+    # The F-Droid changelogs, shown in "What's new" after an update.
+    - fastlane/metadata/android/en-US/changelogs/
+    - fastlane/metadata/android/ar/changelogs/
 
   # Arabic UI font (SIL OFL 1.1, see assets/fonts/OFL.txt). Bundled because
   # many Linux installs have no good Arabic font; used as a fallback, so

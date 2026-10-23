@@ -10,6 +10,7 @@ import 'screens/budgets_screen.dart';
 import 'screens/recurring_screen.dart';
 import 'l10n/l10n.dart';
 import 'utils/platform.dart';
+import 'widgets/whats_new.dart';
 
 /// Root scaffold that adapts navigation to the viewport:
 /// - Wide (≥ 900 px): left [NavigationRail] with labelled icons.
@@ -34,6 +35,11 @@ class _ShellState extends State<Shell> {
     super.initState();
     AutoBackup.runIfDue();
     SyncService.instance.start().ignore();
+    // After the first frame, when there's a context to show a dialog from.
+    // With a PIN set it opens under the lock screen, seen once unlocked.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) showWhatsNewIfUpdated(context);
+    });
     _lifecycle = AppLifecycleListener(onResume: () {
       AutoBackup.runIfDue();
       SyncService.instance.resumed().ignore();

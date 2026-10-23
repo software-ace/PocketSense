@@ -132,6 +132,8 @@ void main() {
     expect(_demo, isNotEmpty, reason: 'pass --dart-define=DEMO_BACKUP=…');
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     AppLock.instance = AppLock(store: MemorySecretStore());
+    // Not over the screenshots: this run is a build with a number too.
+    AppSettings.whatsNewSeen = 1 << 30;
     final store = phone ? await LocalStore.open() : await LocalStore.openInMemoryForTest();
     LocalStore.overrideInstanceForTest(store);
     await Backup.import(store, utf8.decode(gzip.decode(base64.decode(_demo))));
