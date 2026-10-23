@@ -192,9 +192,9 @@ class _MerchantDialogState extends State<_MerchantDialog> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final taken = {
-      for (final n in widget.taken) n.toLowerCase(),
-      // Not a clash with itself while renaming.
-      if (widget.existing != null) widget.existing!.name.toLowerCase(),
+      for (final n in widget.taken)
+        // Not a clash with itself while renaming.
+        if (n != widget.existing?.name) n.toLowerCase(),
     };
     return AlertDialog(
       title: Text(widget.existing == null ? l.newMerchant : l.editMerchant),

@@ -1,6 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
+import 'package:pocket_sense/screens/merchants_screen.dart';
+
+import 'helpers/screen_with_db.dart';
 
 void main() {
   final repo = FinanceRepo();
@@ -65,6 +69,39 @@ void main() {
     final store = await LocalStore.instance();
     expect(await store.selectRows('merchants'), isEmpty);
     expect((await store.selectRows('transactions')).single['merchant'], 'Gone');
+  });
+
+  for (final name in ['star', 'Star']) {
+    testWidgets('the edit dialog saves "$name" over "star": its own name is no clash', (tester) async {
+      await tester.runAsync(() => repo.insertMerchant('star'));
+      await pumpScreenWithDb(tester, const MerchantsScreen());
+      await tester.tap(find.text('star'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField), name);
+      await tester.tap(find.text('Save'));
+      await settleWithDb(tester);
+
+      expect(find.text('This merchant already exists'), findsNothing);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect((await tester.runAsync(() => repo.merchants()))!.single.name, name);
+    });
+  }
+
+  testWidgets("the edit dialog still refuses another merchant's name", (tester) async {
+    await tester.runAsync(() async {
+      await repo.insertMerchant('One');
+      await repo.insertMerchant('Two');
+    });
+    await pumpScreenWithDb(tester, const MerchantsScreen());
+    await tester.tap(find.text('Two'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField), 'one');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This merchant already exists'), findsOneWidget);
   });
 
   test('a database from v2 gets the merchants table, synced and backfilled', () async {
