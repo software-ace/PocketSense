@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/models/models.dart';
+import 'package:pocket_sense/utils/format.dart';
 import 'package:pocket_sense/utils/voice_parser.dart';
 
 void main() {
@@ -35,6 +36,18 @@ void main() {
     expect(d.description, 'Groceries');
     expect(parse('2 JD and 50 fils coffee').amountFils, 2050, reason: 'a count of fils, not a decimal');
     expect(parse('1 dinar and 25 piasters bus').amountFils, 1250, reason: 'a piaster is 10 fils');
+  });
+
+  test('other currencies: main and small units by name, small ones per the currency', () {
+    addTearDown(() => appCurrency = currencies.first);
+    appCurrency = Currency.byCode('USD')!;
+    final d = parse('Spent 5 dollars and 50 cents on lunch at Reem');
+    expect(d.amountFils, 5500);
+    expect(d.description, 'Lunch');
+    appCurrency = Currency.byCode('AED')!;
+    expect(parse('paid 12 dirhams and 25 fils for parking').amountFils, 12250, reason: 'a UAE fils is a hundredth');
+    appCurrency = Currency.byCode('JOD')!;
+    expect(parse('paid 12 dinars and 25 fils for parking').amountFils, 12025, reason: 'a Jordanian fils is a thousandth');
   });
 
   test('income from words and category, merchant after "from"', () {

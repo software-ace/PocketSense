@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/backup.dart';
+import '../data/local_store.dart';
 import '../l10n/l10n.dart';
 import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
 import '../settings/app_settings.dart';
+import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
 import '../utils/format.dart';
 import 'backup_actions.dart';
 import 'categories_screen.dart';
+import 'merchants_screen.dart';
 import 'sync_screen.dart';
 
 /// Home for app configuration. Categories live here rather than in the main
@@ -41,6 +44,18 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => pickLanguage(context),
             ),
           ),
+          ValueListenableBuilder<Currency>(
+            valueListenable: AppSettings.currency,
+            builder: (context, currency, _) => ListTile(
+              leading: const Icon(Icons.payments_outlined),
+              title: Text(l.currency),
+              subtitle: Text('${l.currencyName(currency.code)} (${currency.code})'),
+              onTap: () async {
+                // Open tabs reload, so their amounts show the new currency.
+                if (await pickCurrency(context, existingData: true)) (await LocalStore.instance()).notifyChanged();
+              },
+            ),
+          ),
           header(l.security),
           const _SecuritySection(),
           header(l.settingsData),
@@ -50,6 +65,13 @@ class SettingsScreen extends StatelessWidget {
             subtitle: Text(l.categoriesSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.storefront),
+            title: Text(l.merchants),
+            subtitle: Text(l.merchantsSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MerchantsScreen())),
           ),
           header(l.syncSection),
           const SyncSection(),

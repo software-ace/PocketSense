@@ -5,6 +5,9 @@ import 'package:pocket_sense/screens/transactions_screen.dart';
 
 import 'helpers/screen_with_db.dart';
 
+TextField _merchantField(WidgetTester tester) =>
+    tester.widget<TextField>(find.widgetWithText(TextField, 'Merchant (optional)'));
+
 void main() {
   setUp(useSeededTestDb);
 
@@ -57,5 +60,44 @@ void main() {
     // Not the word "Transaction" in whatever language was on at the time.
     expect(saved.description, isEmpty);
     expect(find.text('Transaction'), findsOneWidget);
+  });
+
+  testWidgets('typing an unknown merchant offers to create it, and creating keeps it in the field', (tester) async {
+    await openAddSheet(tester);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Merchant (optional)'), 'Zaid');
+    await tester.pump();
+    expect(find.text('Merchant not found. Create it?'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Create it'));
+    await settleWithDb(tester);
+
+    // Created and selected: the field keeps the name and the prompt is gone.
+    expect(_merchantField(tester).controller!.text, 'Zaid');
+    expect(find.text('Merchant not found. Create it?'), findsNothing);
+
+    final merchants = (await tester.runAsync(() => FinanceRepo().merchants()))!;
+    expect(merchants.single.name, 'Zaid');
+
+    await tester.enterText(find.widgetWithText(TextField, 'Amount'), '5');
+    await tester.tap(find.text('Save'));
+    await settleWithDb(tester);
+
+    final saved = (await tester.runAsync(() => FinanceRepo().transactions()))!.single;
+    expect(saved.merchant, 'Zaid');
+  });
+
+  testWidgets('typing a partial name suggests merchants and picking one fills the field', (tester) async {
+    await tester.runAsync(() => FinanceRepo().insertMerchant('Amazon'));
+    await openAddSheet(tester);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Merchant (optional)'), 'Ama');
+    await tester.pump();
+    expect(find.text('Amazon'), findsOneWidget);
+    expect(find.text('Merchant not found. Create it?'), findsNothing);
+
+    await tester.tap(find.text('Amazon'));
+    await tester.pump();
+    expect(_merchantField(tester).controller!.text, 'Amazon');
   });
 }

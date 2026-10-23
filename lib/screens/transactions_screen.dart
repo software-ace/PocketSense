@@ -427,6 +427,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
   late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
   List<dynamic> _cats = [];
+  List<Merchant> _merchants = [];
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
   var _autovalidate = AutovalidateMode.disabled;
@@ -448,6 +449,19 @@ class _TxFormSheetState extends State<_TxFormSheet> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// Adds what's typed to the merchant list and refreshes the suggestions.
+  /// The field keeps the typed name, so the draft is saved with it selected.
+  Future<void> _createMerchant() async {
+    final name = _merchCtrl.text.trim();
+    if (name.isEmpty) return;
+    try {
+      await FinanceRepo().insertMerchant(name);
+      final merchants = await FinanceRepo().merchants();
+      if (!mounted) return;
+      setState(() => _merchants = merchants);
+    } catch (_) {}
+  }
+
   String _dateLabel() {
     final diff = _date.difference(_today()).inDays;
     final day = DateFormat.yMMMEd().format(_date);
@@ -459,6 +473,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   void initState() {
     super.initState();
     FinanceRepo().categories().then((c) => setState(() => _cats = c)).catchError((_) {});
+    FinanceRepo().merchants().then((m) => setState(() => _merchants = m)).catchError((_) {});
   }
 
   @override
@@ -473,6 +488,15 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   Widget build(BuildContext context) {
     final cats = _cats.cast<Category>();
     final typeCats = cats.where((c) => c.type == _type).toList();
+    // Merchant suggestions: everything that contains what's typed, shown
+    // while the text isn't yet an exact (case-insensitive) hit. When there
+    // is nothing like it in the list, offer to create it.
+    final merchQuery = _merchCtrl.text.trim().toLowerCase();
+    final merchExists = merchQuery.isNotEmpty && _merchants.any((m) => m.name.toLowerCase() == merchQuery);
+    final merchMatches = merchQuery.isEmpty || merchExists
+        ? const <Merchant>[]
+        : _merchants.where((m) => m.name.toLowerCase().contains(merchQuery)).take(3).toList();
+    final merchPrompt = merchQuery.isNotEmpty && !merchExists && merchMatches.isEmpty;
     final isEdit = widget.existing != null;
     final l = context.l10n;
     return Padding(
@@ -520,7 +544,31 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 12),
           TextField(controller: _descCtrl, decoration: InputDecoration(labelText: l.descriptionOptional)),
           const SizedBox(height: 12),
-          TextField(controller: _merchCtrl, decoration: InputDecoration(labelText: l.merchantOptional)),
+          TextField(
+            controller: _merchCtrl,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(labelText: l.merchantOptional, hintText: l.merchantSearchHint),
+          ),
+          if (merchMatches.isNotEmpty)
+            Column(children: [
+              for (final m in merchMatches)
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.storefront, size: 18),
+                  title: Text(m.name),
+                  onTap: () => setState(() => _merchCtrl.text = m.name),
+                ),
+            ]),
+          if (merchPrompt)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(children: [
+                Expanded(child: Text(l.merchantNotFound, style: Theme.of(context).textTheme.bodyMedium)),
+                TextButton(onPressed: _createMerchant, child: Text(l.createMerchant)),
+              ]),
+            ),
           const SizedBox(height: 12),
           DropdownButtonFormField<int>(
             // Categories load async; only select once the item exists.

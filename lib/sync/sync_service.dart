@@ -22,7 +22,7 @@ class NearbyDevice {
   final DateTime seen;
 }
 
-enum PeerState { syncing, synced, unreachable, needsUpdate, notPaired, failed }
+enum PeerState { syncing, synced, unreachable, needsUpdate, otherCurrency, notPaired, failed }
 
 /// Runs sync while the app is open and sync is on: the [SyncNode] server,
 /// discovery over UDP multicast, and syncing with every paired device at
@@ -289,6 +289,8 @@ class SyncService {
             continue;
           case SyncProblem.versionMismatch:
             return _setState(peer.id, PeerState.needsUpdate);
+          case SyncProblem.otherCurrency:
+            return _setState(peer.id, PeerState.otherCurrency);
           case SyncProblem.notPaired:
             return _setState(peer.id, PeerState.notPaired);
           default:

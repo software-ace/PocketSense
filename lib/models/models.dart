@@ -22,6 +22,16 @@ class Category {
       );
 }
 
+class Merchant {
+  final int id;
+  final String name;
+
+  Merchant({required this.id, required this.name});
+
+  factory Merchant.fromMap(Map<String, dynamic> m) =>
+      Merchant(id: m['id'] as int, name: m['name'] as String? ?? '');
+}
+
 class Transaction {
   final int id;
   final int amountFils;

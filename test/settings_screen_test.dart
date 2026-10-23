@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/screens/settings_screen.dart';
 import 'package:pocket_sense/settings/app_settings.dart';
+import 'package:pocket_sense/utils/format.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
@@ -24,10 +26,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('gear icon opens Settings, which lists Categories and Language', (tester) async {
+  testWidgets('gear icon opens Settings, which lists Categories, Merchants and Language', (tester) async {
     await openSettings(tester);
     expect(find.widgetWithText(AppBar, 'Settings'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Categories'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Merchants'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Language'), findsOneWidget);
     expect(find.text('System default'), findsOneWidget);
   });
@@ -43,6 +46,25 @@ void main() {
     AppSettings.locale.value = null;
     await AppSettings.load();
     expect(AppSettings.locale.value, const Locale('ar'), reason: 'read back from storage');
+  });
+
+  testWidgets('choosing a currency saves it, says amounts aren\'t converted, and relabels amounts', (tester) async {
+    await tester.runAsync(() async => LocalStore.overrideInstanceForTest(await LocalStore.openInMemoryForTest()));
+    addTearDown(() => AppSettings.setCurrency(currencies.first));
+    await openSettings(tester);
+    expect(find.text('Jordanian dinar (JOD)'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ListTile, 'Currency'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Amounts aren't converted"), findsOneWidget);
+    await tester.tap(find.text('Saudi riyal'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saudi riyal (SAR)'), findsOneWidget);
+    expect(formatMoney(12500, locale: 'en'), 'SAR\u00A012.50');
+    appCurrency = currencies.first;
+    await AppSettings.load();
+    expect(appCurrency.code, 'SAR', reason: 'read back from storage');
   });
 
   testWidgets('Settings in Arabic is right-to-left and translated', (tester) async {

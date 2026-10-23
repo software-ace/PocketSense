@@ -1,5 +1,6 @@
 import '../models/default_categories.dart';
 import '../models/models.dart';
+import 'format.dart';
 
 /// What a spoken sentence says about a transaction. Anything it can't find is
 /// left null; the user reviews everything in the form before saving.
@@ -14,12 +15,18 @@ class VoiceDraft {
 }
 
 const _incomeWords = ['earned', 'received', 'got paid', 'income', 'salary', 'paycheck', 'payday', 'refund', 'sold', 'deposit', 'bonus'];
+// Names of money, whatever the app's currency: the number is what counts.
+const _mainUnits = r'dinars?|jds?|jod|dollars?|bucks?|euros?|pounds?|riyals?|rials?|dirhams?|rupees?|liras?|yen|yuan|francs?';
+const _smallUnits = r'fils|piasters?|piastres?|qirsh|cents?|halalas?|baisas?';
 const _weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 // Everyday words → starter categories (by their key in defaultCategories).
 // Only used when the user still has that category, under its English name or
 // the localized name it was created with; their own names always win.
 const _categoryHints = <String, List<String>>{
+  // 'coffee' before 'dining' so, when both starter categories exist, it wins;
+  // dining also keeps it for databases created before Coffee was a starter.
+  'coffee': ['coffee'],
   'dining': ['coffee', 'lunch', 'dinner', 'breakfast', 'restaurant', 'cafe', 'pizza', 'burger', 'takeout', 'snack', 'shawarma', 'falafel', 'knafeh'],
   'groceries': ['grocery', 'groceries', 'supermarket'],
   'transport': ['uber', 'taxi', 'careem', 'bus', 'fuel', 'gas', 'petrol', 'parking', 'train', 'metro'],
@@ -44,15 +51,17 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
   var text = ' ${input.trim()} '.replaceAll(RegExp(r'\s+'), ' ');
   final lower = text.toLowerCase();
 
-  // ── Amount: "8.5", "JD 8.500", "1,200", "12 dinars and 500 fils" ──
-  // Stored in fils (1 JOD = 1000). A decimal part is a fraction of a dinar
-  // (".5" = 500 fils); "and N fils" is a count of fils, and a piaster
-  // (qirsh) is 10 fils.
+  // ── Amount: "8.5", "JD 8.500", "1,200", "12 dinars and 500 fils",
+  // "5 dollars and 50 cents" ──
+  // Stored in fils (thousandths of the main unit). A decimal part is a
+  // fraction of the main unit (".5" = 500 fils). "and N <small unit>" counts
+  // hundredths (10 fils each), except a fils in a 3-decimal currency like
+  // the dinar, which is a thousandth.
   int? fils;
   final money = RegExp(
           r'(?:\b(?:jod|jd)\s?)?(\d{1,3}(?:,\d{3})+|\d+)\b(?!\s*days?\b)(?:\.(\d{1,3}))?'
-          r'(?:\s*(?:dinars?|jds?|jod)\b)?'
-          r'(?:\s+and\s+(\d{1,3})\s+(fils|piasters?|piastres?|qirsh)\b)?',
+          '(?:\\s*(?:$_mainUnits)\\b)?'
+          '(?:\\s+and\\s+(\\d{1,3})\\s+($_smallUnits)\\b)?',
           caseSensitive: false)
       .firstMatch(text);
   if (money != null) {
@@ -62,7 +71,7 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
     final count = money.group(3);
     if (decimal == null && count != null) {
       final n = int.parse(count);
-      part = money.group(4)!.toLowerCase() == 'fils' ? n : n * 10;
+      part = money.group(4)!.toLowerCase() == 'fils' && appCurrency.decimals == 3 ? n : n * 10;
     }
     fils = whole * 1000 + part.clamp(0, 999);
     text = text.replaceRange(money.start, money.end, ' ');
@@ -144,7 +153,11 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
   }
   if (description == null) {
     final leftover = text
-        .replaceAll(RegExp(r'\b(?:add|log|record|new|i|i\s+just|just|spent|spend|paid|pay|bought|buy|got|an?|expense|transaction|of|and|dinars?|jds?|jod|fils)\b', caseSensitive: false), ' ')
+        .replaceAll(
+            RegExp(
+                '\\b(?:add|log|record|new|i|i\\s+just|just|spent|spend|paid|pay|bought|buy|got|an?|expense|transaction|of|and|$_mainUnits|$_smallUnits)\\b',
+                caseSensitive: false),
+            ' ')
         .replaceAll(RegExp(r'\b(?:' + _incomeWords.map(RegExp.escape).join('|') + r')\b', caseSensitive: false), ' ')
         .replaceAll(RegExp(r'[^\w\s&\x27-]'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')

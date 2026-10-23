@@ -4,10 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/sync/identity.dart';
 import 'package:pocket_sense/sync/sync_node.dart';
+import 'package:pocket_sense/utils/format.dart';
 
-Future<SyncNode> node(String name, int seed) async {
+Future<SyncNode> node(String name, int seed, {String currency = 'JOD'}) async {
   final store = await LocalStore.openInMemoryForTest();
-  final n = SyncNode(identity: await SyncIdentity.fromSeed(List.filled(32, seed)), store: () async => store, name: name);
+  final n = SyncNode(
+      identity: await SyncIdentity.fromSeed(List.filled(32, seed)), store: () async => store, name: name, currency: () => Currency.byCode(currency)!);
   await n.start(port: 0);
   addTearDown(n.stop);
   return n;
@@ -47,6 +49,19 @@ void main() {
     // Nothing new: nothing changes, either way.
     final again = Peer((await (await a.store()).db.query('peers')).single);
     expect(await a.syncWith(again, loopback, b.port), 0);
+  });
+
+  test('devices with different currencies pair, but refuse to sync, and change nothing', () async {
+    final a = await node('Laptop', 1), b = await node('Phone', 2, currency: 'USD');
+    b.onPairRequest = (r) async => true;
+    final paired = await a.pair(loopback, b.port, confirm: (code, name) async => true);
+    await (await a.store()).insertRow('transactions', {'amount_fils': 1, 'type': 'expense', 'date': '2026-09-01', 'description': 'a'});
+    await (await b.store()).insertRow('transactions', {'amount_fils': 2, 'type': 'expense', 'date': '2026-09-01', 'description': 'b'});
+
+    await expectLater(a.syncWith(paired.peer, loopback, b.port),
+        throwsA(isA<SyncFailure>().having((e) => e.problem, 'problem', SyncProblem.otherCurrency).having((e) => e.detail, 'detail', 'USD')));
+    expect(await count(a, 'transactions'), 1);
+    expect(await count(b, 'transactions'), 1);
   });
 
   test('pairing fails when either user says the codes differ', () async {

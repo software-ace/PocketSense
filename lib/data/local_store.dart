@@ -37,10 +37,10 @@ class LocalStore {
   void notifyChanged() => changes.value++;
 
   static const fileName = 'pocketsense.db';
-  static const schemaVersion = 2;
+  static const schemaVersion = 3;
 
   /// Tables whose rows sync between paired devices, parents first.
-  static const syncedTables = ['categories', 'transactions', 'budgets', 'recurring_expenses'];
+  static const syncedTables = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
 
   static Future<String> _dir() async => Platform.isLinux ? linuxDataDir() : await sq.getDatabasesPath();
 
@@ -157,6 +157,11 @@ class LocalStore {
         id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE, type TEXT NOT NULL, color TEXT NOT NULL
       )
     ''');
+    await db.execute('''
+      CREATE TABLE merchants (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE
+      )
+    ''');
     // created_at orders same-day entries.
     await db.execute('''
       CREATE TABLE transactions (
@@ -189,6 +194,7 @@ class LocalStore {
 
   static Future<void> upgrade(sq.Database db, int from, Map<String, Set<String>> starterNames) async {
     if (from < 2) await _upgradeToV2(db, starterNames);
+    if (from < 3) await _upgradeToV3(db);
   }
 
   /// v2 adds what sync needs. Every synced row gets:
@@ -239,6 +245,42 @@ class LocalStore {
     ''');
     await db.execute('CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT)');
     await db.insert('meta', {'k': 'node', 'v': node});
+  }
+
+  /// v3 adds merchants: the names the merchant picker offers. They sync like
+  /// the other tables, and the list starts with the names already written on
+  /// transactions and recurring items.
+  static Future<void> _upgradeToV3(sq.Database db) async {
+    // A database coming from v2 has no merchants table yet; one that just
+    // went through _upgradeToV2 already has it, with the sync columns.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS merchants (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_merchants_uid ON merchants(uid)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_merchants_seq ON merchants(seq)');
+    // Backfill from the merchant text already on transactions and recurring
+    // items, one list entry per distinct name (case-insensitively). The new
+    // rows must sit above every seq already sent to a peer, or devices that
+    // have already synced would never receive them.
+    final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    final ms = DateTime.now().millisecondsSinceEpoch;
+    var counter = 0;
+    for (final r in await db.rawQuery('''
+      SELECT DISTINCT trim(merchant) AS name FROM (
+        SELECT merchant FROM transactions UNION ALL SELECT merchant FROM recurring_expenses
+      ) WHERE merchant IS NOT NULL AND trim(merchant) != ''
+    ''')) {
+      seq++;
+      await db.insert('merchants', {
+        'name': r['name'] as String, 'uid': randomHex(16),
+        'hlc': _formatHlc(ms, counter++, node), 'seq': seq,
+      }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    }
   }
 
   static Future<void> _seedCategories(sq.Database db, Map<String, String> names) async {

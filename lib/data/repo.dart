@@ -62,6 +62,61 @@ class FinanceRepo {
     return renamed;
   }
 
+  // ── Merchants ────────────────────────────────────────────────────────
+
+  Future<List<Merchant>> merchants() async {
+    final store = await _db;
+    final rows = await store.selectRows('merchants');
+    final list = rows.map(Merchant.fromMap).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return list;
+  }
+
+  /// Adds [name] to the merchant list (trimmed). A merchant already in the
+  /// list under a different spelling of the same name wins, so the caller
+  /// always ends up with one row per name; the returned id is the one to
+  /// treat as chosen.
+  Future<int> insertMerchant(String name) async {
+    final store = await _db;
+    final clean = name.trim();
+    if (clean.isEmpty) throw ArgumentError('empty merchant name');
+    final existing = (await store.selectRows('merchants', where: 'name = ?', whereArgs: [clean])).firstOrNull;
+    if (existing != null) return existing['id'] as int;
+    return store.insertRow('merchants', {'name': clean});
+  }
+
+  /// Renames a merchant and, so the past stays consistent with the list,
+  /// rewrites every transaction and recurring item that spelled the old
+  /// name (any case, maybe padded with spaces) with the new one. Renaming
+  /// to a name that only differs in case is a spelling fix: the entries'
+  /// text is left alone.
+  Future<void> renameMerchant(int id, String name) async {
+    final store = await _db;
+    final clean = name.trim();
+    if (clean.isEmpty) throw ArgumentError('empty merchant name');
+    final row = (await store.selectRows('merchants', where: 'id = ?', whereArgs: [id])).firstOrNull;
+    if (row == null) throw StateError('No merchant $id');
+    final old = row['name'] as String;
+    if (old.toLowerCase() == clean.toLowerCase()) {
+      if (old != clean) await store.updateRow('merchants', id, {'name': clean});
+      return;
+    }
+    final clash = (await store.selectRows('merchants', where: 'name = ?', whereArgs: [clean])).firstOrNull;
+    if (clash != null) throw StateError('A merchant called "$clean" already exists');
+    await store.updateRow('merchants', id, {'name': clean});
+    for (final t in const ['transactions', 'recurring_expenses']) {
+      for (final r in await store.selectRows(t, where: 'merchant IS NOT NULL', whereArgs: const [])) {
+        final m = r['merchant'] as String;
+        if (m == clean || m.trim().toLowerCase() != old.toLowerCase()) continue;
+        await store.updateRow(t, r['id'] as int, {'merchant': clean});
+      }
+    }
+  }
+
+  /// Removes a merchant from the list. Past transactions keep their text,
+  /// so history and the charts stay as they are.
+  Future<void> deleteMerchant(int id) async => (await _db).deleteRow('merchants', id);
+
   // ── Transactions ─────────────────────────────────────────────────────
 
   Future<List<Transaction>> transactions({

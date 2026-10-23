@@ -49,6 +49,7 @@ class Merge {
   // Columns that must be present (and not null) in every row from a peer.
   static const _required = {
     'categories': ['name', 'type', 'color'],
+    'merchants': ['name'],
     'transactions': ['amount_fils', 'type', 'date', 'description'],
     'budgets': ['category_uid', 'limit_fils'],
     'recurring_expenses': ['description', 'amount_fils', 'frequency', 'anchor_date'],
@@ -227,6 +228,32 @@ class Merge {
                 await repoint(otherId, otherId);
                 continue;
               }
+            }
+          }
+          if (t == 'merchants') {
+            // Names are unique here too. Two devices that each typed the same
+            // merchant have two uids for one name: both keep the lower uid,
+            // so they agree. Merchants have no children, so the loser just
+            // dies; past transactions keep their text either way.
+            var other = (await txn.query('merchants',
+                    columns: ['id', 'uid'], where: 'name = ? AND uid != ?', whereArgs: [r['name'], uid]))
+                .firstOrNull;
+            // Deleted in this same batch, then re-created under its name: no clash.
+            final deleted = incomingTombstones['merchants/${other?['uid']}'];
+            if (other != null && deleted != null && await applyTombstone('merchants', other['uid'] as String, deleted)) {
+              other = null;
+            }
+            if (other != null) {
+              final otherUid = other['uid'] as String;
+              if (uid.compareTo(otherUid) > 0) {
+                // Ours wins: the incoming one is merged into it.
+                if (local != null) await txn.delete('merchants', where: 'id = ?', whereArgs: [local]);
+                await tombstone(t, uid, store.stamp());
+                continue;
+              }
+              // Theirs wins: ours is merged into it.
+              await tombstone(t, otherUid, store.stamp());
+              await txn.delete('merchants', where: 'id = ?', whereArgs: [other['id'] as int]);
             }
           }
           if (local != null) {

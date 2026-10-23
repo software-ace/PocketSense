@@ -7,6 +7,7 @@ import 'package:cryptography/cryptography.dart' show SecretKey;
 import 'package:sqflite_sqlcipher/sqflite.dart' show ConflictAlgorithm;
 
 import '../data/local_store.dart';
+import '../utils/format.dart';
 import 'identity.dart';
 import 'merge.dart';
 
@@ -38,7 +39,7 @@ class PairRequest {
 }
 
 /// Why a sync or pairing attempt failed, for the UI.
-enum SyncProblem { unreachable, notPaired, versionMismatch, declined, busy, codeMismatch, failed }
+enum SyncProblem { unreachable, notPaired, versionMismatch, otherCurrency, declined, busy, codeMismatch, failed }
 
 class SyncFailure implements Exception {
   SyncFailure(this.problem, [this.detail]);
@@ -55,7 +56,8 @@ class SyncFailure implements Exception {
 /// [SyncIdentity.sharedKey]); only pairing runs in the clear, and the
 /// 6-digit code the users compare is what makes it safe.
 class SyncNode {
-  SyncNode({required this.identity, required this.store, required this.name});
+  SyncNode({required this.identity, required this.store, required this.name, Currency Function()? currency})
+      : currency = currency ?? (() => appCurrency);
 
   static const defaultPort = 47823;
   static const protocol = 1;
@@ -67,6 +69,9 @@ class SyncNode {
   final SyncIdentity identity;
   final Future<LocalStore> Function() store;
   String name;
+
+  /// What this device's amounts are in; asked at each sync.
+  final Currency Function() currency;
 
   /// Set while the pairing screen is open: asks the user whether the code
   /// matches. Pairing requests are refused while it's null.
@@ -180,6 +185,9 @@ class SyncNode {
     if (msg['v'] != protocol || msg['schema'] != LocalStore.schemaVersion) {
       return (HttpStatus.conflict, {'v': protocol, 'schema': LocalStore.schemaVersion});
     }
+    // Amounts only mean the same on both sides in the same currency. Older
+    // versions don't say: they only knew JOD.
+    if ((msg['currency'] ?? 'JOD') != currency().code) return (HttpStatus.conflict, {'currency': currency().code});
     final changes = msg['changes'];
     await Merge.apply(s, changes);
     final since = msg['since'] as int;
@@ -189,7 +197,8 @@ class SyncNode {
         [(changes as Map)['up_to'] as int? ?? 0, since, LocalStore.nowIso(), from.address, peer.id]);
     final out = await Merge.changesSince(s, since);
     return (HttpStatus.ok, {
-      'sealed': await SyncIdentity.seal(key, 'sync:${identity.id}>${peer.id}', {'changes': out, 'challenge': msg['challenge']}),
+      'sealed': await SyncIdentity.seal(
+          key, 'sync:${identity.id}>${peer.id}', {'changes': out, 'challenge': msg['challenge'], 'currency': currency().code}),
     });
   }
 
@@ -349,13 +358,20 @@ class SyncNode {
         'since': peer.receivedSeq,
         'changes': changes,
         'challenge': challenge,
+        'currency': currency().code,
       }),
     });
     if (status == HttpStatus.unauthorized) throw SyncFailure(SyncProblem.notPaired);
-    if (status == HttpStatus.conflict) throw SyncFailure(SyncProblem.versionMismatch);
+    if (status == HttpStatus.conflict) {
+      final theirs = body is Map ? body['currency'] : null;
+      throw theirs is String ? SyncFailure(SyncProblem.otherCurrency, theirs) : SyncFailure(SyncProblem.versionMismatch);
+    }
     if (status != HttpStatus.ok || body is! Map) throw SyncFailure(SyncProblem.failed, '$status');
     final reply = await SyncIdentity.open(key, 'sync:${peer.id}>${identity.id}', body['sealed']);
     if (reply is! Map || reply['challenge'] != challenge) throw SyncAuthError();
+    // An older peer doesn't check our currency, so check its.
+    final theirCurrency = reply['currency'] as String? ?? 'JOD';
+    if (theirCurrency != currency().code) throw SyncFailure(SyncProblem.otherCurrency, theirCurrency);
     await s.db.rawUpdate('UPDATE peers SET sent_seq = max(sent_seq, ?) WHERE id = ?', [changes['up_to'], peer.id]);
     final theirs = reply['changes'];
     final n = await Merge.apply(s, theirs);
