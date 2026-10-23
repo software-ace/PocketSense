@@ -10,6 +10,7 @@ import '../utils/recurring.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../widgets/merchant_field.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -389,7 +390,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _merchCtrl, decoration: InputDecoration(labelText: l.merchantOptional)),
+          MerchantField(controller: _merchCtrl),
           const SizedBox(height: 16),
           TextField(controller: _notesCtrl, decoration: InputDecoration(labelText: l.notesOptional, hintText: l.notesHint)),
           if (widget.existing != null) ...[

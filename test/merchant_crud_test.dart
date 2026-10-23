@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/merchants_screen.dart';
+import 'package:pocket_sense/screens/recurring_screen.dart';
 
 import 'helpers/screen_with_db.dart';
 
@@ -102,6 +103,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('This merchant already exists'), findsOneWidget);
+  });
+
+  testWidgets('the recurring form searches merchants and creates new ones too', (tester) async {
+    await tester.runAsync(() => repo.insertMerchant('Orange'));
+    await pumpScreenWithDb(tester, const RecurringScreen());
+    await tester.tap(find.text('New'));
+    await settleWithDb(tester);
+    final field = find.widgetWithText(TextField, 'Merchant (optional)');
+
+    await tester.enterText(field, 'Ora');
+    await tester.pump();
+    expect(find.text('Orange'), findsOneWidget);
+
+    await tester.enterText(field, 'Zain');
+    await tester.pump();
+    await tester.ensureVisible(find.widgetWithText(TextButton, 'Create it'));
+    await tester.tap(find.widgetWithText(TextButton, 'Create it'));
+    await settleWithDb(tester);
+
+    expect(find.text('Merchant not found. Create it?'), findsNothing);
+    expect((await tester.runAsync(() => repo.merchants()))!.map((m) => m.name), ['Orange', 'Zain']);
   });
 
   test('a database from v2 gets the merchants table, synced and backfilled', () async {
