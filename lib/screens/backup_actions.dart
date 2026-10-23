@@ -9,6 +9,7 @@ import '../data/backup.dart';
 import '../data/local_store.dart';
 import '../l10n/l10n.dart';
 import '../settings/app_settings.dart';
+import '../utils/format.dart';
 
 /// Settings → Backup: export to / import from a file the user picks. Exports
 /// are always encrypted with the backup password; imports read old plain
@@ -73,6 +74,12 @@ Future<bool> importBackup(BuildContext context, {bool confirmReplace = true}) as
       json = opened;
     }
     final s = await Backup.import(await LocalStore.instance(), json);
+    // Everything was replaced, so the backup's currency is now the right one;
+    // open tabs reload to show it.
+    if (s.currency != appCurrency) {
+      await AppSettings.setCurrency(s.currency);
+      (await LocalStore.instance()).notifyChanged();
+    }
     if (context.mounted) _toast(context, l.importDone(s.categories + s.transactions + s.budgets + s.recurring));
     return true;
   } on BackupException catch (e) {

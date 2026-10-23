@@ -11,6 +11,18 @@
   "newItem": "New",
   "more": "More",
   "done": "Done",
+  "whatsNewTitle": "What's new in {version}",
+  "@whatsNewTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNewFeatures": "New features",
+  "whatsNewImprovements": "Enhancements",
+  "whatsNewChanges": "Changes",
+  "whatsNewFixes": "Fixes",
   "all": "All",
   "expense": "Expense",
   "income": "Income",
@@ -22,6 +34,7 @@
   "descriptionOptional": "Description (optional)",
   "merchant": "Merchant",
   "merchantOptional": "Merchant (optional)",
+  "merchantSearchHint": "Search or create merchants…",
   "notesOptional": "Notes (optional)",
   "notesHint": "Any extra details…",
   "type": "Type",
@@ -82,6 +95,7 @@
   "eraseAndStartOver": "Erase and start over",
   "catGroceries": "Groceries",
   "catDining": "Dining Out",
+  "catCoffee": "Coffee",
   "catTransport": "Transport",
   "catHousing": "Housing",
   "catUtilities": "Utilities",
@@ -303,11 +317,39 @@
   "noExpenseCategories": "No expense categories",
   "noIncomeCategories": "No income categories",
   "noCategoriesHint": "Create one to start tagging transactions.",
+  "merchants": "Merchants",
+  "merchantsSubtitle": "Names you transact with",
+  "merchantsShown": "{count} merchants",
+  "@merchantsShown": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newMerchant": "New merchant",
+  "editMerchant": "Edit merchant",
+  "noMerchants": "No merchants yet",
+  "noMerchantsHint": "Create one and it will show up in the transaction form's suggestions.",
+  "deleteMerchantBody": "This only removes the merchant from the list. Past transactions keep their name.",
+  "merchantNotFound": "Merchant not found. Create it?",
+  "createMerchant": "Create it",
+  "duplicateMerchant": "This merchant already exists",
   "name": "Name",
   "color": "Color",
   "settingsData": "Data",
   "settingsGeneral": "General",
   "language": "Language",
+  "currency": "Currency",
+  "currencyName": "{code, select, JOD{Jordanian dinar} SAR{Saudi riyal} AED{UAE dirham} KWD{Kuwaiti dinar} QAR{Qatari riyal} BHD{Bahraini dinar} OMR{Omani rial} EGP{Egyptian pound} IQD{Iraqi dinar} LBP{Lebanese pound} SYP{Syrian pound} MAD{Moroccan dirham} DZD{Algerian dinar} TND{Tunisian dinar} LYD{Libyan dinar} YER{Yemeni rial} SDG{Sudanese pound} USD{US dollar} EUR{Euro} GBP{British pound} TRY{Turkish lira} INR{Indian rupee} PKR{Pakistani rupee} CAD{Canadian dollar} AUD{Australian dollar} CHF{Swiss franc} JPY{Japanese yen} CNY{Chinese yuan} other{{code}}}",
+  "@currencyName": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyChangeNote": "Amounts aren't converted: 12.5 stays 12.5 in the new currency.",
   "languageSystem": "System default",
   "voiceDownloading": "Downloading speech model…",
   "voiceListening": "Listening…",
@@ -388,7 +430,7 @@
   "backupNotJson": "This file isn't valid JSON, so nothing was changed.",
   "backupNotABackup": "This isn't a Pocket Sense backup, so nothing was changed.",
   "backupTooNew": "This backup comes from a newer version of Pocket Sense. Update the app, then try again.",
-  "backupWrongCurrency": "This backup uses another currency ({currency}), so nothing was changed.",
+  "backupWrongCurrency": "This backup uses a currency Pocket Sense doesn't support ({currency}), so nothing was changed.",
   "@backupWrongCurrency": {
     "placeholders": {
       "currency": {
@@ -607,6 +649,14 @@
   "syncErrDeclined": "Pairing was declined, or took too long.",
   "syncErrBusy": "That device is pairing with another one. Try again in a moment.",
   "syncErrVersion": "Update Pocket Sense on both devices to the same version.",
+  "syncErrCurrency": "The other device uses {currency}. Choose the same currency on both, in Settings → General.",
+  "@syncErrCurrency": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "syncErrCode": "Pairing cancelled.",
   "syncErrFailed": "Couldn't pair: {detail}",
   "@syncErrFailed": {
@@ -628,6 +678,7 @@
   "syncStateSyncing": "Syncing…",
   "syncStateUnreachable": "Not found on this network",
   "syncStateNeedsUpdate": "Update Pocket Sense on both devices to the same version",
+  "syncStateOtherCurrency": "Uses another currency: choose the same one on both devices",
   "syncStateNotPaired": "That device no longer pairs with this one. Unpair it here, then pair again.",
   "syncStateFailed": "The last sync failed",
   "syncLastSeen": "{state} · last synced {when}",

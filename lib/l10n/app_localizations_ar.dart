@@ -43,6 +43,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get done => 'تم';
 
   @override
+  String whatsNewTitle(String version) {
+    return 'ما الجديد في $version';
+  }
+
+  @override
+  String get whatsNewFeatures => 'ميزات جديدة';
+
+  @override
+  String get whatsNewImprovements => 'تحسينات';
+
+  @override
+  String get whatsNewChanges => 'تغييرات';
+
+  @override
+  String get whatsNewFixes => 'إصلاحات';
+
+  @override
   String get all => 'الكل';
 
   @override
@@ -74,6 +91,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get merchantOptional => 'المتجر (اختياري)';
+
+  @override
+  String get merchantSearchHint => 'ابحث عن تاجر أو أنشئه…';
 
   @override
   String get notesOptional => 'ملاحظات (اختياري)';
@@ -161,6 +181,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get catDining => 'مطاعم';
+
+  @override
+  String get catCoffee => 'قهوة';
 
   @override
   String get catTransport => 'مواصلات';
@@ -538,6 +561,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noCategoriesHint => 'أنشئ فئة لتبدأ بتصنيف معاملاتك.';
 
   @override
+  String get merchants => 'التجار';
+
+  @override
+  String get merchantsSubtitle => 'الأسماء التي تتعامل معها';
+
+  @override
+  String merchantsShown(int count) {
+    return '$count تاجر';
+  }
+
+  @override
+  String get newMerchant => 'تاجر جديد';
+
+  @override
+  String get editMerchant => 'تعديل التاجر';
+
+  @override
+  String get noMerchants => 'لا يوجد تجار بعد';
+
+  @override
+  String get noMerchantsHint =>
+      'أنشئ تاجرًا وسيظهر في اقتراحات نموذج المعاملة.';
+
+  @override
+  String get deleteMerchantBody =>
+      'يُزال التاجر من القائمة فقط، وتحتفظ معاملاتك السابقة باسمه.';
+
+  @override
+  String get merchantNotFound => 'التاجر غير موجود. هل تريد إنشاءه؟';
+
+  @override
+  String get createMerchant => 'أنشئه';
+
+  @override
+  String get duplicateMerchant => 'هذا التاجر موجود بالفعل';
+
+  @override
   String get name => 'الاسم';
 
   @override
@@ -551,6 +611,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get language => 'اللغة';
+
+  @override
+  String get currency => 'العملة';
+
+  @override
+  String currencyName(String code) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'JOD': 'دينار أردني',
+      'SAR': 'ريال سعودي',
+      'AED': 'درهم إماراتي',
+      'KWD': 'دينار كويتي',
+      'QAR': 'ريال قطري',
+      'BHD': 'دينار بحريني',
+      'OMR': 'ريال عماني',
+      'EGP': 'جنيه مصري',
+      'IQD': 'دينار عراقي',
+      'LBP': 'ليرة لبنانية',
+      'SYP': 'ليرة سورية',
+      'MAD': 'درهم مغربي',
+      'DZD': 'دينار جزائري',
+      'TND': 'دينار تونسي',
+      'LYD': 'دينار ليبي',
+      'YER': 'ريال يمني',
+      'SDG': 'جنيه سوداني',
+      'USD': 'دولار أمريكي',
+      'EUR': 'يورو',
+      'GBP': 'جنيه إسترليني',
+      'TRY': 'ليرة تركية',
+      'INR': 'روبية هندية',
+      'PKR': 'روبية باكستانية',
+      'CAD': 'دولار كندي',
+      'AUD': 'دولار أسترالي',
+      'CHF': 'فرنك سويسري',
+      'JPY': 'ين ياباني',
+      'CNY': 'يوان صيني',
+      'other': '$code',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyChangeNote =>
+      'لا تُحوَّل المبالغ: يبقى 12.5 كما هو بالعملة الجديدة.';
 
   @override
   String get languageSystem => 'لغة النظام';
@@ -681,7 +784,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String backupWrongCurrency(String currency) {
-    return 'تستخدم هذه النسخة الاحتياطية عملة أخرى ($currency)، لذا لم يتغيّر شيء.';
+    return 'تستخدم هذه النسخة الاحتياطية عملة لا يدعمها Pocket Sense ($currency)، لذا لم يتغيّر شيء.';
   }
 
   @override
@@ -1044,6 +1147,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدّث Pocket Sense على الجهازين إلى الإصدار نفسه.';
 
   @override
+  String syncErrCurrency(String currency) {
+    return 'يستخدم الجهاز الآخر $currency. اختر العملة نفسها على الجهازين من الإعدادات ← عام.';
+  }
+
+  @override
   String get syncErrCode => 'أُلغي الإقران.';
 
   @override
@@ -1068,6 +1176,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get syncStateNeedsUpdate =>
       'حدّث Pocket Sense على الجهازين إلى الإصدار نفسه';
+
+  @override
+  String get syncStateOtherCurrency =>
+      'يستخدم عملة أخرى: اختر العملة نفسها على الجهازين';
 
   @override
   String get syncStateNotPaired =>

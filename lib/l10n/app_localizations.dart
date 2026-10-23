@@ -164,6 +164,36 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get done;
 
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new in {version}'**
+  String whatsNewTitle(String version);
+
+  /// No description provided for @whatsNewFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'New features'**
+  String get whatsNewFeatures;
+
+  /// No description provided for @whatsNewImprovements.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhancements'**
+  String get whatsNewImprovements;
+
+  /// No description provided for @whatsNewChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes'**
+  String get whatsNewChanges;
+
+  /// No description provided for @whatsNewFixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixes'**
+  String get whatsNewFixes;
+
   /// No description provided for @all.
   ///
   /// In en, this message translates to:
@@ -229,6 +259,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merchant (optional)'**
   String get merchantOptional;
+
+  /// No description provided for @merchantSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search or create merchants…'**
+  String get merchantSearchHint;
 
   /// No description provided for @notesOptional.
   ///
@@ -379,6 +415,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dining Out'**
   String get catDining;
+
+  /// No description provided for @catCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee'**
+  String get catCoffee;
 
   /// No description provided for @catTransport.
   ///
@@ -974,6 +1016,72 @@ abstract class AppLocalizations {
   /// **'Create one to start tagging transactions.'**
   String get noCategoriesHint;
 
+  /// No description provided for @merchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchants'**
+  String get merchants;
+
+  /// No description provided for @merchantsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Names you transact with'**
+  String get merchantsSubtitle;
+
+  /// No description provided for @merchantsShown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} merchants'**
+  String merchantsShown(int count);
+
+  /// No description provided for @newMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'New merchant'**
+  String get newMerchant;
+
+  /// No description provided for @editMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit merchant'**
+  String get editMerchant;
+
+  /// No description provided for @noMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'No merchants yet'**
+  String get noMerchants;
+
+  /// No description provided for @noMerchantsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create one and it will show up in the transaction form\'s suggestions.'**
+  String get noMerchantsHint;
+
+  /// No description provided for @deleteMerchantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This only removes the merchant from the list. Past transactions keep their name.'**
+  String get deleteMerchantBody;
+
+  /// No description provided for @merchantNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant not found. Create it?'**
+  String get merchantNotFound;
+
+  /// No description provided for @createMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Create it'**
+  String get createMerchant;
+
+  /// No description provided for @duplicateMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'This merchant already exists'**
+  String get duplicateMerchant;
+
   /// No description provided for @name.
   ///
   /// In en, this message translates to:
@@ -1003,6 +1111,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currency;
+
+  /// No description provided for @currencyName.
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, JOD{Jordanian dinar} SAR{Saudi riyal} AED{UAE dirham} KWD{Kuwaiti dinar} QAR{Qatari riyal} BHD{Bahraini dinar} OMR{Omani rial} EGP{Egyptian pound} IQD{Iraqi dinar} LBP{Lebanese pound} SYP{Syrian pound} MAD{Moroccan dirham} DZD{Algerian dinar} TND{Tunisian dinar} LYD{Libyan dinar} YER{Yemeni rial} SDG{Sudanese pound} USD{US dollar} EUR{Euro} GBP{British pound} TRY{Turkish lira} INR{Indian rupee} PKR{Pakistani rupee} CAD{Canadian dollar} AUD{Australian dollar} CHF{Swiss franc} JPY{Japanese yen} CNY{Chinese yuan} other{{code}}}'**
+  String currencyName(String code);
+
+  /// No description provided for @currencyChangeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts aren\'t converted: 12.5 stays 12.5 in the new currency.'**
+  String get currencyChangeNote;
 
   /// No description provided for @languageSystem.
   ///
@@ -1193,7 +1319,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupWrongCurrency.
   ///
   /// In en, this message translates to:
-  /// **'This backup uses another currency ({currency}), so nothing was changed.'**
+  /// **'This backup uses a currency Pocket Sense doesn\'t support ({currency}), so nothing was changed.'**
   String backupWrongCurrency(String currency);
 
   /// No description provided for @backupBadData.
@@ -1772,6 +1898,12 @@ abstract class AppLocalizations {
   /// **'Update Pocket Sense on both devices to the same version.'**
   String get syncErrVersion;
 
+  /// No description provided for @syncErrCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'The other device uses {currency}. Choose the same currency on both, in Settings → General.'**
+  String syncErrCurrency(String currency);
+
   /// No description provided for @syncErrCode.
   ///
   /// In en, this message translates to:
@@ -1813,6 +1945,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update Pocket Sense on both devices to the same version'**
   String get syncStateNeedsUpdate;
+
+  /// No description provided for @syncStateOtherCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses another currency: choose the same one on both devices'**
+  String get syncStateOtherCurrency;
 
   /// No description provided for @syncStateNotPaired.
   ///

@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart' show ConflictAlgorithm;
 
 import '../security/pbkdf2.dart';
+import '../utils/format.dart';
 import 'db_key.dart';
 import 'local_store.dart';
 
@@ -22,7 +23,8 @@ class BackupException implements Exception {
   String toString() => 'BackupException(${problem.name}${detail == null ? '' : ': $detail'})';
 }
 
-typedef ImportSummary = ({int categories, int transactions, int budgets, int recurring});
+/// [currency]: the backup's, which the imported amounts are in.
+typedef ImportSummary = ({int categories, int merchants, int transactions, int budgets, int recurring, Currency currency});
 
 /// JSON backup of everything in the database. [export] gives the plain JSON;
 /// [encrypt] wraps it for writing to a file, and [import] reads either.
@@ -96,14 +98,14 @@ class Backup {
       Isolate.run(() => pbkdf2Sha256(utf8.encode(password), salt, iterations, 32));
 
   static const version = 1;
-  static const currency = 'JOD';
 
   // Parents first: this is the insert order, and reversed the delete order.
-  static const _tables = ['categories', 'transactions', 'budgets', 'recurring_expenses'];
+  static const _tables = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
 
   // Columns that must be present (and not null) in every row.
   static const _required = {
     'categories': ['id', 'name', 'type', 'color'],
+    'merchants': ['id', 'name'],
     'transactions': ['id', 'amount_fils', 'type', 'date', 'description'],
     'budgets': ['id', 'category_id', 'limit_fils'],
     'recurring_expenses': ['id', 'description', 'amount_fils', 'frequency', 'anchor_date'],
@@ -141,7 +143,7 @@ class Backup {
       'format': format,
       'version': version,
       'exported_at': (now ?? DateTime.now()).toUtc().toIso8601String(),
-      'currency': currency,
+      'currency': appCurrency.code,
       'tables': tables,
     });
   }
@@ -163,7 +165,8 @@ class Backup {
     final v = doc['version'];
     if (v is! int || v < 1) throw BackupException(BackupProblem.notABackup);
     if (v > version) throw BackupException(BackupProblem.tooNew, '$v');
-    if (doc['currency'] != currency) throw BackupException(BackupProblem.wrongCurrency, '${doc['currency']}');
+    final currency = Currency.byCode(doc['currency']);
+    if (currency == null) throw BackupException(BackupProblem.wrongCurrency, '${doc['currency']}');
 
     final rows = <String, List<Map<String, Object?>>>{};
     for (final t in _tables) {
@@ -202,9 +205,11 @@ class Backup {
     store.notifyChanged();
     return (
       categories: rows['categories']!.length,
+      merchants: rows['merchants']!.length,
       transactions: rows['transactions']!.length,
       budgets: rows['budgets']!.length,
       recurring: rows['recurring_expenses']!.length,
+      currency: currency,
     );
   }
 }

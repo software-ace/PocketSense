@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/backup.dart';
 import 'package:pocket_sense/data/local_store.dart';
+import 'package:pocket_sense/utils/format.dart';
 import 'package:pocket_sense/data/repo.dart';
 
 void main() {
@@ -44,14 +45,14 @@ void main() {
 
     final fresh = await LocalStore.openInMemoryForTest();
     final summary = await Backup.import(fresh, json);
-    expect(summary, (categories: 2, transactions: 2, budgets: 1, recurring: 1));
+    expect(summary, (categories: 2, merchants: 0, transactions: 2, budgets: 1, recurring: 1, currency: Currency.byCode('JOD')!));
     expect(await dump(fresh), await dump(store));
   });
 
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 13, transactions: 180, budgets: 6, recurring: 8));
+    expect(summary, (categories: 13, merchants: 0, transactions: 180, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
   });
 
   test('import replaces what was there and notifies listeners', () async {
@@ -93,7 +94,18 @@ void main() {
     test('corrupt JSON', () => expectProblem('{"format": "pocketsense-b', BackupProblem.notJson));
     test('some other JSON file', () => expectProblem('{"hello": "world"}', BackupProblem.notABackup));
     test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 2), BackupProblem.tooNew));
-    test('another currency', () => expectProblem(jsonEncode(valid()..['currency'] = 'USD'), BackupProblem.wrongCurrency));
+    test('a currency the app doesn\'t offer', () => expectProblem(jsonEncode(valid()..['currency'] = 'XYZ'), BackupProblem.wrongCurrency));
+
+    test('an export says which currency its amounts are in', () async {
+      appCurrency = Currency.byCode('EUR')!;
+      addTearDown(() => appCurrency = currencies.first);
+      expect(decode(await Backup.export(store))['currency'], 'EUR');
+    });
+
+    test('another supported currency imports, and says which', () async {
+      final summary = await Backup.import(store, jsonEncode(valid()..['currency'] = 'USD'));
+      expect(summary.currency.code, 'USD');
+    });
 
     test('a row missing a required column', () {
       final doc = valid();

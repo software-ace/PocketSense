@@ -12,6 +12,7 @@ extension L10n on BuildContext {
 Map<String, String> starterCategoryNames(AppLocalizations l) => {
       'groceries': l.catGroceries,
       'dining': l.catDining,
+      'coffee': l.catCoffee,
       'transport': l.catTransport,
       'housing': l.catHousing,
       'utilities': l.catUtilities,

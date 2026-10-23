@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/app_localizations.dart';
+import '../utils/format.dart';
 
 /// App-wide preferences that aren't financial data (those live in the
 /// encrypted database). Stored with shared_preferences.
@@ -19,6 +20,8 @@ class AppSettings {
   static const _syncOnKey = 'sync.enabled';
   static const _syncNameKey = 'sync.name';
   static const _privateScreenKey = 'privateScreen';
+  static const _currencyKey = 'currency';
+  static const _whatsNewKey = 'whatsNew.seen';
 
   /// The chosen UI language, or null to follow the system.
   static final ValueNotifier<Locale?> locale = ValueNotifier(null);
@@ -41,6 +44,14 @@ class AppSettings {
   /// recordings. On by default; MainActivity starts with it on, so it holds
   /// before this is even read.
   static final privateScreen = ValueNotifier(true);
+
+  /// What amounts are shown in (JOD until chosen). Mirrors [appCurrency],
+  /// which the formatting functions read.
+  static final currency = ValueNotifier(appCurrency);
+
+  /// The build whose "What's new" was last shown (or skipped, on a fresh
+  /// install); null before that existed.
+  static int? whatsNewSeen;
   static const _window = MethodChannel('pocketsense/window');
 
   static final _prefs = SharedPreferencesAsync();
@@ -57,6 +68,8 @@ class AppSettings {
       );
       sync.value = (enabled: await _prefs.getBool(_syncOnKey) ?? false, name: await _prefs.getString(_syncNameKey) ?? '');
       privateScreen.value = await _prefs.getBool(_privateScreenKey) ?? true;
+      currency.value = appCurrency = Currency.byCode(await _prefs.getString(_currencyKey)) ?? currencies.first;
+      whatsNewSeen = await _prefs.getInt(_whatsNewKey);
       if (!privateScreen.value) await _applyPrivateScreen();
     } catch (_) {
       // Unreadable preferences: follow the system language, show onboarding.
@@ -88,6 +101,16 @@ class AppSettings {
     sync.value = (enabled: enabled ?? sync.value.enabled, name: name ?? sync.value.name);
     if (enabled != null) await _prefs.setBool(_syncOnKey, enabled);
     if (name != null) await _prefs.setString(_syncNameKey, name);
+  }
+
+  static Future<void> setWhatsNewSeen(int build) async {
+    whatsNewSeen = build;
+    await _prefs.setInt(_whatsNewKey, build);
+  }
+
+  static Future<void> setCurrency(Currency c) async {
+    currency.value = appCurrency = c;
+    await _prefs.setString(_currencyKey, c.code);
   }
 
   static Future<void> setPrivateScreen(bool on) async {

@@ -75,6 +75,41 @@ void main() {
     expect(currencyAffix(locale: 'ar'), (prefix: null, suffix: ' د.أ'));
   });
 
+  group('other currencies', () {
+    tearDown(() => appCurrency = currencies.first);
+
+    test('decimals follow the currency: 2 for USD, 0 for JPY, 3 for KWD', () {
+      expect([for (final c in ['USD', 'JPY', 'KWD', 'JOD']) Currency.byCode(c)!.decimals], [2, 0, 3, 3]);
+    });
+
+    test('formatMoney: the code in English, the Arabic symbol or the code in Arabic', () {
+      appCurrency = Currency.byCode('USD')!;
+      expect(formatMoney(12500, locale: 'en'), 'USD\u00A012.50');
+      expect(formatMoney(12500, locale: 'ar'), '\u206612.50\u2069\u00A0USD');
+      appCurrency = Currency.byCode('SAR')!;
+      expect(formatMoney(-3000, locale: 'ar'), '\u2066-3.00\u2069\u00A0ر.س');
+      appCurrency = Currency.byCode('JPY')!;
+      expect(formatMoney(1500000, locale: 'en'), 'JPY\u00A01,500');
+    });
+
+    test('parseAmount allows only as many decimals as the currency has', () {
+      appCurrency = Currency.byCode('USD')!;
+      expect(parseAmount('12.5'), 12500);
+      expect(parseAmount('12.55'), 12550);
+      expect(parseAmount('12.555'), isNull);
+      appCurrency = Currency.byCode('JPY')!;
+      expect(parseAmount('1,500'), 1500000);
+      expect(parseAmount('1500.5'), isNull);
+    });
+
+    test('every currency on offer fits in fils', () {
+      for (final c in currencies) {
+        expect(c.decimals, lessThanOrEqualTo(3), reason: c.code);
+      }
+      expect(currencies.map((c) => c.code).toSet(), hasLength(currencies.length));
+    });
+  });
+
   group('formatDate', () {
     // The app gets this from Flutter's localization delegates.
     setUpAll(() => initializeDateFormatting());

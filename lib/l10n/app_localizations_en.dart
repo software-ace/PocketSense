@@ -43,6 +43,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get done => 'Done';
 
   @override
+  String whatsNewTitle(String version) {
+    return 'What\'s new in $version';
+  }
+
+  @override
+  String get whatsNewFeatures => 'New features';
+
+  @override
+  String get whatsNewImprovements => 'Enhancements';
+
+  @override
+  String get whatsNewChanges => 'Changes';
+
+  @override
+  String get whatsNewFixes => 'Fixes';
+
+  @override
   String get all => 'All';
 
   @override
@@ -74,6 +91,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get merchantOptional => 'Merchant (optional)';
+
+  @override
+  String get merchantSearchHint => 'Search or create merchants…';
 
   @override
   String get notesOptional => 'Notes (optional)';
@@ -161,6 +181,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get catDining => 'Dining Out';
+
+  @override
+  String get catCoffee => 'Coffee';
 
   @override
   String get catTransport => 'Transport';
@@ -526,6 +549,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noCategoriesHint => 'Create one to start tagging transactions.';
 
   @override
+  String get merchants => 'Merchants';
+
+  @override
+  String get merchantsSubtitle => 'Names you transact with';
+
+  @override
+  String merchantsShown(int count) {
+    return '$count merchants';
+  }
+
+  @override
+  String get newMerchant => 'New merchant';
+
+  @override
+  String get editMerchant => 'Edit merchant';
+
+  @override
+  String get noMerchants => 'No merchants yet';
+
+  @override
+  String get noMerchantsHint =>
+      'Create one and it will show up in the transaction form\'s suggestions.';
+
+  @override
+  String get deleteMerchantBody =>
+      'This only removes the merchant from the list. Past transactions keep their name.';
+
+  @override
+  String get merchantNotFound => 'Merchant not found. Create it?';
+
+  @override
+  String get createMerchant => 'Create it';
+
+  @override
+  String get duplicateMerchant => 'This merchant already exists';
+
+  @override
   String get name => 'Name';
 
   @override
@@ -539,6 +599,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String currencyName(String code) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'JOD': 'Jordanian dinar',
+      'SAR': 'Saudi riyal',
+      'AED': 'UAE dirham',
+      'KWD': 'Kuwaiti dinar',
+      'QAR': 'Qatari riyal',
+      'BHD': 'Bahraini dinar',
+      'OMR': 'Omani rial',
+      'EGP': 'Egyptian pound',
+      'IQD': 'Iraqi dinar',
+      'LBP': 'Lebanese pound',
+      'SYP': 'Syrian pound',
+      'MAD': 'Moroccan dirham',
+      'DZD': 'Algerian dinar',
+      'TND': 'Tunisian dinar',
+      'LYD': 'Libyan dinar',
+      'YER': 'Yemeni rial',
+      'SDG': 'Sudanese pound',
+      'USD': 'US dollar',
+      'EUR': 'Euro',
+      'GBP': 'British pound',
+      'TRY': 'Turkish lira',
+      'INR': 'Indian rupee',
+      'PKR': 'Pakistani rupee',
+      'CAD': 'Canadian dollar',
+      'AUD': 'Australian dollar',
+      'CHF': 'Swiss franc',
+      'JPY': 'Japanese yen',
+      'CNY': 'Chinese yuan',
+      'other': '$code',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get currencyChangeNote =>
+      'Amounts aren\'t converted: 12.5 stays 12.5 in the new currency.';
 
   @override
   String get languageSystem => 'System default';
@@ -666,7 +769,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String backupWrongCurrency(String currency) {
-    return 'This backup uses another currency ($currency), so nothing was changed.';
+    return 'This backup uses a currency Pocket Sense doesn\'t support ($currency), so nothing was changed.';
   }
 
   @override
@@ -1025,6 +1128,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Update Pocket Sense on both devices to the same version.';
 
   @override
+  String syncErrCurrency(String currency) {
+    return 'The other device uses $currency. Choose the same currency on both, in Settings → General.';
+  }
+
+  @override
   String get syncErrCode => 'Pairing cancelled.';
 
   @override
@@ -1049,6 +1157,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syncStateNeedsUpdate =>
       'Update Pocket Sense on both devices to the same version';
+
+  @override
+  String get syncStateOtherCurrency =>
+      'Uses another currency: choose the same one on both devices';
 
   @override
   String get syncStateNotPaired =>
