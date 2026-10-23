@@ -51,7 +51,8 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - On Linux it runs an offline model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), about 45 MB, downloaded once on first use).
 - **Budgets:** a weekly (Monday to Sunday) or monthly limit per expense category, with progress, what's left, and a warning when you go over.
 - **Recurring:** bills, subscriptions and salary, repeating weekly, every two weeks, monthly, quarterly or yearly from a first due date. Each shows when it's next due. **Post as transaction** records it in one tap, and an item can be paused instead of deleted.
-- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 13 common ones (groceries, dining out, rent, salary…). Deleting a category keeps its entries, uncategorized, and removes its budget.
+- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 14 common ones (groceries, dining out, coffee, rent, salary…). Deleting a category keeps its entries, uncategorized, and removes its budget.
+- **Merchants:** **Settings → Merchants** adds, renames and deletes the places you pay or get paid by. In the transaction form, the merchant field searches them as you type and offers to create one it doesn't find. Renaming a merchant updates past entries too; deleting one leaves them as they are.
 
 **Made for Jordan, in two languages**
 - **Currency:** Jordanian dinars by default, with three decimals: **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.

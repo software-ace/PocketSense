@@ -1,2 +1,6 @@
-• New: choose your currency, in Settings → General → Currency or when you first set up the app. 28 currencies, each with its usual decimals. Amounts aren't converted.
-• New: "What's new" shows what changed after each update, like this.
+• New: pick your currency in Settings → General → Currency or at first setup. 28 currencies, each with its usual decimals. Amounts aren't converted.
+• New: Merchants, in Settings → Merchants. The merchant field searches them and can add new ones.
+• New: this "What's new" list, after each update.
+• Changed: new installs get a Coffee category.
+• Fixed: charts are easier to read, and amount fields take only numbers.
+• Fixed: clearing a merchant, category or note while editing now saves.
