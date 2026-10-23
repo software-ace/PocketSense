@@ -6,7 +6,7 @@
 ![Platforms: Android, Linux](https://img.shields.io/badge/platforms-Android%20%7C%20Linux-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
-A private personal finance tracker for Android and Linux. It works fully offline, in Jordanian dinars, in English and Arabic.
+A private personal finance tracker for Android and Linux. It works fully offline, in English and Arabic, in Jordanian dinars or any of 27 other currencies.
 
 There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
@@ -54,13 +54,17 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 13 common ones (groceries, dining out, rent, salary…). Deleting a category keeps its entries, uncategorized, and removes its budget.
 
 **Made for Jordan, in two languages**
-- **Dinars:** amounts have three decimals, shown as **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
+- **Currency:** Jordanian dinars by default, with three decimals: **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
+  - **Settings → General → Currency**, or the welcome screen, switches to one of 27 others, from SAR and AED to USD, EUR and INR, each with its usual decimals (2 for USD, 0 for JPY).
+  - It's one currency for all your data, with no exchange rates, so the app stays offline. Switching relabels amounts; it doesn't convert them.
+  - Backups carry the currency, and importing one switches to it. Two devices sync only when they use the same currency.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.
 
 **Fits the device**
 - **Layout:** a bottom tab bar on phones, and a side rail with wider layouts, including tables, on windows 900 px or wider.
 - **Light and dark:** follows the system theme.
 - **First run:** a short welcome lets you start fresh or import a backup, then offers to set a PIN (and fingerprint or face on Android). Both can be changed later in Settings.
+- **What's new:** the first time the app opens after an update, a short list of what changed since the version you last used, grouped into new features, enhancements, changes and fixes.
 - **About:** version, license, a link to the source code, and the licenses of everything bundled.
 
 **Sync between your devices**
@@ -189,12 +193,12 @@ docs/             demo backup and desktop screenshots
 
 **Strings and money**
 - Strings live in `lib/l10n/app_en.arb` (the template) and `app_ar.arb`. `flutter gen-l10n` regenerates `app_localizations*.dart`, which are committed. In widgets, use `context.l10n.someKey`.
-- Money is integer fils (1 JOD = 1000 fils) everywhere, never doubles. `lib/utils/format.dart` has `formatMoney`, `parseAmount` and `amountToInput`.
+- Money is integer fils everywhere, never doubles: thousandths of the main unit (1 JOD = 1000 fils), whatever the currency. `lib/utils/format.dart` has the currencies (`currencies`, `appCurrency`, with decimals from intl), `formatMoney`, `parseAmount` and `amountToInput`.
 
 ### Releasing
 
 1. Bump `version:` in `pubspec.yaml`, always raising the number after `+`.
-2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`, where `N` is that number (one per APK: versionCode is `N × 10 + ABI`).
+2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`, where `N` is that number (one per APK: versionCode is `N × 10 + ABI`). Start each line with `New:`, `Improved:`, `Changed:` or `Fixed:` (in Arabic `جديد:`, `تحسين:`, `تغيير:`, `إصلاح:`): the app shows the same text in **What's new** after an update, grouped under those headings.
 3. Write the release notes in `.github/release-notes/v<version>.md`.
 4. Update this README for anything the release changes that users or contributors would notice: features, settings, privacy, install, build steps.
 5. Commit, then push a `v<version>` tag.
@@ -216,7 +220,7 @@ Running the workflow by hand (Actions → Release → Run workflow) builds every
 
 ## Limitations
 
-- One currency: Jordanian dinars.
+- One currency at a time, with no conversion between currencies.
 - Android and Linux only, and biometric unlock is Android-only.
 - Voice entry understands English sentences only.
 - Arabic month names are the standard ones (سبتمبر), not the Levantine ones (أيلول).

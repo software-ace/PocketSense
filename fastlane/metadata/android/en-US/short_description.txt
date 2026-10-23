@@ -1,1 +1,1 @@
-Private, offline money tracker in Jordanian dinars, in English and Arabic
+Private, offline money tracker in English and Arabic, in JOD and 27 currencies

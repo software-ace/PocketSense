@@ -9,7 +9,7 @@ Pocket Sense tracks your income, spending, budgets and bills without an account 
 
 <b>Made for Jordan</b>
 <ul>
-<li>Amounts in Jordanian dinars with three decimals (JOD 12.500).</li>
+<li>Amounts in Jordanian dinars with three decimals (JOD 12.500), or in one of 27 other currencies, from SAR and AED to USD and EUR.</li>
 <li>Full Arabic interface, right to left, with Latin digits.</li>
 </ul>
 

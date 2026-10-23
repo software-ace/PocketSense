@@ -1,0 +1,2 @@
+• New: choose your currency, in Settings → General → Currency or when you first set up the app. 28 currencies, each with its usual decimals. Amounts aren't converted.
+• New: "What's new" shows what changed after each update, like this.
