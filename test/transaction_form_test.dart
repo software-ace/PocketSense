@@ -99,6 +99,29 @@ void main() {
     expect(saved.merchant, 'Zaid');
   });
 
+  testWidgets('editing can clear the merchant, even one deleted from the list, and the category', (tester) async {
+    await tester.runAsync(() async {
+      final repo = FinanceRepo();
+      final cat = (await repo.categories()).firstWhere((c) => c.type == 'expense').id;
+      await repo.insertTransaction(amountFils: 3560, type: 'expense', date: DateTime.now(), description: 'Lunch', merchant: 'Zaid', categoryId: cat);
+    });
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    await tester.tap(find.text('Lunch'));
+    await settleWithDb(tester);
+    expect(find.text('Merchant not found. Create it?'), findsOneWidget, reason: 'Zaid is not in the list');
+
+    await tester.enterText(find.widgetWithText(TextField, 'Merchant (optional)'), '');
+    // The form's type switch (the list's filter is under it); clears the expense category.
+    await tester.tap(find.text('Income').last);
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await settleWithDb(tester);
+
+    final saved = (await tester.runAsync(() => FinanceRepo().transactions()))!.single;
+    expect(saved.merchant, isNull);
+    expect(saved.categoryId, isNull);
+  });
+
   testWidgets('typing a partial name suggests merchants and picking one fills the field', (tester) async {
     await tester.runAsync(() => FinanceRepo().insertMerchant('Amazon'));
     await openAddSheet(tester);

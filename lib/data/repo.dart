@@ -201,9 +201,10 @@ class FinanceRepo {
       'type': type,
       'date': _isoDate(date),
       'description': description,
+      // Written even when null: that's how the form clears them.
+      'merchant': merchant,
+      'category_id': categoryId,
     };
-    if (merchant != null) values['merchant'] = merchant;
-    if (categoryId != null) values['category_id'] = categoryId;
     await store.updateRow('transactions', id, values);
   }
 
@@ -310,10 +311,11 @@ class FinanceRepo {
       'type': type,
       'frequency': frequency,
       'anchor_date': _isoDate(anchorDate),
+      // Written even when null: that's how the form clears them.
+      'category_id': categoryId,
+      'merchant': merchant,
+      'notes': notes,
     };
-    if (categoryId != null) values['category_id'] = categoryId;
-    if (merchant != null) values['merchant'] = merchant;
-    if (notes != null) values['notes'] = notes;
     if (active != null) values['active'] = active ? 1 : 0;
     await store.updateRow('recurring_expenses', id, values);
   }

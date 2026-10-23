@@ -31,6 +31,15 @@ void main() {
       expect((await repo.recurring()).single.type, 'income');
     });
 
+    test('update can clear the category, merchant and notes', () async {
+      final cat = await repo.insertCategory(name: 'Bills', type: 'expense', color: '#64748b');
+      final id = await repo.insertRecurring(
+          description: 'Internet', amountFils: 2500, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1), categoryId: cat, merchant: 'Orange', notes: 'Fiber');
+      await repo.updateRecurring(id, description: 'Internet', amountFils: 2500, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1));
+      final r = (await repo.recurring()).single;
+      expect([r.categoryId, r.merchant, r.notes], [null, null, null]);
+    });
+
     test('posting an income item records an income transaction', () async {
       await repo.insertRecurring(description: 'Salary', amountFils: 300000, type: 'income', frequency: 'monthly', anchorDate: DateTime(2026, 9, 25));
       await repo.postRecurring((await repo.recurring()).single, description: 'x (recurring)');
