@@ -80,7 +80,7 @@ void main() {
 
     await Mesh().settle([a, b]);
 
-    expect(await a.db.query('categories'), hasLength(13));
+    expect(await a.db.query('categories'), hasLength(14));
     expect(await snapshot(a), await snapshot(b));
   });
 

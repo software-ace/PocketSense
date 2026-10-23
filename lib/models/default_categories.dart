@@ -4,6 +4,7 @@
 const defaultCategories = <({String key, String name, String type, String color})>[
   (key: 'groceries', name: 'Groceries', type: 'expense', color: '#22c55e'),
   (key: 'dining', name: 'Dining Out', type: 'expense', color: '#f97316'),
+  (key: 'coffee', name: 'Coffee', type: 'expense', color: '#b45309'),
   (key: 'transport', name: 'Transport', type: 'expense', color: '#0ea5e9'),
   (key: 'housing', name: 'Housing', type: 'expense', color: '#a855f7'),
   (key: 'utilities', name: 'Utilities', type: 'expense', color: '#eab308'),

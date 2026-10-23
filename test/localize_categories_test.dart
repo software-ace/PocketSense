@@ -20,14 +20,14 @@ void main() {
 
   test('knows every default name in every language', () {
     expect(defaults['groceries'], containsAll(['groceries', 'بقالة']));
-    expect(defaults.keys, hasLength(13));
+    expect(defaults.keys, hasLength(14));
   });
 
   test('switching language renames the starter categories, both ways', () async {
-    expect(await repo.localizeStarterCategories(ar, defaults), 13);
+    expect(await repo.localizeStarterCategories(ar, defaults), 14);
     expect(await names(), {...ar.values});
 
-    expect(await repo.localizeStarterCategories(en, defaults), 13);
+    expect(await repo.localizeStarterCategories(en, defaults), 14);
     expect(await names(), {...en.values});
   });
 
