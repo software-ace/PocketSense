@@ -62,6 +62,18 @@ void main() {
     expect(find.text('Transaction'), findsOneWidget);
   });
 
+  testWidgets('the amount field only takes digits and separators', (tester) async {
+    await openAddSheet(tester);
+    final amount = find.widgetWithText(TextField, 'Amount');
+    String text() => tester.widget<TextField>(amount).controller!.text;
+
+    await tester.enterText(amount, '3.5Lunch6 R-');
+    expect(text(), '3.56');
+
+    await tester.enterText(amount, '١٬٢٠٠٫٥');
+    expect(text(), '١٬٢٠٠٫٥', reason: 'Arabic digits and separators still go in');
+  });
+
   testWidgets('typing an unknown merchant offers to create it, and creating keeps it in the field', (tester) async {
     await openAddSheet(tester);
 

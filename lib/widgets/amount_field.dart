@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../l10n/l10n.dart';
 import '../utils/format.dart';
@@ -23,6 +24,9 @@ class AmountField extends StatelessWidget {
       autofocus: autofocus,
       onFieldSubmitted: onSubmitted,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      // Only what parseAmount reads: Latin, Arabic-Indic and Persian digits,
+      // and the Latin and Arabic decimal and thousands separators.
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9٠-٩۰-۹.,٫٬]'))],
       decoration: InputDecoration(labelText: label, prefixText: affix.prefix, suffixText: affix.suffix, errorMaxLines: 2),
       validator: (v) {
         if (v == null || v.trim().isEmpty) return l.enterAmount;
