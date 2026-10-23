@@ -30,7 +30,7 @@ class AmountField extends StatelessWidget {
       decoration: InputDecoration(labelText: label, prefixText: affix.prefix, suffixText: affix.suffix, errorMaxLines: 2),
       validator: (v) {
         if (v == null || v.trim().isEmpty) return l.enterAmount;
-        return (parseAmount(v) ?? 0) > 0 ? null : l.enterPositiveAmount;
+        return (parseAmount(v) ?? 0) > 0 ? null : l.enterPositiveAmount(appCurrency.decimals);
       },
     );
   }

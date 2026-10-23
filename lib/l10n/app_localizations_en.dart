@@ -320,8 +320,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get enterPositiveAmount =>
-      'Enter an amount above zero, with at most 3 decimals.';
+  String enterPositiveAmount(int decimals) {
+    String _temp0 = intl.Intl.pluralLogic(
+      decimals,
+      locale: localeName,
+      other: 'Enter an amount above zero, with at most $decimals decimals.',
+      one: 'Enter an amount above zero, with at most 1 decimal.',
+      zero: 'Enter a whole amount above zero.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get enterAmount => 'Enter an amount';

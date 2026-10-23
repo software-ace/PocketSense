@@ -166,7 +166,14 @@
       }
     }
   },
-  "enterPositiveAmount": "Enter an amount above zero, with at most 3 decimals.",
+  "enterPositiveAmount": "{decimals, plural, =0{Enter a whole amount above zero.} =1{Enter an amount above zero, with at most 1 decimal.} other{Enter an amount above zero, with at most {decimals} decimals.}}",
+  "@enterPositiveAmount": {
+    "placeholders": {
+      "decimals": {
+        "type": "int"
+      }
+    }
+  },
   "enterAmount": "Enter an amount",
   "enterDescription": "Enter a description",
   "enterName": "Enter a name",

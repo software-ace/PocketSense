@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
+import 'package:pocket_sense/utils/format.dart';
 
 import 'helpers/screen_with_db.dart';
 
@@ -73,6 +74,24 @@ void main() {
     await tester.enterText(amount, '١٬٢٠٠٫٥');
     expect(text(), '١٬٢٠٠٫٥', reason: 'Arabic digits and separators still go in');
   });
+
+  for (final (code, message) in [
+    ('QAR', 'Enter an amount above zero, with at most 2 decimals.'),
+    ('JPY', 'Enter a whole amount above zero.'),
+    ('JOD', 'Enter an amount above zero, with at most 3 decimals.'),
+  ]) {
+    testWidgets('too many decimals in $code says how many it takes', (tester) async {
+      appCurrency = Currency.byCode(code)!;
+      addTearDown(() => appCurrency = currencies.first);
+      await openAddSheet(tester);
+
+      await tester.enterText(find.widgetWithText(TextField, 'Amount'), '44444.444444');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(find.text(message), findsOneWidget);
+    });
+  }
 
   testWidgets('typing an unknown merchant offers to create it, and creating keeps it in the field', (tester) async {
     await openAddSheet(tester);

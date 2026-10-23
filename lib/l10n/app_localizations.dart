@@ -677,8 +677,8 @@ abstract class AppLocalizations {
   /// No description provided for @enterPositiveAmount.
   ///
   /// In en, this message translates to:
-  /// **'Enter an amount above zero, with at most 3 decimals.'**
-  String get enterPositiveAmount;
+  /// **'{decimals, plural, =0{Enter a whole amount above zero.} =1{Enter an amount above zero, with at most 1 decimal.} other{Enter an amount above zero, with at most {decimals} decimals.}}'**
+  String enterPositiveAmount(int decimals);
 
   /// No description provided for @enterAmount.
   ///

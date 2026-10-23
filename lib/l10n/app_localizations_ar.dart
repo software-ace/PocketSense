@@ -320,8 +320,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get enterPositiveAmount =>
-      'أدخل مبلغًا أكبر من صفر، بثلاث منازل عشرية على الأكثر.';
+  String enterPositiveAmount(int decimals) {
+    String _temp0 = intl.Intl.pluralLogic(
+      decimals,
+      locale: localeName,
+      other: 'أدخل مبلغًا أكبر من صفر، بـ$decimals منزلة عشرية على الأكثر.',
+      many: 'أدخل مبلغًا أكبر من صفر، بـ$decimals منزلة عشرية على الأكثر.',
+      few: 'أدخل مبلغًا أكبر من صفر، بـ$decimals منازل عشرية على الأكثر.',
+      two: 'أدخل مبلغًا أكبر من صفر، بمنزلتين عشريتين على الأكثر.',
+      one: 'أدخل مبلغًا أكبر من صفر، بمنزلة عشرية واحدة على الأكثر.',
+      zero: 'أدخل مبلغًا صحيحًا أكبر من صفر، بلا منازل عشرية.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get enterAmount => 'أدخل المبلغ';
