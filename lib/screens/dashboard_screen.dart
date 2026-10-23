@@ -238,7 +238,15 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       LineChartData(
         minY: 0,
         maxY: maxY,
-        lineTouchData: LineTouchData(enabled: true),
+        // White text on fl_chart's fixed dark tooltip background, like the
+        // other charts; the default uses the line's indigo, unreadable here.
+        lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+                getTooltipItems: (spots) => [
+                      for (final s in spots)
+                        LineTooltipItem(formatMoney((s.y * 1000).round()),
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                    ])),
         gridData: FlGridData(
           drawVerticalLine: false,
           horizontalInterval: step,
@@ -323,8 +331,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
 
   BarTouchData _barTooltips() => BarTouchData(
       touchTooltipData: BarTouchTooltipData(
+          // White on fl_chart's fixed dark tooltip background: the bar colors
+          // (green, red, indigo) vanish on it.
           getTooltipItem: (group, gi, rod, ri) => BarTooltipItem(formatMoney((rod.toY * 1000).round()),
-              TextStyle(color: rod.color, fontWeight: FontWeight.w600, fontSize: 12))));
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12))));
 
   // Income and spending side by side, one pair of bars per month.
   Widget _buildMonthlyChart() {
@@ -394,7 +404,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                     getTooltipItems: (spots) => [
                           for (final s in spots)
                             LineTooltipItem(formatMoney((s.y * 1000).round()),
-                                TextStyle(color: s.bar.color, fontWeight: FontWeight.w600, fontSize: 12)),
+                                const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
                         ])),
           )),
         ),
@@ -490,7 +500,12 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         radius: 55,
         showTitle: pct > 0.08,
         title: '${(pct * 100).toInt()}%',
-        titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+        // White is unreadable on light slices (amber, sky blue, gray); switch
+        // to dark text there.
+        titleStyle: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: item.color.computeLuminance() > 0.2 ? Colors.black87 : Colors.white),
       );
     }).toList();
 
