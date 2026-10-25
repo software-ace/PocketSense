@@ -1112,6 +1112,18 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeName.
+  ///
+  /// In en, this message translates to:
+  /// **'{theme, select, system{System default} light{Light} dark{Dark} black{Black (AMOLED)} other{{theme}}}'**
+  String themeName(String theme);
+
   /// No description provided for @currency.
   ///
   /// In en, this message translates to:

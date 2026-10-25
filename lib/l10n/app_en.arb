@@ -347,6 +347,15 @@
   "settingsData": "Data",
   "settingsGeneral": "General",
   "language": "Language",
+  "theme": "Theme",
+  "themeName": "{theme, select, system{System default} light{Light} dark{Dark} black{Black (AMOLED)} other{{theme}}}",
+  "@themeName": {
+    "placeholders": {
+      "theme": {
+        "type": "String"
+      }
+    }
+  },
   "currency": "Currency",
   "currencyName": "{code, select, JOD{Jordanian dinar} SAR{Saudi riyal} AED{UAE dirham} KWD{Kuwaiti dinar} QAR{Qatari riyal} BHD{Bahraini dinar} OMR{Omani rial} EGP{Egyptian pound} IQD{Iraqi dinar} LBP{Lebanese pound} SYP{Syrian pound} MAD{Moroccan dirham} DZD{Algerian dinar} TND{Tunisian dinar} LYD{Libyan dinar} YER{Yemeni rial} SDG{Sudanese pound} USD{US dollar} EUR{Euro} GBP{British pound} TRY{Turkish lira} INR{Indian rupee} PKR{Pakistani rupee} CAD{Canadian dollar} AUD{Australian dollar} CHF{Swiss franc} JPY{Japanese yen} CNY{Chinese yuan} other{{code}}}",
   "@currencyName": {

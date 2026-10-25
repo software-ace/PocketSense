@@ -609,6 +609,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get theme => 'Theme';
+
+  @override
+  String themeName(String theme) {
+    String _temp0 = intl.Intl.selectLogic(theme, {
+      'system': 'System default',
+      'light': 'Light',
+      'dark': 'Dark',
+      'black': 'Black (AMOLED)',
+      'other': '$theme',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get currency => 'Currency';
 
   @override

@@ -169,6 +169,8 @@
   "settingsData": "البيانات",
   "settingsGeneral": "عام",
   "language": "اللغة",
+  "theme": "المظهر",
+  "themeName": "{theme, select, system{حسب النظام} light{فاتح} dark{داكن} black{أسود (AMOLED)} other{{theme}}}",
   "currency": "العملة",
   "currencyName": "{code, select, JOD{دينار أردني} SAR{ريال سعودي} AED{درهم إماراتي} KWD{دينار كويتي} QAR{ريال قطري} BHD{دينار بحريني} OMR{ريال عماني} EGP{جنيه مصري} IQD{دينار عراقي} LBP{ليرة لبنانية} SYP{ليرة سورية} MAD{درهم مغربي} DZD{دينار جزائري} TND{دينار تونسي} LYD{دينار ليبي} YER{ريال يمني} SDG{جنيه سوداني} USD{دولار أمريكي} EUR{يورو} GBP{جنيه إسترليني} TRY{ليرة تركية} INR{روبية هندية} PKR{روبية باكستانية} CAD{دولار كندي} AUD{دولار أسترالي} CHF{فرنك سويسري} JPY{ين ياباني} CNY{يوان صيني} other{{code}}}",
   "currencyChangeNote": "لا تُحوَّل المبالغ: يبقى 12.5 كما هو بالعملة الجديدة.",

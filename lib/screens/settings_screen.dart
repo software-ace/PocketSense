@@ -44,6 +44,15 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => pickLanguage(context),
             ),
           ),
+          ValueListenableBuilder<AppTheme>(
+            valueListenable: AppSettings.theme,
+            builder: (context, theme, _) => ListTile(
+              leading: const Icon(Icons.dark_mode_outlined),
+              title: Text(l.theme),
+              subtitle: Text(l.themeName(theme.name)),
+              onTap: () => _pickTheme(context),
+            ),
+          ),
           ValueListenableBuilder<Currency>(
             valueListenable: AppSettings.currency,
             builder: (context, currency, _) => ListTile(
@@ -146,6 +155,26 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _pickTheme(BuildContext context) async {
+  final l = context.l10n;
+  final picked = await showDialog<AppTheme>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: Text(l.theme),
+      children: [
+        RadioGroup<AppTheme>(
+          groupValue: AppSettings.theme.value,
+          onChanged: (v) => Navigator.pop(ctx, v),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (final t in AppTheme.values) RadioListTile<AppTheme>(value: t, title: Text(l.themeName(t.name))),
+          ]),
+        ),
+      ],
+    ),
+  );
+  if (picked != null) await AppSettings.setTheme(picked);
 }
 
 /// App lock on/off, change PIN, and (Android) biometric unlock. Changes to

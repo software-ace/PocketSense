@@ -7,6 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/format.dart';
 
+/// Light or dark, or the device's choice. Black is dark with a pure-black
+/// background: AMOLED screens leave those pixels off.
+enum AppTheme { system, light, dark, black }
+
 /// App-wide preferences that aren't financial data (those live in the
 /// encrypted database). Stored with shared_preferences.
 class AppSettings {
@@ -22,9 +26,12 @@ class AppSettings {
   static const _privateScreenKey = 'privateScreen';
   static const _currencyKey = 'currency';
   static const _whatsNewKey = 'whatsNew.seen';
+  static const _themeKey = 'theme';
 
   /// The chosen UI language, or null to follow the system.
   static final ValueNotifier<Locale?> locale = ValueNotifier(null);
+
+  static final theme = ValueNotifier(AppTheme.system);
 
   /// First-run onboarding progress: 0 = choose data, 1 = security, 2 = done.
   /// Saved per step, so closing the app mid-way resumes where it stopped
@@ -60,6 +67,7 @@ class AppSettings {
     try {
       final code = await _prefs.getString(_localeKey);
       locale.value = AppLocalizations.supportedLocales.where((l) => l.languageCode == code).firstOrNull;
+      theme.value = AppTheme.values.asNameMap()[await _prefs.getString(_themeKey)] ?? AppTheme.system;
       onboardingStep = await _prefs.getInt(_onboardingKey) ?? 0;
       autoBackup.value = (
         dir: await _prefs.getString(_autoDirKey),
@@ -121,6 +129,11 @@ class AppSettings {
 
   static Future<void> _applyPrivateScreen() async {
     if (defaultTargetPlatform == TargetPlatform.android) await _window.invokeMethod('setSecure', privateScreen.value);
+  }
+
+  static Future<void> setTheme(AppTheme value) async {
+    theme.value = value;
+    await _prefs.setString(_themeKey, value.name);
   }
 
   static Future<void> setLocale(Locale? value) async {

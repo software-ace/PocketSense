@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:pocket_sense/data/local_store.dart';
+import 'package:pocket_sense/main.dart' show appTheme;
 import 'package:pocket_sense/screens/settings_screen.dart';
 import 'package:pocket_sense/settings/app_settings.dart';
 import 'package:pocket_sense/utils/format.dart';
@@ -18,6 +19,7 @@ void main() {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     FlutterSecureStorage.setMockInitialValues({});
     AppSettings.locale.value = null;
+    AppSettings.theme.value = AppTheme.system;
   });
 
   Future<void> openSettings(WidgetTester tester, {Locale locale = const Locale('en')}) async {
@@ -29,10 +31,32 @@ void main() {
   testWidgets('gear icon opens Settings, which lists Categories, Merchants and Language', (tester) async {
     await openSettings(tester);
     expect(find.widgetWithText(AppBar, 'Settings'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Language'), findsOneWidget);
+    expect(find.text('System default'), findsNWidgets(2), reason: 'language and theme');
+    await tester.scrollUntilVisible(find.widgetWithText(ListTile, 'Merchants'), 200);
     expect(find.widgetWithText(ListTile, 'Categories'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Merchants'), findsOneWidget);
-    expect(find.widgetWithText(ListTile, 'Language'), findsOneWidget);
-    expect(find.text('System default'), findsOneWidget);
+  });
+
+  testWidgets('choosing Black updates and persists the theme, which has a pure-black background', (tester) async {
+    await openSettings(tester);
+    await tester.tap(find.widgetWithText(ListTile, 'Theme'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Black (AMOLED)'));
+    await tester.pumpAndSettle();
+
+    expect(AppSettings.theme.value, AppTheme.black);
+    expect(find.widgetWithText(ListTile, 'Black (AMOLED)'), findsOneWidget, reason: 'shown under Theme');
+    AppSettings.theme.value = AppTheme.system;
+    await AppSettings.load();
+    expect(AppSettings.theme.value, AppTheme.black, reason: 'read back from storage');
+
+    final black = appTheme(Brightness.dark, black: true);
+    expect(black.scaffoldBackgroundColor, Colors.black);
+    expect(appTheme(Brightness.dark).scaffoldBackgroundColor, isNot(Colors.black));
+    // Dropdown menus paint with canvasColor; black would hide them.
+    expect(black.canvasColor, isNot(Colors.black));
+    expect(black.bottomNavigationBarTheme.backgroundColor, Colors.black);
   });
 
   testWidgets('choosing Arabic updates and persists the language', (tester) async {

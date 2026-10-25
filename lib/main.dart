@@ -24,15 +24,28 @@ Future<void> main() async {
   runApp(const PocketSenseApp());
 }
 
-ThemeData appTheme(Brightness brightness) => ThemeData(
-      brightness: brightness,
-      colorSchemeSeed: brightness == Brightness.light ? const Color(0xFF4F46E5) : const Color(0xFF818CF8),
-      useMaterial3: true,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      // Arabic glyphs come from the bundled font; Latin text keeps the
-      // platform font.
-      fontFamilyFallback: const ['NotoSansArabic'],
-    );
+ThemeData appTheme(Brightness brightness, {bool black = false}) {
+  final scheme = ColorScheme.fromSeed(
+    seedColor: brightness == Brightness.light ? const Color(0xFF4F46E5) : const Color(0xFF818CF8),
+    brightness: brightness,
+    // Only the background goes black; cards, sheets and dialogs keep their
+    // lifted surfaces so they still stand out against it.
+    surface: black ? Colors.black : null,
+  );
+  return ThemeData(
+    colorScheme: scheme,
+    // Dropdown menus paint with canvasColor, which is the background by
+    // default: on black they'd vanish into it, so they get the menu colour.
+    // The bottom bar paints with it too, and stays black.
+    canvasColor: black ? scheme.surfaceContainer : null,
+    bottomNavigationBarTheme: black ? BottomNavigationBarThemeData(backgroundColor: scheme.surface) : null,
+    useMaterial3: true,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    // Arabic glyphs come from the bundled font; Latin text keeps the
+    // platform font.
+    fontFamilyFallback: const ['NotoSansArabic'],
+  );
+}
 
 /// Bumped to start over from an empty database (after "erase all data"):
 /// Boot is keyed by it, so it opens again from scratch.
@@ -54,12 +67,12 @@ class PocketSenseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale?>(
-      valueListenable: AppSettings.locale,
-      builder: (context, locale, _) => MaterialApp(
+    return ListenableBuilder(
+      listenable: Listenable.merge([AppSettings.locale, AppSettings.theme]),
+      builder: (context, _) => MaterialApp(
         onGenerateTitle: (c) => c.l10n.appTitle,
         debugShowCheckedModeBanner: false,
-        locale: locale,
+        locale: AppSettings.locale.value,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -68,12 +81,17 @@ class PocketSenseApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         localeResolutionCallback: (device, _) {
-          final resolved = resolveAppLocale(locale, device);
+          final resolved = resolveAppLocale(AppSettings.locale.value, device);
           AppSettings.applyToIntl(resolved);
           return resolved;
         },
+        themeMode: switch (AppSettings.theme.value) {
+          AppTheme.system => ThemeMode.system,
+          AppTheme.light => ThemeMode.light,
+          AppTheme.dark || AppTheme.black => ThemeMode.dark,
+        },
         theme: appTheme(Brightness.light),
-        darkTheme: appTheme(Brightness.dark),
+        darkTheme: appTheme(Brightness.dark, black: AppSettings.theme.value == AppTheme.black),
         // Above the Navigator, so the lock covers every route and dialog.
         builder: (context, child) => LockGate(onEraseAll: _eraseAndRestart, child: child!),
         home: ValueListenableBuilder<int>(

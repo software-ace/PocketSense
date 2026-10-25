@@ -63,7 +63,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 **Fits the device**
 - **Layout:** a bottom tab bar on phones, and a side rail with wider layouts, including tables, on windows 900 px or wider.
-- **Light and dark:** follows the system theme.
+- **Light, dark and black:** follows the system theme, or **Settings → General → Theme** picks Light, Dark or Black (AMOLED), whose pure-black background leaves those pixels off.
 - **First run:** a short welcome lets you start fresh or import a backup, then offers to set a PIN (and fingerprint or face on Android). Both can be changed later in Settings.
 - **What's new:** the first time the app opens after an update, a short list of what changed since the version you last used, grouped into new features, enhancements, changes and fixes.
 - **About:** version, license, a link to the source code, and the licenses of everything bundled.
