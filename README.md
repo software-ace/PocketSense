@@ -98,6 +98,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - Import also reads older, unencrypted backup files. Every import is fully checked first, and a bad file or wrong password changes nothing.
   - Erasing all data also forgets the backup password and turns automatic backup off.
   - Android's own system backup is off, because a restored database can't be opened without its Keystore key.
+- **Found a security problem?** Please report it privately, not in an issue: see [SECURITY.md](SECURITY.md).
 
 ## Install
 
