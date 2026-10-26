@@ -17,9 +17,9 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 
 ![Further down Home: income vs spending over 6 months, this month against last, and spending by weekday](docs/screenshots/desktop-charts.png)
 
-| Home | Charts | Activity | New entry | Budgets | Recurring |
-|---|---|---|---|---|---|
-| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
+| Home | Charts | Loans | Activity | New entry | Budgets | Recurring |
+|---|---|---|---|---|---|---|
+| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Loans: what's owed to you and what you owe, per person](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_loans.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
 
 <details>
 <summary>More: sync, Arabic, and the desktop layout</summary>
@@ -28,11 +28,12 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 |---|---|
 | ![Sync settings with two paired devices](fastlane/metadata/android/en-US/images/phoneScreenshots/7_sync.png) | ![Pairing: both devices show the same 6-digit code](fastlane/metadata/android/en-US/images/phoneScreenshots/8_pair.png) |
 
-| الرئيسية | المخططات | الحركات | الميزانيات | الإعدادات |
-|---|---|---|---|---|
-| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
+| الرئيسية | المخططات | الديون | الحركات | الميزانيات | الإعدادات |
+|---|---|---|---|---|---|
+| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Loans in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_loans.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
 
 ![Home on the desktop, in Arabic](docs/screenshots/desktop-home-ar.png)
+![Loans on the desktop](docs/screenshots/desktop-loans.png)
 ![Activity on the desktop](docs/screenshots/desktop-activity.png)
 ![Budgets on the desktop](docs/screenshots/desktop-budgets.png)
 ![Recurring on the desktop](docs/screenshots/desktop-recurring.png)
@@ -151,7 +152,7 @@ flutter test
 
 ### Screenshots and demo data
 
-`docs/demo-backup.json` is an unencrypted backup with three months of made-up entries, budgets and recurring items (dated up to October 2026). `test/backup_test.dart` checks it still imports.
+`docs/demo-backup.json` is an unencrypted backup with almost four months of made-up entries, budgets, recurring items, merchants and loans (July 1 to October 26, 2026). `test/backup_test.dart` checks it still imports.
 
 `integration_test/take_screenshots.sh` retakes every screenshot from the real app, filled with that file:
 

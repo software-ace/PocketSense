@@ -6,6 +6,7 @@ import 'package:pocket_sense/data/backup.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/utils/format.dart';
 import 'package:pocket_sense/data/repo.dart';
+import 'package:pocket_sense/models/models.dart';
 
 void main() {
   late LocalStore store;
@@ -63,7 +64,9 @@ void main() {
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 13, merchants: 0, loans: 0, transactions: 180, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    expect(summary, (categories: 15, merchants: 37, loans: 4, transactions: 220, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    // Ahmad 70 and Lina 40 owe you; you owe Omar 125; Sara is settled.
+    expect(loanTotals(await repo.loans()), (owedToYou: 110000, youOwe: 125000));
   });
 
   test('import replaces what was there and notifies listeners', () async {
