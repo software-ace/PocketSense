@@ -1,7 +1,7 @@
 {
   "format": "pocketsense-backup",
-  "version": 1,
-  "exported_at": "2026-10-06T18:00:00.000Z",
+  "version": 2,
+  "exported_at": "2026-10-26T18:00:00.000Z",
   "currency": "JOD",
   "tables": {
     "categories": [
@@ -95,6 +95,241 @@
         "type": "income",
         "color": "#475569",
         "uid": "default:otherIncome"
+      },
+      {
+        "id": 14,
+        "name": "Loans Paid",
+        "type": "expense",
+        "color": "#d946ef",
+        "uid": "default:loansPaid"
+      },
+      {
+        "id": 15,
+        "name": "Loans Received",
+        "type": "income",
+        "color": "#65a30d",
+        "uid": "default:loansReceived"
+      }
+    ],
+    "merchants": [
+      {
+        "id": 1,
+        "name": "Abdali Mall",
+        "uid": "2f822d41ed2f79700489c1cd8044cc88"
+      },
+      {
+        "id": 2,
+        "name": "Aramex",
+        "uid": "7dba029631e0a5b5cf7a4d49ee5f2645"
+      },
+      {
+        "id": 3,
+        "name": "Auto Plus",
+        "uid": "9c0a0b0fde449b29d677661f93f122fc"
+      },
+      {
+        "id": 4,
+        "name": "British Council",
+        "uid": "8f0edd8f5a42d7dd5d765369fff2c0a4"
+      },
+      {
+        "id": 5,
+        "name": "Careem",
+        "uid": "97ece1750c4c6ce8dc86b6d8ac0da621"
+      },
+      {
+        "id": 6,
+        "name": "Carrefour",
+        "uid": "345e56527b8adde7b2a7cef77472f57d"
+      },
+      {
+        "id": 7,
+        "name": "City Mall",
+        "uid": "c1ec05d677f3e70851629477e74fad24"
+      },
+      {
+        "id": 8,
+        "name": "Cozmo",
+        "uid": "86b4a309dc21a7311ff076614d382320"
+      },
+      {
+        "id": 9,
+        "name": "Dawaa Pharmacy",
+        "uid": "f0fbbf9560ea8f46c24b6e32795a39a2"
+      },
+      {
+        "id": 10,
+        "name": "Fitness First",
+        "uid": "474f9a7f58f5842eb98538e3ddfc82ef"
+      },
+      {
+        "id": 11,
+        "name": "Fiverr",
+        "uid": "fec5b8b49fd2b49a6002125d4977362b"
+      },
+      {
+        "id": 12,
+        "name": "Galaxy Bowling",
+        "uid": "f3ce301afa716b24419d68b5830dc3d9"
+      },
+      {
+        "id": 13,
+        "name": "Habibah",
+        "uid": "84d029a5280bc03c23cda380d7b76d63"
+      },
+      {
+        "id": 14,
+        "name": "Hashem",
+        "uid": "779ea3df9280c76106f89e6cd115e0fd"
+      },
+      {
+        "id": 15,
+        "name": "JEPCO",
+        "uid": "84a77679fd4f54a41046a65d75849bb7"
+      },
+      {
+        "id": 16,
+        "name": "JoPetrol",
+        "uid": "301f33395a375b16114483b1be23e041"
+      },
+      {
+        "id": 17,
+        "name": "Jordan Insurance",
+        "uid": "3ee13f01680d702eb03442375a9426b1"
+      },
+      {
+        "id": 18,
+        "name": "Landlord",
+        "uid": "405cbd1451d010ac0e1360157eaedd4b"
+      },
+      {
+        "id": 19,
+        "name": "Mecca Mall",
+        "uid": "22707157e6bdc6e3bb40cae00cbf3357"
+      },
+      {
+        "id": 20,
+        "name": "Miyahuna",
+        "uid": "71706c8c3bec011e7b33a42d6f324c01"
+      },
+      {
+        "id": 21,
+        "name": "Netflix",
+        "uid": "06de303951d43f763dc1a00d633bbec4"
+      },
+      {
+        "id": 22,
+        "name": "Pharmacy 1",
+        "uid": "eb2c35a6d8133427a0bc0ac843d334c6"
+      },
+      {
+        "id": 23,
+        "name": "Reem",
+        "uid": "2443c699636fc21155032012d0e5a1ef"
+      },
+      {
+        "id": 24,
+        "name": "Royal Cultural Center",
+        "uid": "af04972f4b71ec8545d902530780450b"
+      },
+      {
+        "id": 25,
+        "name": "Safeway",
+        "uid": "38bd42026b492fce3f6ae05a237920a5"
+      },
+      {
+        "id": 26,
+        "name": "Sameh Mall",
+        "uid": "64a8d074dfadc0d33bf7dd9c16393a86"
+      },
+      {
+        "id": 27,
+        "name": "Shawerma Reem",
+        "uid": "36bc9a33e60b17bd2d1690a3a214acd2"
+      },
+      {
+        "id": 28,
+        "name": "Smile Clinic",
+        "uid": "cd6b352ad012a0aeb0fa65324072e93f"
+      },
+      {
+        "id": 29,
+        "name": "Spotify",
+        "uid": "47f9eeeff52db0527da694e173f2ed49"
+      },
+      {
+        "id": 30,
+        "name": "Starbucks",
+        "uid": "00605f56b18f922349a455e4be35632c"
+      },
+      {
+        "id": 31,
+        "name": "Sufra",
+        "uid": "2dc2477d0bfc83ac8bb5746af0330df6"
+      },
+      {
+        "id": 32,
+        "name": "Taj Cinemas",
+        "uid": "295f6b3b4eb5e40dc3bdd8de9fe01cbe"
+      },
+      {
+        "id": 33,
+        "name": "Taj Mall",
+        "uid": "5666ae05f7d203a3f638cf9342c29f6e"
+      },
+      {
+        "id": 34,
+        "name": "Total",
+        "uid": "73a6ca605510ef5ad693d5561edb74be"
+      },
+      {
+        "id": 35,
+        "name": "Uber",
+        "uid": "c207c58653fca9332f493c4eda2a5d78"
+      },
+      {
+        "id": 36,
+        "name": "Upwork",
+        "uid": "0de22d0c1fa143546bfc89da4004b1f5"
+      },
+      {
+        "id": 37,
+        "name": "Zain",
+        "uid": "0a7e1d874b6fe34188c0e6b540c5a2fa"
+      }
+    ],
+    "loans": [
+      {
+        "id": 1,
+        "direction": "borrowed",
+        "person": "Sara",
+        "due_date": null,
+        "note": null,
+        "uid": "280b53dfa115df362b7e94df26f47f85"
+      },
+      {
+        "id": 2,
+        "direction": "lent",
+        "person": "Ahmad",
+        "due_date": "2026-11-14",
+        "note": "Car repair",
+        "uid": "603eee409f8cf9da7828e31db1d0fcfe"
+      },
+      {
+        "id": 3,
+        "direction": "borrowed",
+        "person": "Omar",
+        "due_date": "2026-11-30",
+        "note": "New laptop",
+        "uid": "36df9eb2cd32e3007bb407fa3004f080"
+      },
+      {
+        "id": 4,
+        "direction": "lent",
+        "person": "Lina",
+        "due_date": "2026-10-22",
+        "note": null,
+        "uid": "f54d1452064d868e199a0c9911dd3381"
       }
     ],
     "transactions": [
@@ -2077,6 +2312,454 @@
         "created_at": "2026-10-06T15:11:00Z",
         "uid": "6eba35e07432f79d1fcc9634a43be368",
         "id": 180
+      },
+      {
+        "amount_fils": 22100,
+        "type": "expense",
+        "date": "2026-10-07",
+        "description": "Cinema",
+        "merchant": "Taj Cinemas",
+        "category_id": 6,
+        "created_at": "2026-10-07T05:42:00Z",
+        "uid": "4e61241dbd88fc4d2fc55168f353ff11",
+        "id": 181
+      },
+      {
+        "amount_fils": 13550,
+        "type": "expense",
+        "date": "2026-10-07",
+        "description": "Shawarma",
+        "merchant": "Shawerma Reem",
+        "category_id": 2,
+        "created_at": "2026-10-07T11:22:00Z",
+        "uid": "f3faf623bb2dfb8ac7ffb2c6f8452948",
+        "id": 182
+      },
+      {
+        "amount_fils": 26250,
+        "type": "expense",
+        "date": "2026-10-07",
+        "description": "Groceries",
+        "merchant": "Cozmo",
+        "category_id": 1,
+        "created_at": "2026-10-07T18:30:00Z",
+        "uid": "31853ef33d7670d3b33928265f55b603",
+        "id": 183
+      },
+      {
+        "amount_fils": 10650,
+        "type": "expense",
+        "date": "2026-10-09",
+        "description": "Shawarma",
+        "merchant": "Shawerma Reem",
+        "category_id": 2,
+        "created_at": "2026-10-09T05:00:00Z",
+        "uid": "38f4daad5b240bc4a3edf4485da1b3fc",
+        "id": 184
+      },
+      {
+        "amount_fils": 25050,
+        "type": "expense",
+        "date": "2026-10-09",
+        "description": "Ride to work",
+        "merchant": "Uber",
+        "category_id": 3,
+        "created_at": "2026-10-09T17:30:00Z",
+        "uid": "7dd80a8c575d6b9c2cdff14fe24040bc",
+        "id": 185
+      },
+      {
+        "amount_fils": 67500,
+        "type": "expense",
+        "date": "2026-10-10",
+        "description": "Wedding gift",
+        "merchant": "Mecca Mall",
+        "category_id": 7,
+        "created_at": "2026-10-10T15:50:00Z",
+        "uid": "e0d16a0c27e6d61b262c9c77927f600c",
+        "id": 186
+      },
+      {
+        "amount_fils": 7850,
+        "type": "expense",
+        "date": "2026-10-10",
+        "description": "Taxi",
+        "merchant": "Careem",
+        "category_id": 3,
+        "created_at": "2026-10-10T16:20:00Z",
+        "uid": "4fccf5c41c000a423aceb78308219a87",
+        "id": 187
+      },
+      {
+        "amount_fils": 13800,
+        "type": "expense",
+        "date": "2026-10-11",
+        "description": "Knafeh",
+        "merchant": "Habibah",
+        "category_id": 2,
+        "created_at": "2026-10-11T17:58:00Z",
+        "uid": "ac7016ca8afeb424fce3a3e7baeee7f1",
+        "id": 188
+      },
+      {
+        "amount_fils": 37600,
+        "type": "expense",
+        "date": "2026-10-12",
+        "description": "Electricity bill",
+        "merchant": "JEPCO",
+        "category_id": 5,
+        "created_at": "2026-10-12T07:50:00Z",
+        "uid": "5282991f6aa7696f10256b0aaa31c851",
+        "id": 189
+      },
+      {
+        "amount_fils": 14500,
+        "type": "expense",
+        "date": "2026-10-12",
+        "description": "Ride to work",
+        "merchant": "Uber",
+        "category_id": 3,
+        "created_at": "2026-10-12T10:23:00Z",
+        "uid": "228b73e63badf01ed71dcfe3acc7b778",
+        "id": 190
+      },
+      {
+        "amount_fils": 2990,
+        "type": "expense",
+        "date": "2026-10-12",
+        "description": "Spotify",
+        "merchant": "Spotify",
+        "category_id": 9,
+        "created_at": "2026-10-12T13:03:00Z",
+        "uid": "42cb81af48be05eb26d9d36d975b62b0",
+        "id": 191
+      },
+      {
+        "amount_fils": 17700,
+        "type": "expense",
+        "date": "2026-10-12",
+        "description": "Fruit and vegetables",
+        "merchant": "Safeway",
+        "category_id": 1,
+        "created_at": "2026-10-12T18:29:00Z",
+        "uid": "e476822e662fe69946ce7231940a0409",
+        "id": 192
+      },
+      {
+        "amount_fils": 10200,
+        "type": "expense",
+        "date": "2026-10-14",
+        "description": "Knafeh",
+        "merchant": "Habibah",
+        "category_id": 2,
+        "created_at": "2026-10-14T11:23:00Z",
+        "uid": "3a1a15f5e80a31007a61bbc2e7c1b6eb",
+        "id": 193
+      },
+      {
+        "amount_fils": 32950,
+        "type": "expense",
+        "date": "2026-10-15",
+        "description": "Fruit and vegetables",
+        "merchant": "Safeway",
+        "category_id": 1,
+        "created_at": "2026-10-15T09:40:00Z",
+        "uid": "eff3e171bfeff3481bae3a5685a17710",
+        "id": 194
+      },
+      {
+        "amount_fils": 32200,
+        "type": "expense",
+        "date": "2026-10-16",
+        "description": "Bread and milk",
+        "merchant": "Sameh Mall",
+        "category_id": 1,
+        "created_at": "2026-10-16T11:32:00Z",
+        "uid": "ff7729dcc25a37332c3d7cef0b74e7f2",
+        "id": 195
+      },
+      {
+        "amount_fils": 15650,
+        "type": "expense",
+        "date": "2026-10-16",
+        "description": "Jacket",
+        "merchant": "City Mall",
+        "category_id": 7,
+        "created_at": "2026-10-16T14:22:00Z",
+        "uid": "96b19135939d03bd7ee284b811197539",
+        "id": 196
+      },
+      {
+        "amount_fils": 8050,
+        "type": "expense",
+        "date": "2026-10-17",
+        "description": "Dinner with friends",
+        "merchant": "Sufra",
+        "category_id": 2,
+        "created_at": "2026-10-17T07:28:00Z",
+        "uid": "89e2609a834d56c0dad56458ca5435fe",
+        "id": 197
+      },
+      {
+        "amount_fils": 10000,
+        "type": "expense",
+        "date": "2026-10-17",
+        "description": "Groceries",
+        "merchant": "Cozmo",
+        "category_id": 1,
+        "created_at": "2026-10-17T10:39:00Z",
+        "uid": "0200a5c7b235d902fabbf52aa8602d93",
+        "id": 198
+      },
+      {
+        "amount_fils": 6800,
+        "type": "expense",
+        "date": "2026-10-18",
+        "description": "Bowling",
+        "merchant": "Galaxy Bowling",
+        "category_id": 6,
+        "created_at": "2026-10-18T05:25:00Z",
+        "uid": "c2a27a3bd796f2569db0e65ebdc0ec00",
+        "id": 199
+      },
+      {
+        "amount_fils": 31450,
+        "type": "expense",
+        "date": "2026-10-18",
+        "description": "Fruit and vegetables",
+        "merchant": "Safeway",
+        "category_id": 1,
+        "created_at": "2026-10-18T14:41:00Z",
+        "uid": "7de1a57d149a879ea31cca13bfd2b903",
+        "id": 200
+      },
+      {
+        "amount_fils": 33950,
+        "type": "expense",
+        "date": "2026-10-19",
+        "description": "Groceries",
+        "merchant": "Cozmo",
+        "category_id": 1,
+        "created_at": "2026-10-19T07:26:00Z",
+        "uid": "bbd0fec2836e959f04cc9d75973a2bbe",
+        "id": 201
+      },
+      {
+        "amount_fils": 10300,
+        "type": "expense",
+        "date": "2026-10-20",
+        "description": "Water bill",
+        "merchant": "Miyahuna",
+        "category_id": 5,
+        "created_at": "2026-10-20T09:14:00Z",
+        "uid": "1959711cb659ec1c9863921dba515f08",
+        "id": 202
+      },
+      {
+        "amount_fils": 5700,
+        "type": "expense",
+        "date": "2026-10-20",
+        "description": "Bread and milk",
+        "merchant": "Sameh Mall",
+        "category_id": 1,
+        "created_at": "2026-10-20T16:34:00Z",
+        "uid": "620b7b968f094a4834b57d8091d21754",
+        "id": 203
+      },
+      {
+        "amount_fils": 21100,
+        "type": "expense",
+        "date": "2026-10-21",
+        "description": "Concert ticket",
+        "merchant": "Royal Cultural Center",
+        "category_id": 6,
+        "created_at": "2026-10-21T15:27:00Z",
+        "uid": "3ce053046c7f325cbc1b90763ef6f7fa",
+        "id": 204
+      },
+      {
+        "amount_fils": 11200,
+        "type": "expense",
+        "date": "2026-10-22",
+        "description": "Fuel",
+        "merchant": "JoPetrol",
+        "category_id": 3,
+        "created_at": "2026-10-22T08:56:00Z",
+        "uid": "bcf25f1a2d31f47b594d4309d7a808e0",
+        "id": 205
+      },
+      {
+        "amount_fils": 13850,
+        "type": "expense",
+        "date": "2026-10-22",
+        "description": "Weekly shop",
+        "merchant": "Carrefour",
+        "category_id": 1,
+        "created_at": "2026-10-22T13:00:00Z",
+        "uid": "6a0d1c91eab8499135cbee05210cd925",
+        "id": 206
+      },
+      {
+        "amount_fils": 4450,
+        "type": "expense",
+        "date": "2026-10-23",
+        "description": "Vitamins",
+        "merchant": "Dawaa Pharmacy",
+        "category_id": 8,
+        "created_at": "2026-10-23T16:14:00Z",
+        "uid": "f63cbd04bc12031a548458d1e95f34ba",
+        "id": 207
+      },
+      {
+        "amount_fils": 19250,
+        "type": "expense",
+        "date": "2026-10-24",
+        "description": "Shawarma",
+        "merchant": "Shawerma Reem",
+        "category_id": 2,
+        "created_at": "2026-10-24T10:09:00Z",
+        "uid": "cf1f470dc8c0d568bd7c769b284cd183",
+        "id": 208
+      },
+      {
+        "amount_fils": 34000,
+        "type": "expense",
+        "date": "2026-10-24",
+        "description": "Weekly shop",
+        "merchant": "Carrefour",
+        "category_id": 1,
+        "created_at": "2026-10-24T14:58:00Z",
+        "uid": "9b7673ce152379c40904812ac317b679",
+        "id": 209
+      },
+      {
+        "amount_fils": 4400,
+        "type": "expense",
+        "date": "2026-10-24",
+        "description": "Taxi",
+        "merchant": "Careem",
+        "category_id": 3,
+        "created_at": "2026-10-24T16:02:00Z",
+        "uid": "4581f1706a432812afa790fdedb30c44",
+        "id": 210
+      },
+      {
+        "amount_fils": 9400,
+        "type": "expense",
+        "date": "2026-10-25",
+        "description": "Lunch",
+        "merchant": "Reem",
+        "category_id": 2,
+        "created_at": "2026-10-25T08:13:00Z",
+        "uid": "52787a283b7c61302fdcaef10e6e9693",
+        "id": 211
+      },
+      {
+        "amount_fils": 2250,
+        "type": "expense",
+        "date": "2026-10-26",
+        "description": "Coffee",
+        "merchant": "Starbucks",
+        "category_id": 2,
+        "created_at": "2026-10-26T05:35:00Z",
+        "uid": "38256a7e331f4e62653ddc4aee1c58a3",
+        "id": 212
+      },
+      {
+        "amount_fils": 60000,
+        "type": "income",
+        "date": "2026-08-20",
+        "description": "Payment from Sara",
+        "merchant": null,
+        "category_id": 15,
+        "created_at": "2026-08-20T17:10:00Z",
+        "uid": "ab54b8f45e54f74ad916235a26ddcaae",
+        "id": 213,
+        "loan_id": 1
+      },
+      {
+        "amount_fils": 60000,
+        "type": "expense",
+        "date": "2026-09-05",
+        "description": "Payment for Sara",
+        "merchant": null,
+        "category_id": 14,
+        "created_at": "2026-09-05T18:02:00Z",
+        "uid": "fec47842c261deb523ee59841ebfdd4f",
+        "id": 214,
+        "loan_id": 1
+      },
+      {
+        "amount_fils": 150000,
+        "type": "expense",
+        "date": "2026-09-14",
+        "description": "Payment for Ahmad",
+        "merchant": null,
+        "category_id": 14,
+        "created_at": "2026-09-14T16:40:00Z",
+        "uid": "73cad47e1ebac3f635bb2eefca179c12",
+        "id": 215,
+        "loan_id": 2
+      },
+      {
+        "amount_fils": 50000,
+        "type": "income",
+        "date": "2026-10-01",
+        "description": "Payment from Ahmad",
+        "merchant": null,
+        "category_id": 15,
+        "created_at": "2026-10-01T14:05:00Z",
+        "uid": "2b7b5e97e981aa15ca2c3b8c2387796d",
+        "id": 216,
+        "loan_id": 2
+      },
+      {
+        "amount_fils": 30000,
+        "type": "income",
+        "date": "2026-10-18",
+        "description": "Payment from Ahmad",
+        "merchant": null,
+        "category_id": 15,
+        "created_at": "2026-10-18T12:30:00Z",
+        "uid": "d037c60fd5337f9819bebf13ab02d027",
+        "id": 217,
+        "loan_id": 2
+      },
+      {
+        "amount_fils": 200000,
+        "type": "income",
+        "date": "2026-10-03",
+        "description": "Payment from Omar",
+        "merchant": null,
+        "category_id": 15,
+        "created_at": "2026-10-03T10:20:00Z",
+        "uid": "16f0dc3f11c3b61d5d5e21245d261f3c",
+        "id": 218,
+        "loan_id": 3
+      },
+      {
+        "amount_fils": 75000,
+        "type": "expense",
+        "date": "2026-10-25",
+        "description": "Payment for Omar",
+        "merchant": null,
+        "category_id": 14,
+        "created_at": "2026-10-25T15:45:00Z",
+        "uid": "c65e50f7d896dfe51b4608db2b34d709",
+        "id": 219,
+        "loan_id": 3
+      },
+      {
+        "amount_fils": 40000,
+        "type": "expense",
+        "date": "2026-10-12",
+        "description": "Payment for Lina",
+        "merchant": null,
+        "category_id": 14,
+        "created_at": "2026-10-12T19:15:00Z",
+        "uid": "a1065f1987059c81d012e28717450a62",
+        "id": 220,
+        "loan_id": 4
       }
     ],
     "budgets": [

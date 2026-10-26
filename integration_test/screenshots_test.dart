@@ -17,6 +17,7 @@ import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/l10n/l10n.dart';
 import 'package:pocket_sense/main.dart' show appTheme;
 import 'package:pocket_sense/screens/dashboard_screen.dart';
+import 'package:pocket_sense/screens/loans_screen.dart';
 import 'package:pocket_sense/screens/sync_screen.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
 import 'package:pocket_sense/security/app_lock.dart';
@@ -83,6 +84,14 @@ void main() {
 
   Future<void> scrollToTop(WidgetTester tester) async {
     tester.state<ScrollableState>(find.byType(Scrollable).first).position.jumpTo(0);
+    await tester.pumpAndSettle();
+  }
+
+  // Loans, opened from its card on Home as a person would.
+  Future<void> loansShot(WidgetTester tester, String path) async {
+    await tester.tap(find.descendant(of: find.byType(DashboardScreen), matching: find.byIcon(Icons.handshake_outlined)));
+    await shot(tester, path);
+    Navigator.of(tester.element(find.byType(LoansScreen))).pop();
     await tester.pumpAndSettle();
   }
 
@@ -177,6 +186,7 @@ void main() {
         await scrollToTrends(tester);
         await shot(tester, '$dir/1_home_charts.png');
         await scrollToTop(tester);
+        await loansShot(tester, '$dir/1_home_loans.png');
         await tab(tester, (l) => l.navActivity);
         await shot(tester, '$dir/2_activity.png');
         await tester.tap(find.descendant(of: find.byType(TransactionsScreen), matching: find.byIcon(Icons.add)).first);
@@ -200,6 +210,7 @@ void main() {
       await scrollToTrends(tester);
       await shot(tester, '$dir/desktop-charts.png');
       await scrollToTop(tester);
+      await loansShot(tester, '$dir/desktop-loans.png');
       await tab(tester, (l) => l.navActivity);
       await shot(tester, '$dir/desktop-activity.png');
       await tab(tester, (l) => l.navBudgets);
