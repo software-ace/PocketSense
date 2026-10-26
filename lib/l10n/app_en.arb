@@ -107,6 +107,8 @@
   "catSalary": "Salary",
   "catFreelance": "Freelance",
   "catOtherIncome": "Other Income",
+  "catLoansPaid": "Loans Paid",
+  "catLoansReceived": "Loans Received",
   "statIncomeMonth": "Income (mo)",
   "statSpentMonth": "Spent (mo)",
   "statNetMonth": "Net (mo)",
@@ -737,6 +739,166 @@
   "@syncStartFailed": {
     "placeholders": {
       "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "loans": "Loans",
+  "owedToYou": "Owed to you",
+  "youOwe": "You owe",
+  "owesYou": "Owes you",
+  "loanEven": "Even",
+  "loansUnsettled": "Unsettled",
+  "loansSettled": "Settled",
+  "newLoan": "New loan",
+  "editLoan": "Edit loan",
+  "loanTitle": "Loan",
+  "iLent": "I lent",
+  "iBorrowed": "I borrowed",
+  "loanPerson": "Person",
+  "enterPerson": "Enter a name",
+  "dueDateOptional": "Due date (optional)",
+  "clearDueDate": "Clear due date",
+  "dueOn": "Due {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "overdueSince": "Overdue · due {date}",
+  "@overdueSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "lentOn": "You lent · {date}",
+  "@lentOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "borrowedOn": "You borrowed · {date}",
+  "@borrowedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "youLentPerson": "You lent {name}",
+  "@youLentPerson": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "youBorrowedFrom": "You borrowed from {name}",
+  "@youBorrowedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "amountRepaid": "{amount} repaid",
+  "@amountRepaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountLeft": "{amount} left",
+  "@amountLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "repayments": "Repayments",
+  "noRepaymentsYet": "No repayments yet",
+  "recordRepayment": "Record repayment",
+  "settleLoan": "Settle",
+  "settleLoanTitle": "Settle this loan?",
+  "settleLentBody": "This records that {person} paid back the remaining {amount} today, adds it to Activity, and closes the loan.",
+  "@settleLentBody": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "settleBorrowedBody": "This records that you paid {person} the remaining {amount} today, adds it to Activity, and closes the loan.",
+  "@settleBorrowedBody": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "repayUpTo": "Up to {amount}",
+  "@repayUpTo": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountAtMost": "At most {amount}, what's left",
+  "@amountAtMost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountAtLeastRepaid": "At least {amount}, already repaid",
+  "@amountAtLeastRepaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteLoanTitle": "Delete this loan?",
+  "deleteLoanBody": "{count, plural, =0{It has no entries in Activity.} =1{Its entry in Activity is deleted too.} other{Its {count} entries in Activity are deleted too.}}",
+  "@deleteLoanBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noLoansYet": "No loans yet",
+  "noLoansHint": "Money you lend or borrow shows here, with what's still owed.",
+  "noSettledLoans": "No settled loans",
+  "noOpenLoans": "Nothing is owed either way",
+  "loanPaymentFor": "Payment for {person}",
+  "@loanPaymentFor": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "loanPaymentFrom": "Payment from {person}",
+  "@loanPaymentFrom": {
+    "placeholders": {
+      "person": {
         "type": "String"
       }
     }

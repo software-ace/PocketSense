@@ -52,7 +52,8 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - On Linux it runs an offline model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), about 45 MB, downloaded once on first use).
 - **Budgets:** a weekly (Monday to Sunday) or monthly limit per expense category, with progress, what's left, and a warning when you go over.
 - **Recurring:** bills, subscriptions and salary, repeating weekly, every two weeks, monthly, quarterly or yearly from a first due date. Each shows when it's next due. **Post as transaction** records it in one tap, and an item can be paused instead of deleted.
-- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 14 common ones (groceries, dining out, coffee, rent, salary…). Deleting a category keeps its entries, uncategorized, and removes its budget.
+- **Loans:** money you lent or borrowed, per person. Lending, borrowing and each repayment are ordinary entries (*Payment for Ahmad*, *Payment from Ahmad*) in the **Loans Paid** and **Loans Received** categories, so your totals follow the cash. The **Loans** card on Home, under the four totals, shows what's owed to you and what you owe. Each loan shows what's left, with partial repayments, a due date that turns red when it's passed, and **Settle** to close it. Editing an entry in Activity updates its loan; deleting a loan deletes its entries.
+- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 16 common ones (groceries, dining out, coffee, rent, salary, loans paid and received…). Deleting a category keeps its entries, uncategorized, and removes its budget.
 - **Merchants:** **Settings → Merchants** adds, renames and deletes the places you pay or get paid by. In the transaction and recurring forms, the merchant field searches them as you type and offers to create one it doesn't find. Renaming a merchant updates past entries too; deleting one leaves them as they are.
 
 **Made for Jordan, in two languages**
@@ -84,7 +85,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **No internet:** no account, no servers, no analytics, no update checks. The app makes no network connections at all unless you turn on sync, which only talks to your own devices on the local network. On Linux it also downloads the voice model once, when you first use voice entry. Android requires the internet permission for any network use, even local, so the app requests it.
   - On Android, voice entry uses the phone's own speech recognizer. Depending on the phone, that recognizer may go online; that's the recognizer app's traffic, not Pocket Sense's.
 - **Sync:** only while it's on and the app is open does the app listen for other devices, on port 47823 (TCP and UDP). It talks only to private network addresses (192.168.x.x, 10.x.x.x and similar).
-  - **Your data is end-to-end encrypted.** Each device has its own X25519 key in the Android Keystore or your keyring, and two paired devices derive a shared key from theirs (HKDF-SHA256). Every entry, category, budget and recurring item they exchange is encrypted and authenticated with AES-256-GCM. Each message is bound to its sender, receiver and request, so it can't be replayed elsewhere.
+  - **Your data is end-to-end encrypted.** Each device has its own X25519 key in the Android Keystore or your keyring, and two paired devices derive a shared key from theirs (HKDF-SHA256). Every entry, category, budget, recurring item and loan they exchange is encrypted and authenticated with AES-256-GCM. Each message is bound to its sender, receiver and request, so it can't be replayed elsewhere.
   - A device you haven't paired gets no data. It can only ask to pair while you have **Pair a device** open, and you then approve it by comparing codes.
   - **What others on your Wi-Fi can see:** discovery announcements (UDP multicast to 224.0.0.167) are unencrypted. They carry the app's name, a device ID (a hash of its public key) and, only while **Pair a device** is open, the device's name. Sync messages travel over plain HTTP with encrypted bodies, so the devices' addresses, the timing and size of messages, and the sender's device ID are visible, but never their contents.
   - **Pairing** exchanges public keys in the open and has both screens show a 6-digit code, the way Bluetooth pairing does. Checking the codes match is what stops a device in the middle from passing itself off as yours: it would have a one-in-a-million chance of getting the same code on both.
@@ -176,7 +177,7 @@ lib/
   l10n/        English and Arabic strings (ARB) and the generated code
   voice/       speech engines: Android recognizer, Linux offline model
   models/      row models and the starter categories
-  screens/     Home, Activity, Budgets, Recurring, Categories, Settings, Sync
+  screens/     Home, Activity, Budgets, Recurring, Loans, Categories, Settings, Sync
   utils/       money and date formatting, recurring dates, voice parsing
   widgets/     shared widgets: amount field, empty/error states, voice sheet
 linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script

@@ -124,6 +124,7 @@ class FinanceRepo {
     DateTime? from,
     DateTime? to,
     String? q,
+    int? loanId,
     int limit = 200,
   }) async {
     final store = await _db;
@@ -144,6 +145,10 @@ class FinanceRepo {
     if (q != null && q.isNotEmpty) {
       where.add('(description LIKE ? OR merchant LIKE ?)');
       args.addAll(['%$q%', '%$q%']);
+    }
+    if (loanId != null) {
+      where.add('loan_id = ?');
+      args.add(loanId);
     }
     final w = where.isEmpty ? null : where.join(' AND ');
     final rows = await store.selectRows('transactions', where: w, whereArgs: args);
@@ -335,6 +340,133 @@ class FinanceRepo {
         merchant: (r.merchant?.isEmpty ?? true) ? null : r.merchant,
         categoryId: r.categoryId,
       );
+
+  // ── Loans ────────────────────────────────────────────────────────────
+
+  // Which of a loan's entries is what was lent or borrowed (the rest repay it).
+  static const _principalType = "CASE l.direction WHEN 'lent' THEN 'expense' ELSE 'income' END";
+
+  /// Every loan, with its amounts summed from its entries, newest first.
+  Future<List<Loan>> loans() async {
+    final store = await _db;
+    final rows = await store.db.rawQuery('''
+      SELECT l.id, l.direction, l.person, l.due_date, l.note,
+        coalesce(sum(CASE WHEN t.type = $_principalType THEN t.amount_fils END), 0) AS amount_fils,
+        coalesce(sum(CASE WHEN t.type != $_principalType THEN t.amount_fils END), 0) AS repaid_fils,
+        min(CASE WHEN t.type = $_principalType THEN t.date END) AS date
+      FROM loans l LEFT JOIN transactions t ON t.loan_id = l.id
+      GROUP BY l.id
+      ORDER BY date DESC, l.id DESC
+    ''');
+    return rows.map(Loan.fromMap).toList();
+  }
+
+  Future<Loan?> loan(int id) async => (await loans()).where((l) => l.id == id).firstOrNull;
+
+  /// The starter category loan entries of [type] go in; null if deleted.
+  Future<int?> _loanCategoryId(String type) async {
+    final key = LocalStore.loanCategoryKeys[type == 'expense' ? 0 : 1];
+    return (await (await _db).selectRows('categories', where: 'uid = ?', whereArgs: ['default:$key'])).firstOrNull?['id'] as int?;
+  }
+
+  Map<String, Object?> _loanEntry(int loanId, String type, int amountFils, DateTime date, String description, int? categoryId) => {
+        'amount_fils': amountFils,
+        'type': type,
+        'date': _isoDate(date),
+        'description': description,
+        'category_id': categoryId,
+        'loan_id': loanId,
+        'created_at': LocalStore.nowIso(),
+      };
+
+  /// Records a loan and the entry that moves its money: an expense for one
+  /// you lent, an income for one you borrowed. [description] comes from the
+  /// UI, in its language ("Payment for Ahmad").
+  Future<int> insertLoan({
+    required String direction,
+    required String person,
+    required int amountFils,
+    required DateTime date,
+    DateTime? dueDate,
+    String? note,
+    required String description,
+  }) async {
+    final store = await _db;
+    final type = direction == 'lent' ? 'expense' : 'income';
+    final categoryId = await _loanCategoryId(type);
+    return store.write((txn) async {
+      final id = await store.insertIn(txn, 'loans', {
+        'direction': direction,
+        'person': person.trim(),
+        'due_date': dueDate == null ? null : _isoDate(dueDate),
+        'note': note,
+      });
+      await store.insertIn(txn, 'transactions', _loanEntry(id, type, amountFils, date, description, categoryId));
+      return id;
+    });
+  }
+
+  /// Records a repayment: [amountFils] up to what's left, or all of it
+  /// (settling the loan) when null. [description] as for [insertLoan].
+  Future<void> recordRepayment(int loanId, {int? amountFils, required DateTime date, required String description}) async {
+    final loan = await this.loan(loanId) ?? (throw StateError('No loan $loanId'));
+    final fils = amountFils ?? loan.remainingFils;
+    if (fils <= 0 || fils > loan.remainingFils) throw ArgumentError('A repayment must be more than 0 and at most ${loan.remainingFils}');
+    final categoryId = await _loanCategoryId(loan.repaymentType);
+    await (await _db).insertRow('transactions', _loanEntry(loanId, loan.repaymentType, fils, date, description, categoryId));
+  }
+
+  /// Edits a loan. [amountFils] and [date] change its lending or borrowing
+  /// entry, and the amount can't go below what was already repaid. Entries
+  /// still described as [describe] made them follow a new name; ones the
+  /// user reworded are left alone.
+  Future<void> updateLoan(
+    int id, {
+    required String person,
+    required int amountFils,
+    required DateTime date,
+    DateTime? dueDate,
+    String? note,
+    required String Function(String type, String person) describe,
+  }) async {
+    final store = await _db;
+    final loan = await this.loan(id) ?? (throw StateError('No loan $id'));
+    if (amountFils < loan.repaidFils) throw ArgumentError('Less than the ${loan.repaidFils} already repaid');
+    final name = person.trim();
+    final entries = await transactions(loanId: id, limit: 1 << 30);
+    // The first is "the" entry; any other (made one in Activity) stays as it is.
+    final principals = entries.where((t) => t.type == loan.principalType).toList()..sort((a, b) => a.date.compareTo(b.date));
+    final rest = principals.skip(1).fold(0, (sum, t) => sum + t.amountFils);
+    if (amountFils - rest <= 0) throw ArgumentError('The other entries already make ${loan.amountFils}');
+    final categoryId = principals.isEmpty ? await _loanCategoryId(loan.principalType) : null;
+    await store.write((txn) async {
+      await store.updateIn(txn, 'loans', id, {'person': name, 'due_date': dueDate == null ? null : _isoDate(dueDate), 'note': note});
+      for (final t in entries) {
+        final values = <String, Object?>{
+          if (name != loan.person && t.description == describe(t.type, loan.person)) 'description': describe(t.type, name),
+          if (t == principals.firstOrNull) ...{'amount_fils': amountFils - rest, 'date': _isoDate(date)},
+        };
+        if (values.isNotEmpty) await store.updateIn(txn, 'transactions', t.id, values);
+      }
+      // Its entry was deleted in Activity: the edit puts one back.
+      if (principals.isEmpty) {
+        await store.insertIn(txn, 'transactions', _loanEntry(id, loan.principalType, amountFils, date, describe(loan.principalType, name), categoryId));
+      }
+    });
+  }
+
+  /// Deletes a loan and every entry it made. Returns how many entries went.
+  Future<int> deleteLoan(int id) async {
+    final store = await _db;
+    return store.write((txn) async {
+      final entries = await txn.query('transactions', columns: ['id'], where: 'loan_id = ?', whereArgs: [id]);
+      for (final e in entries) {
+        await store.deleteIn(txn, 'transactions', e['id'] as int);
+      }
+      await store.deleteIn(txn, 'loans', id);
+      return entries.length;
+    });
+  }
 
   // ── Aggregates (computed over local rows) ────────────────────────────
 

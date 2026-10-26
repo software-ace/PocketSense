@@ -219,6 +219,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get catOtherIncome => 'دخل آخر';
 
   @override
+  String get catLoansPaid => 'ديون مدفوعة';
+
+  @override
+  String get catLoansReceived => 'ديون مقبوضة';
+
+  @override
   String get statIncomeMonth => 'الدخل (الشهر)';
 
   @override
@@ -1261,5 +1267,173 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String syncStartFailed(String detail) {
     return 'تعذّر بدء المزامنة: $detail';
+  }
+
+  @override
+  String get loans => 'الديون';
+
+  @override
+  String get owedToYou => 'مستحق لك';
+
+  @override
+  String get youOwe => 'عليك';
+
+  @override
+  String get owesYou => 'مدين لك';
+
+  @override
+  String get loanEven => 'متعادلان';
+
+  @override
+  String get loansUnsettled => 'غير مسدَّدة';
+
+  @override
+  String get loansSettled => 'مسدَّدة';
+
+  @override
+  String get newLoan => 'دين جديد';
+
+  @override
+  String get editLoan => 'تعديل الدين';
+
+  @override
+  String get loanTitle => 'الدين';
+
+  @override
+  String get iLent => 'أقرضت';
+
+  @override
+  String get iBorrowed => 'اقترضت';
+
+  @override
+  String get loanPerson => 'الشخص';
+
+  @override
+  String get enterPerson => 'أدخل اسمًا';
+
+  @override
+  String get dueDateOptional => 'تاريخ الاستحقاق (اختياري)';
+
+  @override
+  String get clearDueDate => 'إزالة تاريخ الاستحقاق';
+
+  @override
+  String dueOn(String date) {
+    return 'يستحق في $date';
+  }
+
+  @override
+  String overdueSince(String date) {
+    return 'متأخر · كان مستحقًا في $date';
+  }
+
+  @override
+  String lentOn(String date) {
+    return 'أقرضت · $date';
+  }
+
+  @override
+  String borrowedOn(String date) {
+    return 'اقترضت · $date';
+  }
+
+  @override
+  String youLentPerson(String name) {
+    return 'أقرضت $name';
+  }
+
+  @override
+  String youBorrowedFrom(String name) {
+    return 'اقترضت من $name';
+  }
+
+  @override
+  String amountRepaid(String amount) {
+    return 'سُدِّد $amount';
+  }
+
+  @override
+  String amountLeft(String amount) {
+    return 'المتبقي $amount';
+  }
+
+  @override
+  String get repayments => 'الدفعات';
+
+  @override
+  String get noRepaymentsYet => 'لا دفعات بعد';
+
+  @override
+  String get recordRepayment => 'تسجيل دفعة';
+
+  @override
+  String get settleLoan => 'تسوية';
+
+  @override
+  String get settleLoanTitle => 'تسوية هذا الدين؟';
+
+  @override
+  String settleLentBody(String person, String amount) {
+    return 'سيُسجَّل أن $person سدّد المتبقي $amount اليوم، ويُضاف ذلك إلى الحركات، ويُغلق الدين.';
+  }
+
+  @override
+  String settleBorrowedBody(String person, String amount) {
+    return 'سيُسجَّل أنك دفعت إلى $person المتبقي $amount اليوم، ويُضاف ذلك إلى الحركات، ويُغلق الدين.';
+  }
+
+  @override
+  String repayUpTo(String amount) {
+    return 'حتى $amount';
+  }
+
+  @override
+  String amountAtMost(String amount) {
+    return '$amount على الأكثر، وهو المتبقي';
+  }
+
+  @override
+  String amountAtLeastRepaid(String amount) {
+    return '$amount على الأقل، فهذا ما سُدِّد';
+  }
+
+  @override
+  String get deleteLoanTitle => 'حذف هذا الدين؟';
+
+  @override
+  String deleteLoanBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يُحذف $count قيد له في الحركات أيضًا.',
+      many: 'يُحذف $count قيدًا له في الحركات أيضًا.',
+      few: 'تُحذف قيوده الـ$count في الحركات أيضًا.',
+      two: 'يُحذف قيداه في الحركات أيضًا.',
+      one: 'يُحذف قيده في الحركات أيضًا.',
+      zero: 'ليس له قيود في الحركات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noLoansYet => 'لا ديون بعد';
+
+  @override
+  String get noLoansHint => 'يظهر هنا ما تقرضه أو تقترضه، وما بقي منه.';
+
+  @override
+  String get noSettledLoans => 'لا ديون مسدَّدة';
+
+  @override
+  String get noOpenLoans => 'لا شيء مستحق لك أو عليك';
+
+  @override
+  String loanPaymentFor(String person) {
+    return 'دفعة إلى $person';
+  }
+
+  @override
+  String loanPaymentFrom(String person) {
+    return 'دفعة من $person';
   }
 }

@@ -24,7 +24,7 @@ class BackupException implements Exception {
 }
 
 /// [currency]: the backup's, which the imported amounts are in.
-typedef ImportSummary = ({int categories, int merchants, int transactions, int budgets, int recurring, Currency currency});
+typedef ImportSummary = ({int categories, int merchants, int loans, int transactions, int budgets, int recurring, Currency currency});
 
 /// JSON backup of everything in the database. [export] gives the plain JSON;
 /// [encrypt] wraps it for writing to a file, and [import] reads either.
@@ -97,22 +97,25 @@ class Backup {
   static Future<List<int>> _key(String password, List<int> salt, int iterations) =>
       Isolate.run(() => pbkdf2Sha256(utf8.encode(password), salt, iterations, 32));
 
-  static const version = 1;
+  /// 2 added loans. A version-1 file still imports, with none; an older
+  /// app refuses a version-2 file rather than drop its loans.
+  static const version = 2;
 
   // Parents first: this is the insert order, and reversed the delete order.
-  static const _tables = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
+  static const _tables = ['categories', 'merchants', 'loans', 'transactions', 'budgets', 'recurring_expenses'];
 
   // Columns that must be present (and not null) in every row.
   static const _required = {
     'categories': ['id', 'name', 'type', 'color'],
     'merchants': ['id', 'name'],
+    'loans': ['id', 'direction', 'person'],
     'transactions': ['id', 'amount_fils', 'type', 'date', 'description'],
     'budgets': ['id', 'category_id', 'limit_fils'],
     'recurring_expenses': ['id', 'description', 'amount_fils', 'frequency', 'anchor_date'],
   };
 
   // SQLite would store "abc" in an INTEGER column, so check types up front.
-  static const _intColumns = {'id', 'amount_fils', 'limit_fils', 'category_id', 'active'};
+  static const _intColumns = {'id', 'amount_fils', 'limit_fils', 'category_id', 'loan_id', 'active'};
 
   static Map<String, Object?> _row(String table, Object? r, Set<String> columns) {
     if (r is! Map) throw BackupException(BackupProblem.badData, table);
@@ -124,6 +127,8 @@ class Backup {
     }
     final type = r['type'];
     if (type != null && type != 'income' && type != 'expense') throw BackupException(BackupProblem.badData, '$table: type $type');
+    final direction = r['direction'];
+    if (direction != null && direction != 'lent' && direction != 'borrowed') throw BackupException(BackupProblem.badData, '$table: direction $direction');
     if (r['uid'] != null && r['uid'] is! String) throw BackupException(BackupProblem.badData, '$table: uid');
     // Only known columns: a newer app's extra fields are dropped rather than
     // failing the insert.
@@ -206,6 +211,7 @@ class Backup {
     return (
       categories: rows['categories']!.length,
       merchants: rows['merchants']!.length,
+      loans: rows['loans']!.length,
       transactions: rows['transactions']!.length,
       budgets: rows['budgets']!.length,
       recurring: rows['recurring_expenses']!.length,

@@ -12,8 +12,9 @@ class SyncDataException implements Exception {
 }
 
 /// What sync sends between devices, and how it's merged in. Rows travel
-/// with their uid instead of the local integer id, and category_uid instead
-/// of category_id. Each row is last-writer-wins by its hlc.
+/// with their uid instead of the local integer id, and category_uid and
+/// loan_uid instead of category_id and loan_id. Each row is
+/// last-writer-wins by its hlc.
 ///
 /// ponytail: last-writer-wins per row, not per field: two devices editing
 /// different fields of the same entry while apart keep only the later edit.
@@ -29,14 +30,16 @@ class Merge {
   /// by table if it ever gets near the request size limit.
   static Future<Map<String, Object?>> changesSince(LocalStore store, int since) => store.db.transaction((txn) async {
         final catUid = {for (final r in await txn.query('categories', columns: ['id', 'uid'])) r['id']: r['uid']};
+        final loanUid = {for (final r in await txn.query('loans', columns: ['id', 'uid'])) r['id']: r['uid']};
         final tables = <String, Object>{};
         for (final t in LocalStore.syncedTables) {
           tables[t] = [
             for (final r in await txn.query(t, where: 'seq > ?', whereArgs: [since]))
               {
                 for (final e in r.entries)
-                  if (e.key != 'id' && e.key != 'seq' && e.key != 'category_id') e.key: e.value,
+                  if (!_localColumns.contains(e.key)) e.key: e.value,
                 if (r.containsKey('category_id')) 'category_uid': catUid[r['category_id']],
+                if (r.containsKey('loan_id')) 'loan_uid': loanUid[r['loan_id']],
               },
           ];
         }
@@ -46,16 +49,20 @@ class Merge {
         return {'tables': tables, 'tombstones': tombstones, 'up_to': top > since ? top : since};
       });
 
+  // Meaningful on this device only; the uid columns above stand in for them.
+  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id'};
+
   // Columns that must be present (and not null) in every row from a peer.
   static const _required = {
     'categories': ['name', 'type', 'color'],
     'merchants': ['name'],
+    'loans': ['direction', 'person'],
     'transactions': ['amount_fils', 'type', 'date', 'description'],
     'budgets': ['category_uid', 'limit_fils'],
     'recurring_expenses': ['description', 'amount_fils', 'frequency', 'anchor_date'],
   };
   static const _intColumns = {'amount_fils', 'limit_fils', 'active'};
-  static const _dateColumns = {'date', 'anchor_date'};
+  static const _dateColumns = {'date', 'anchor_date', 'due_date'};
 
   static bool _isUid(Object? v) => v is String && v.isNotEmpty && v.length <= 64;
   static bool _isHlc(Object? v) => v is String && LocalStore.hlcPattern.hasMatch(v);
@@ -73,7 +80,8 @@ class Merge {
       final columns = {
         for (final c in await store.db.rawQuery('PRAGMA table_info($t)')) c['name'] as String,
         'category_uid',
-      }..removeAll(['id', 'seq', 'category_id']);
+        'loan_uid',
+      }..removeAll(_localColumns);
       rows[t] = [
         for (final r in list)
           () {
@@ -89,7 +97,10 @@ class Merge {
             }
             final type = r['type'];
             if (type != null && type != 'income' && type != 'expense') throw SyncDataException('$t: type');
+            final direction = r['direction'];
+            if (direction != null && direction != 'lent' && direction != 'borrowed') throw SyncDataException('$t: direction');
             if (r['category_uid'] != null && !_isUid(r['category_uid'])) throw SyncDataException('$t: category_uid');
+            if (r['loan_uid'] != null && !_isUid(r['loan_uid'])) throw SyncDataException('$t: loan_uid');
             return {for (final e in r.entries) if (columns.contains(e.key)) e.key as String: e.value};
           }(),
       ];
@@ -167,7 +178,11 @@ class Merge {
         for (final r in v.rows[t]!) {
           final uid = r['uid'] as String;
           if ((await newest(t, uid)).compareTo(r['hlc'] as String) >= 0) continue;
-          final values = {for (final e in r.entries) if (e.key != 'category_uid') e.key: e.value, 'seq': store.nextSeq()};
+          final values = {
+            for (final e in r.entries)
+              if (e.key != 'category_uid' && e.key != 'loan_uid') e.key: e.value,
+            'seq': store.nextSeq(),
+          };
           if (r.containsKey('category_uid')) {
             final catUid = r['category_uid'] as String?;
             final cid = await categoryId(catUid);
@@ -187,6 +202,16 @@ class Merge {
             // Moved to the category that won a clash: a fresh edit, so it
             // overrides the copy the sender is about to uncategorize.
             if (alias.containsKey(catUid)) values.addAll(store.stamp());
+          }
+          if (r.containsKey('loan_uid')) {
+            final loanUid = r['loan_uid'] as String?;
+            final lid = loanUid == null
+                ? null
+                : (await txn.query('loans', columns: ['id'], where: 'uid = ?', whereArgs: [loanUid])).firstOrNull?['id'] as int?;
+            // Its loan was deleted here: the entry keeps its money and
+            // loses the link, as a fresh change so every device agrees.
+            if (lid == null && loanUid != null) values.addAll(store.stamp());
+            values['loan_id'] = lid;
           }
           final local = (await txn.query(t, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
           await txn.delete('tombstones', where: 'tbl = ? AND uid = ?', whereArgs: [t, uid]);

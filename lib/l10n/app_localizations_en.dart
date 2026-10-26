@@ -219,6 +219,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catOtherIncome => 'Other Income';
 
   @override
+  String get catLoansPaid => 'Loans Paid';
+
+  @override
+  String get catLoansReceived => 'Loans Received';
+
+  @override
   String get statIncomeMonth => 'Income (mo)';
 
   @override
@@ -1236,5 +1242,171 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String syncStartFailed(String detail) {
     return 'Couldn\'t start sync: $detail';
+  }
+
+  @override
+  String get loans => 'Loans';
+
+  @override
+  String get owedToYou => 'Owed to you';
+
+  @override
+  String get youOwe => 'You owe';
+
+  @override
+  String get owesYou => 'Owes you';
+
+  @override
+  String get loanEven => 'Even';
+
+  @override
+  String get loansUnsettled => 'Unsettled';
+
+  @override
+  String get loansSettled => 'Settled';
+
+  @override
+  String get newLoan => 'New loan';
+
+  @override
+  String get editLoan => 'Edit loan';
+
+  @override
+  String get loanTitle => 'Loan';
+
+  @override
+  String get iLent => 'I lent';
+
+  @override
+  String get iBorrowed => 'I borrowed';
+
+  @override
+  String get loanPerson => 'Person';
+
+  @override
+  String get enterPerson => 'Enter a name';
+
+  @override
+  String get dueDateOptional => 'Due date (optional)';
+
+  @override
+  String get clearDueDate => 'Clear due date';
+
+  @override
+  String dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String overdueSince(String date) {
+    return 'Overdue · due $date';
+  }
+
+  @override
+  String lentOn(String date) {
+    return 'You lent · $date';
+  }
+
+  @override
+  String borrowedOn(String date) {
+    return 'You borrowed · $date';
+  }
+
+  @override
+  String youLentPerson(String name) {
+    return 'You lent $name';
+  }
+
+  @override
+  String youBorrowedFrom(String name) {
+    return 'You borrowed from $name';
+  }
+
+  @override
+  String amountRepaid(String amount) {
+    return '$amount repaid';
+  }
+
+  @override
+  String amountLeft(String amount) {
+    return '$amount left';
+  }
+
+  @override
+  String get repayments => 'Repayments';
+
+  @override
+  String get noRepaymentsYet => 'No repayments yet';
+
+  @override
+  String get recordRepayment => 'Record repayment';
+
+  @override
+  String get settleLoan => 'Settle';
+
+  @override
+  String get settleLoanTitle => 'Settle this loan?';
+
+  @override
+  String settleLentBody(String person, String amount) {
+    return 'This records that $person paid back the remaining $amount today, adds it to Activity, and closes the loan.';
+  }
+
+  @override
+  String settleBorrowedBody(String person, String amount) {
+    return 'This records that you paid $person the remaining $amount today, adds it to Activity, and closes the loan.';
+  }
+
+  @override
+  String repayUpTo(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String amountAtMost(String amount) {
+    return 'At most $amount, what\'s left';
+  }
+
+  @override
+  String amountAtLeastRepaid(String amount) {
+    return 'At least $amount, already repaid';
+  }
+
+  @override
+  String get deleteLoanTitle => 'Delete this loan?';
+
+  @override
+  String deleteLoanBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count entries in Activity are deleted too.',
+      one: 'Its entry in Activity is deleted too.',
+      zero: 'It has no entries in Activity.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noLoansYet => 'No loans yet';
+
+  @override
+  String get noLoansHint =>
+      'Money you lend or borrow shows here, with what\'s still owed.';
+
+  @override
+  String get noSettledLoans => 'No settled loans';
+
+  @override
+  String get noOpenLoans => 'Nothing is owed either way';
+
+  @override
+  String loanPaymentFor(String person) {
+    return 'Payment for $person';
+  }
+
+  @override
+  String loanPaymentFrom(String person) {
+    return 'Payment from $person';
   }
 }

@@ -37,10 +37,14 @@ class LocalStore {
   void notifyChanged() => changes.value++;
 
   static const fileName = 'pocketsense.db';
-  static const schemaVersion = 3;
+  static const schemaVersion = 4;
 
   /// Tables whose rows sync between paired devices, parents first.
-  static const syncedTables = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
+  static const syncedTables = ['categories', 'merchants', 'loans', 'transactions', 'budgets', 'recurring_expenses'];
+
+  // The synced tables before v4. The older upgrades run on databases that
+  // don't have the newer tables yet.
+  static const _tablesBeforeV4 = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
 
   static Future<String> _dir() async => Platform.isLinux ? linuxDataDir() : await sq.getDatabasesPath();
 
@@ -64,7 +68,7 @@ class LocalStore {
           version: schemaVersion,
           onConfigure: _configure,
           onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
-          onUpgrade: (db, from, _) => upgrade(db, from, starterNames));
+          onUpgrade: (db, from, _) => upgrade(db, from, starterNames, categoryNames: categoryNames));
     }
     return _instance = await LocalStore._(db)._loadClock();
   }
@@ -84,7 +88,7 @@ class LocalStore {
             await _configure(db);
           },
           onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
-          onUpgrade: (db, from, _) => upgrade(db, from, starterNames),
+          onUpgrade: (db, from, _) => upgrade(db, from, starterNames, categoryNames: categoryNames),
         ));
   }
 
@@ -190,11 +194,16 @@ class LocalStore {
     // A new database goes through the same upgrade as an old one, so there
     // is one schema, not two that could drift apart.
     await _upgradeToV2(db, {for (final c in defaultCategories) c.key: {(categoryNames[c.key] ?? c.name).toLowerCase()}});
+    // Seeding already made the loan categories, or the caller wants none.
+    await _upgradeToV4(db, categoryNames, addCategories: false);
   }
 
-  static Future<void> upgrade(sq.Database db, int from, Map<String, Set<String>> starterNames) async {
+  /// [categoryNames]: as for [open]; names the categories v4 adds.
+  static Future<void> upgrade(sq.Database db, int from, Map<String, Set<String>> starterNames,
+      {Map<String, String> categoryNames = const {}}) async {
     if (from < 2) await _upgradeToV2(db, starterNames);
     if (from < 3) await _upgradeToV3(db);
+    if (from < 4) await _upgradeToV4(db, categoryNames);
   }
 
   /// v2 adds what sync needs. Every synced row gets:
@@ -210,7 +219,7 @@ class LocalStore {
   static Future<void> _upgradeToV2(sq.Database db, Map<String, Set<String>> starterNames) async {
     final node = randomHex(8);
     final hlc = _formatHlc(DateTime.now().millisecondsSinceEpoch, 0, node);
-    for (final t in syncedTables) {
+    for (final t in _tablesBeforeV4) {
       await db.execute('ALTER TABLE $t ADD COLUMN uid TEXT');
       await db.execute('ALTER TABLE $t ADD COLUMN hlc TEXT');
       await db.execute('ALTER TABLE $t ADD COLUMN seq INTEGER');
@@ -224,7 +233,7 @@ class LocalStore {
       taken.add(key);
       await db.update('categories', {'uid': 'default:$key'}, where: 'id = ?', whereArgs: [c['id']]);
     }
-    for (final t in syncedTables) {
+    for (final t in _tablesBeforeV4) {
       await db.execute('CREATE UNIQUE INDEX idx_${t}_uid ON $t(uid)');
       await db.execute('CREATE INDEX idx_${t}_seq ON $t(seq)');
     }
@@ -265,7 +274,7 @@ class LocalStore {
     // items, one list entry per distinct name (case-insensitively). The new
     // rows must sit above every seq already sent to a peer, or devices that
     // have already synced would never receive them.
-    final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    final union = [for (final t in [..._tablesBeforeV4, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
     var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
     final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
     final ms = DateTime.now().millisecondsSinceEpoch;
@@ -282,6 +291,47 @@ class LocalStore {
       }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
     }
   }
+
+  /// v4 adds loans. A loan holds who and when it's due; its money is
+  /// ordinary transactions that point at it, so every total stays a sum of
+  /// transactions. Older databases also get the two loan categories, as
+  /// starters with fixed uids, so each device's copy is the same row.
+  /// Safe to run twice: a new database runs it after creating the rest.
+  static Future<void> _upgradeToV4(sq.Database db, Map<String, String> categoryNames, {bool addCategories = true}) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS loans (
+        id INTEGER PRIMARY KEY, direction TEXT NOT NULL, person TEXT NOT NULL COLLATE NOCASE,
+        due_date TEXT, note TEXT, uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_loans_uid ON loans(uid)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_loans_seq ON loans(seq)');
+    final txColumns = {for (final c in await db.rawQuery('PRAGMA table_info(transactions)')) c['name']};
+    if (!txColumns.contains('loan_id')) {
+      // SET NULL is the fallback only: deleting a loan deletes its entries
+      // first, as stamped changes.
+      await db.execute('ALTER TABLE transactions ADD COLUMN loan_id INTEGER REFERENCES loans(id) ON DELETE SET NULL');
+    }
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_loan ON transactions(loan_id)');
+    if (!addCategories) return;
+    // Above every seq already sent to a peer, as in v3.
+    final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    final ms = DateTime.now().millisecondsSinceEpoch;
+    var counter = 0;
+    for (final c in defaultCategories.where((c) => loanCategoryKeys.contains(c.key))) {
+      // Ignored if one is there already, or the user has a category of
+      // that name: loan entries are then uncategorized.
+      await db.insert('categories', {
+        'name': categoryNames[c.key] ?? c.name, 'type': c.type, 'color': c.color, 'uid': 'default:${c.key}',
+        'hlc': _formatHlc(ms, counter++, node), 'seq': ++seq,
+      }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    }
+  }
+
+  /// The starter categories loan entries go in: money out, money in.
+  static const loanCategoryKeys = ['loansPaid', 'loansReceived'];
 
   static Future<void> _seedCategories(sq.Database db, Map<String, String> names) async {
     final batch = db.batch();
@@ -344,29 +394,33 @@ class LocalStore {
   Future<List<Map<String, dynamic>>> selectRows(String table, {String? where, List<Object?>? whereArgs}) =>
       db.query(table, where: where, whereArgs: whereArgs);
 
-  Future<int> insertRow(String table, Map<String, dynamic> values) async {
-    final id = await db.transaction((txn) => txn.insert(table, {'uid': randomHex(16), ...values, ...stamp()}));
+  /// Writes that land together or not at all, made with the *In methods
+  /// below. Listeners hear about them once, after.
+  Future<T> write<T>(Future<T> Function(sq.Transaction txn) body) async {
+    final result = await db.transaction(body);
     notifyChanged();
-    return id;
+    return result;
   }
 
-  Future<int> updateRow(String table, int id, Map<String, dynamic> values) async {
-    final n = await db.transaction((txn) => txn.update(table, {...values, ...stamp()}, where: 'id = ?', whereArgs: [id]));
-    notifyChanged();
-    return n;
-  }
+  Future<int> insertRow(String table, Map<String, dynamic> values) => write((txn) => insertIn(txn, table, values));
+
+  Future<int> updateRow(String table, int id, Map<String, dynamic> values) => write((txn) => updateIn(txn, table, id, values));
 
   /// Deletes the row and leaves a tombstone for peers.
-  Future<int> deleteRow(String table, int id) async {
-    final n = await db.transaction((txn) async {
-      final row = (await txn.query(table, columns: ['uid'], where: 'id = ?', whereArgs: [id])).firstOrNull;
-      if (row == null) return 0;
-      if (table == 'categories') await releaseCategory(txn, id);
-      await txn.insert('tombstones', {'tbl': table, 'uid': row['uid'], ...stamp()}, conflictAlgorithm: sq.ConflictAlgorithm.replace);
-      return txn.delete(table, where: 'id = ?', whereArgs: [id]);
-    });
-    notifyChanged();
-    return n;
+  Future<int> deleteRow(String table, int id) => write((txn) => deleteIn(txn, table, id));
+
+  Future<int> insertIn(sq.Transaction txn, String table, Map<String, dynamic> values) =>
+      txn.insert(table, {'uid': randomHex(16), ...values, ...stamp()});
+
+  Future<int> updateIn(sq.Transaction txn, String table, int id, Map<String, dynamic> values) =>
+      txn.update(table, {...values, ...stamp()}, where: 'id = ?', whereArgs: [id]);
+
+  Future<int> deleteIn(sq.Transaction txn, String table, int id) async {
+    final row = (await txn.query(table, columns: ['uid'], where: 'id = ?', whereArgs: [id])).firstOrNull;
+    if (row == null) return 0;
+    if (table == 'categories') await releaseCategory(txn, id);
+    await txn.insert('tombstones', {'tbl': table, 'uid': row['uid'], ...stamp()}, conflictAlgorithm: sq.ConflictAlgorithm.replace);
+    return txn.delete(table, where: 'id = ?', whereArgs: [id]);
   }
 
   /// What the foreign keys do when a category is deleted (entries and
