@@ -1034,6 +1034,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
+  String get sponsor => 'Sponsor Pocket Sense';
+
+  @override
+  String get sponsorSubtitle => 'Support its development on GitHub Sponsors';
+
+  @override
   String get aboutDescription =>
       'A private, offline personal finance tracker. Your data stays encrypted on your device.';
 

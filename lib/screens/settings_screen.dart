@@ -122,6 +122,12 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           header(l.about),
+          ListTile(
+            leading: const Icon(Icons.favorite_border),
+            title: Text(l.sponsor),
+            subtitle: Text(l.sponsorSubtitle),
+            onTap: () => launchUrl(Uri.parse('https://github.com/sponsors/software-ace'), mode: LaunchMode.externalApplication),
+          ),
           AboutListTile(
             icon: const Icon(Icons.info_outline),
             applicationName: l.appTitle,

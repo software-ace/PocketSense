@@ -1724,6 +1724,18 @@ abstract class AppLocalizations {
   /// **'About'**
   String get about;
 
+  /// No description provided for @sponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'Sponsor Pocket Sense'**
+  String get sponsor;
+
+  /// No description provided for @sponsorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support its development on GitHub Sponsors'**
+  String get sponsorSubtitle;
+
   /// No description provided for @aboutDescription.
   ///
   /// In en, this message translates to:

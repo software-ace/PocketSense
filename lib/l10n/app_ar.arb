@@ -271,6 +271,8 @@
   "turnOn": "تفعيل",
   "notNow": "ليس الآن",
   "about": "حول التطبيق",
+  "sponsor": "ادعم Pocket Sense",
+  "sponsorSubtitle": "ادعم تطويره عبر GitHub Sponsors",
   "aboutDescription": "متتبّع مالي شخصي خاص يعمل دون اتصال. تبقى بياناتك مشفّرة على جهازك.",
   "aboutLegalese": "© 2026 software-ace\nبرمجيات حرة بموجب رخصة GNU GPL الإصدار 3 أو أحدث.",
   "syncSection": "المزامنة",

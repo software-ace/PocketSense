@@ -1057,6 +1057,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get about => 'حول التطبيق';
 
   @override
+  String get sponsor => 'ادعم Pocket Sense';
+
+  @override
+  String get sponsorSubtitle => 'ادعم تطويره عبر GitHub Sponsors';
+
+  @override
   String get aboutDescription =>
       'متتبّع مالي شخصي خاص يعمل دون اتصال. تبقى بياناتك مشفّرة على جهازك.';
 
