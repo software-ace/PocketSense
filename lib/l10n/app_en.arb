@@ -583,6 +583,8 @@
   "turnOn": "Turn on",
   "notNow": "Not now",
   "about": "About",
+  "sponsor": "Sponsor Pocket Sense",
+  "sponsorSubtitle": "Support its development on GitHub Sponsors",
   "aboutDescription": "A private, offline personal finance tracker. Your data stays encrypted on your device.",
   "aboutLegalese": "© 2026 software-ace\nFree software under the GNU GPL v3 or later.",
   "syncSection": "Sync",
