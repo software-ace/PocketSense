@@ -38,17 +38,20 @@ class Mesh {
   }
 }
 
-/// Everything a user can see, keyed by uid and with categories by uid, so
-/// two devices' databases can be compared.
+/// Everything a user can see, keyed by uid and with categories and loans by
+/// uid, so two devices' databases can be compared.
 Future<Map<String, Object>> snapshot(LocalStore s) async {
-  final catUid = {for (final r in await s.db.query('categories')) r['id']: r['uid']};
+  final uids = {
+    'category_id': {for (final r in await s.db.query('categories')) r['id']: r['uid']},
+    'loan_id': {for (final r in await s.db.query('loans')) r['id']: r['uid']},
+  };
   return {
     for (final t in LocalStore.syncedTables)
       t: {
         for (final r in await s.db.query(t))
           r['uid']: {
             for (final e in r.entries)
-              if (!{'id', 'seq', 'uid'}.contains(e.key)) e.key: e.key == 'category_id' ? catUid[e.value] : e.value,
+              if (!{'id', 'seq', 'uid'}.contains(e.key)) e.key: uids[e.key]?[e.value] ?? e.value,
           },
       },
   };
@@ -57,12 +60,23 @@ Future<Map<String, Object>> snapshot(LocalStore s) async {
 Future<int> category(LocalStore s, String name) =>
     s.insertRow('categories', {'name': name, 'type': 'expense', 'color': '#000000'});
 
-Future<int> entry(LocalStore s, {int? categoryId, int fils = 100}) => s.insertRow('transactions', {
+Future<int> entry(LocalStore s, {int? categoryId, int? loanId, int fils = 100}) => s.insertRow('transactions', {
       'amount_fils': fils,
       'type': 'expense',
       'date': '2026-09-01',
       'description': 'x',
       'category_id': categoryId,
+      'loan_id': loanId,
+    });
+
+Future<int> loan(LocalStore s, String person) => s.insertRow('loans', {'direction': 'lent', 'person': person});
+
+/// As FinanceRepo.deleteLoan: its entries go with it.
+Future<void> deleteLoan(LocalStore s, int id) => s.write((txn) async {
+      for (final e in await txn.query('transactions', columns: ['id'], where: 'loan_id = ?', whereArgs: [id])) {
+        await s.deleteIn(txn, 'transactions', e['id'] as int);
+      }
+      await s.deleteIn(txn, 'loans', id);
     });
 
 /// Two devices' clocks only order changes a millisecond or more apart;
@@ -80,7 +94,7 @@ void main() {
 
     await Mesh().settle([a, b]);
 
-    expect(await a.db.query('categories'), hasLength(14));
+    expect(await a.db.query('categories'), hasLength(16));
     expect(await snapshot(a), await snapshot(b));
   });
 
@@ -181,6 +195,53 @@ void main() {
     expect(await b.db.query('categories'), hasLength(1));
   });
 
+  test('loans and their entries sync with the link between them', () async {
+    final a = await LocalStore.openInMemoryForTest();
+    final b = await LocalStore.openInMemoryForTest();
+    final mesh = Mesh();
+    final ahmad = await loan(a, 'Ahmad');
+    await entry(a, loanId: ahmad, fils: 200);
+    await mesh.sync(a, b);
+
+    final bLoan = (await b.db.query('loans')).single;
+    expect(bLoan['person'], 'Ahmad');
+    expect((await b.db.query('transactions')).single['loan_id'], bLoan['id']);
+    expect(await snapshot(a), await snapshot(b));
+  });
+
+  test('a repayment recorded while the loan was deleted elsewhere keeps its money and loses the link', () async {
+    final a = await LocalStore.openInMemoryForTest();
+    final b = await LocalStore.openInMemoryForTest();
+    final mesh = Mesh();
+    final aLoan = await loan(a, 'Sara');
+    await entry(a, loanId: aLoan, fils: 100);
+    await mesh.sync(a, b);
+
+    await deleteLoan(a, aLoan);
+    await entry(b, loanId: (await b.db.query('loans')).single['id'] as int, fils: 30);
+    await Mesh().settle([a, b]);
+
+    for (final s in [a, b]) {
+      expect(await s.db.query('loans'), isEmpty);
+      final txs = await s.db.query('transactions');
+      expect(txs.map((t) => (t['amount_fils'], t['loan_id'])), [(30, null)]);
+    }
+    expect(await snapshot(a), await snapshot(b));
+  });
+
+  test('a loan with a direction this version doesn\'t know is refused', () async {
+    final a = await LocalStore.openInMemoryForTest();
+    final bad = {
+      'tables': {
+        'loans': [
+          {'uid': 'u', 'hlc': '000000000000001-0000-ab', 'direction': 'gifted', 'person': 'X'},
+        ],
+      },
+      'tombstones': [],
+    };
+    await expectLater(Merge.apply(a, bad), throwsA(isA<SyncDataException>()));
+  });
+
   test('changes travel on through a device in between', () async {
     final a = await LocalStore.openInMemoryForTest();
     final b = await LocalStore.openInMemoryForTest();
@@ -239,9 +300,10 @@ void main() {
         final cats = [for (final r in await s.db.query('categories')) r['id'] as int];
         final txs = [for (final r in await s.db.query('transactions')) r['id'] as int];
         final budgets = [for (final r in await s.db.query('budgets')) r['id'] as int];
+        final loans = [for (final r in await s.db.query('loans')) r['id'] as int];
         T pick<T>(List<T> l) => l[rng.nextInt(l.length)];
         try {
-          switch (rng.nextInt(10)) {
+          switch (rng.nextInt(13)) {
             case 0:
               await category(s, pick(names));
             case 1 when cats.isNotEmpty:
@@ -261,6 +323,12 @@ void main() {
             case 9:
               final a = pick(stores), b = pick(stores);
               if (a != b) await mesh.sync(a, b);
+            case 10:
+              await loan(s, pick(names));
+            case 11 when loans.isNotEmpty:
+              await entry(s, loanId: pick(loans), fils: rng.nextInt(1000));
+            case 12 when loans.isNotEmpty:
+              await deleteLoan(s, pick(loans));
           }
         } on Exception catch (e) {
           // A local name clash, refused as the UI would.

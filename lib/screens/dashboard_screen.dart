@@ -11,6 +11,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import 'loans_screen.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -35,6 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   ({List<int> thisMonth, List<int> lastMonth}) _pace = (thisMonth: const [], lastMonth: const []);
   List<int> _weekday = const [];
   List<({DateTime day, int fils})> _daily = [];
+  List<Loan> _loans = [];
 
   @override
   void onDataChanged() => _load();
@@ -66,6 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _repo.monthlyTotals(now),
         _repo.monthPace(now),
         _repo.weekdayAverages(now),
+        _repo.loans(),
       ]);
 
       if (!mounted) return;
@@ -79,6 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _monthly = results[6] as List<({DateTime month, int income, int expense})>;
         _pace = results[7] as ({List<int> thisMonth, List<int> lastMonth});
         _weekday = results[8] as List<int>;
+        _loans = results[9] as List<Loan>;
         _loading = false;
       });
     } catch (e) {
@@ -134,6 +138,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                 ),
               ),
             ),
+            // Under the four cards, always: it's the way into Loans, where
+            // the first loan is made.
+            _gap,
+            _padded(_loansCard(theme)),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             // Charts section
@@ -202,6 +210,41 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             ),
             Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _loansCard(ThemeData theme) {
+    final l = context.l10n;
+    final totals = loanTotals(_loans);
+    Widget total(String label, int fils, {Color? color}) => Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            Text(formatMoney(fils), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color)),
+          ]),
+        );
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoansScreen())),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(Icons.handshake_outlined, size: 18, color: theme.colorScheme.primary),
+              const SizedBox(width: 6),
+              Expanded(child: Text(l.loans, style: theme.textTheme.titleSmall)),
+              const Icon(Icons.chevron_right, size: 20),
+            ]),
+            const SizedBox(height: 10),
+            Row(children: [
+              total(l.owedToYou, totals.owedToYou, color: totals.owedToYou > 0 ? Colors.green : null),
+              total(l.youOwe, totals.youOwe),
+            ]),
+          ]),
         ),
       ),
     );

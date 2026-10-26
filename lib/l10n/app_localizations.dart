@@ -488,6 +488,18 @@ abstract class AppLocalizations {
   /// **'Other Income'**
   String get catOtherIncome;
 
+  /// No description provided for @catLoansPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans Paid'**
+  String get catLoansPaid;
+
+  /// No description provided for @catLoansReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans Received'**
+  String get catLoansReceived;
+
   /// No description provided for @statIncomeMonth.
   ///
   /// In en, this message translates to:
@@ -2023,6 +2035,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t start sync: {detail}'**
   String syncStartFailed(String detail);
+
+  /// No description provided for @loans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get loans;
+
+  /// No description provided for @owedToYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to you'**
+  String get owedToYou;
+
+  /// No description provided for @youOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe'**
+  String get youOwe;
+
+  /// No description provided for @owesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes you'**
+  String get owesYou;
+
+  /// No description provided for @loanEven.
+  ///
+  /// In en, this message translates to:
+  /// **'Even'**
+  String get loanEven;
+
+  /// No description provided for @loansUnsettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled'**
+  String get loansUnsettled;
+
+  /// No description provided for @loansSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get loansSettled;
+
+  /// No description provided for @newLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'New loan'**
+  String get newLoan;
+
+  /// No description provided for @editLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit loan'**
+  String get editLoan;
+
+  /// No description provided for @loanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan'**
+  String get loanTitle;
+
+  /// No description provided for @iLent.
+  ///
+  /// In en, this message translates to:
+  /// **'I lent'**
+  String get iLent;
+
+  /// No description provided for @iBorrowed.
+  ///
+  /// In en, this message translates to:
+  /// **'I borrowed'**
+  String get iBorrowed;
+
+  /// No description provided for @loanPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get loanPerson;
+
+  /// No description provided for @enterPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get enterPerson;
+
+  /// No description provided for @dueDateOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date (optional)'**
+  String get dueDateOptional;
+
+  /// No description provided for @clearDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear due date'**
+  String get clearDueDate;
+
+  /// No description provided for @dueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String dueOn(String date);
+
+  /// No description provided for @overdueSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue · due {date}'**
+  String overdueSince(String date);
+
+  /// No description provided for @lentOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You lent · {date}'**
+  String lentOn(String date);
+
+  /// No description provided for @borrowedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You borrowed · {date}'**
+  String borrowedOn(String date);
+
+  /// No description provided for @youLentPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'You lent {name}'**
+  String youLentPerson(String name);
+
+  /// No description provided for @youBorrowedFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'You borrowed from {name}'**
+  String youBorrowedFrom(String name);
+
+  /// No description provided for @amountRepaid.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} repaid'**
+  String amountRepaid(String amount);
+
+  /// No description provided for @amountLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left'**
+  String amountLeft(String amount);
+
+  /// No description provided for @repayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Repayments'**
+  String get repayments;
+
+  /// No description provided for @noRepaymentsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No repayments yet'**
+  String get noRepaymentsYet;
+
+  /// No description provided for @recordRepayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record repayment'**
+  String get recordRepayment;
+
+  /// No description provided for @settleLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle'**
+  String get settleLoan;
+
+  /// No description provided for @settleLoanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle this loan?'**
+  String get settleLoanTitle;
+
+  /// No description provided for @settleLentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This records that {person} paid back the remaining {amount} today, adds it to Activity, and closes the loan.'**
+  String settleLentBody(String person, String amount);
+
+  /// No description provided for @settleBorrowedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This records that you paid {person} the remaining {amount} today, adds it to Activity, and closes the loan.'**
+  String settleBorrowedBody(String person, String amount);
+
+  /// No description provided for @repayUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String repayUpTo(String amount);
+
+  /// No description provided for @amountAtMost.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {amount}, what\'s left'**
+  String amountAtMost(String amount);
+
+  /// No description provided for @amountAtLeastRepaid.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {amount}, already repaid'**
+  String amountAtLeastRepaid(String amount);
+
+  /// No description provided for @deleteLoanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this loan?'**
+  String get deleteLoanTitle;
+
+  /// No description provided for @deleteLoanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{It has no entries in Activity.} =1{Its entry in Activity is deleted too.} other{Its {count} entries in Activity are deleted too.}}'**
+  String deleteLoanBody(int count);
+
+  /// No description provided for @noLoansYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No loans yet'**
+  String get noLoansYet;
+
+  /// No description provided for @noLoansHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Money you lend or borrow shows here, with what\'s still owed.'**
+  String get noLoansHint;
+
+  /// No description provided for @noSettledLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'No settled loans'**
+  String get noSettledLoans;
+
+  /// No description provided for @noOpenLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is owed either way'**
+  String get noOpenLoans;
+
+  /// No description provided for @loanPaymentFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment for {person}'**
+  String loanPaymentFor(String person);
+
+  /// No description provided for @loanPaymentFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment from {person}'**
+  String loanPaymentFrom(String person);
 }
 
 class _AppLocalizationsDelegate

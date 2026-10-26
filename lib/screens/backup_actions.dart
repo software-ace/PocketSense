@@ -80,7 +80,7 @@ Future<bool> importBackup(BuildContext context, {bool confirmReplace = true}) as
       await AppSettings.setCurrency(s.currency);
       (await LocalStore.instance()).notifyChanged();
     }
-    if (context.mounted) _toast(context, l.importDone(s.categories + s.transactions + s.budgets + s.recurring));
+    if (context.mounted) _toast(context, l.importDone(s.categories + s.loans + s.transactions + s.budgets + s.recurring));
     return true;
   } on BackupException catch (e) {
     if (context.mounted) _toast(context, describeBackupProblem(l, e));

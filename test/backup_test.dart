@@ -28,7 +28,7 @@ void main() {
   // hlc and seq are left out: they're sync bookkeeping, and an import
   // stamps every row afresh so paired devices take it.
   Future<Map<String, List<Map<String, Object?>>>> dump(LocalStore s) async => {
-        for (final t in ['categories', 'transactions', 'budgets', 'recurring_expenses'])
+        for (final t in ['categories', 'loans', 'transactions', 'budgets', 'recurring_expenses'])
           t: [for (final r in await s.db.query(t, orderBy: 'id')) {...r}..remove('hlc')..remove('seq')],
       };
 
@@ -39,20 +39,31 @@ void main() {
     final json = await Backup.export(store, now: DateTime.utc(2026, 9, 29));
     final doc = decode(json);
     expect(doc['format'], 'pocketsense-backup');
-    expect(doc['version'], 1);
+    expect(doc['version'], 2);
     expect(doc['currency'], 'JOD');
     expect(doc['exported_at'], '2026-09-29T00:00:00.000Z');
 
     final fresh = await LocalStore.openInMemoryForTest();
     final summary = await Backup.import(fresh, json);
-    expect(summary, (categories: 2, merchants: 0, transactions: 2, budgets: 1, recurring: 1, currency: Currency.byCode('JOD')!));
+    expect(summary, (categories: 2, merchants: 0, loans: 0, transactions: 2, budgets: 1, recurring: 1, currency: Currency.byCode('JOD')!));
+    expect(await dump(fresh), await dump(store));
+  });
+
+  test('loans and the link from their entries come back', () async {
+    await seed();
+    final id = await repo.insertLoan(direction: 'borrowed', person: 'Sara', amountFils: 100000, date: DateTime(2026, 10, 15), dueDate: DateTime(2026, 11, 1), description: 'Payment from Sara');
+    await repo.recordRepayment(id, amountFils: 40000, date: DateTime(2026, 10, 20), description: 'Payment for Sara');
+
+    final fresh = await LocalStore.openInMemoryForTest();
+    final summary = await Backup.import(fresh, await Backup.export(store));
+    expect((summary.loans, summary.transactions), (1, 4));
     expect(await dump(fresh), await dump(store));
   });
 
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 13, merchants: 0, transactions: 180, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    expect(summary, (categories: 13, merchants: 0, loans: 0, transactions: 180, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
   });
 
   test('import replaces what was there and notifies listeners', () async {
@@ -93,7 +104,7 @@ void main() {
 
     test('corrupt JSON', () => expectProblem('{"format": "pocketsense-b', BackupProblem.notJson));
     test('some other JSON file', () => expectProblem('{"hello": "world"}', BackupProblem.notABackup));
-    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 2), BackupProblem.tooNew));
+    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 3), BackupProblem.tooNew));
     test('a currency the app doesn\'t offer', () => expectProblem(jsonEncode(valid()..['currency'] = 'XYZ'), BackupProblem.wrongCurrency));
 
     test('an export says which currency its amounts are in', () async {
@@ -116,6 +127,14 @@ void main() {
     test('a non-integer amount', () {
       final doc = valid();
       ((doc['tables'] as Map)['transactions'] as List).first['amount_fils'] = '12.5';
+      return expectProblem(jsonEncode(doc), BackupProblem.badData);
+    });
+
+    test('a loan with an unknown direction', () {
+      final doc = valid();
+      (doc['tables'] as Map)['loans'] = [
+        {'id': 1, 'direction': 'gifted', 'person': 'X'},
+      ];
       return expectProblem(jsonEncode(doc), BackupProblem.badData);
     });
 
