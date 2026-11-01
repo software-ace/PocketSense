@@ -41,7 +41,7 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 
 </details>
 
-The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import data** to try the app with three months of entries.
+The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import data** to try the app with a year of entries.
 
 ## Features
 
@@ -152,7 +152,7 @@ flutter test
 
 ### Screenshots and demo data
 
-`docs/demo-backup.json` is an unencrypted backup with almost four months of made-up entries, budgets, recurring items, merchants and loans (July 1 to October 26, 2026). `test/backup_test.dart` checks it still imports.
+`docs/demo-backup.json` is an unencrypted backup with a year of made-up entries, budgets, recurring items, merchants and loans (November 1, 2025 to October 26, 2026). `test/backup_test.dart` checks it still imports.
 
 `integration_test/take_screenshots.sh` retakes every screenshot from the real app, filled with that file:
 
