@@ -1,0 +1,4 @@
+• New: Hide amounts. Every amount shows as ••• until you tap the eye in the top bar, and hides again after 30 seconds away. On by default; Settings → Security → Hide amounts turns it off.
+• New: a quick add widget for the Android home screen, with Expense, Income and voice buttons. Long-press the app icon for the same three.
+• New: Home → Monthly Income vs Spending, for any month you pick.
+• Fixed: a long amount no longer overflows its card on Home.
