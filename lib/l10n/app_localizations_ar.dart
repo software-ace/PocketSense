@@ -725,6 +725,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get noCurrencyMatches => 'لا توجد عملة مطابقة';
+
+  @override
   String get currencyChangeNote =>
       'لا تُحوَّل المبالغ: يبقى 12.5 كما هو بالعملة الجديدة.';
 

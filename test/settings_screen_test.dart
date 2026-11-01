@@ -91,6 +91,29 @@ void main() {
     expect(appCurrency.code, 'SAR', reason: 'read back from storage');
   });
 
+  testWidgets('the currency list filters by code or name, English names too in Arabic', (tester) async {
+    await openSettings(tester, locale: const Locale('ar'));
+    await tester.tap(find.widgetWithText(ListTile, 'العملة'));
+    await tester.pumpAndSettle();
+
+    Future<void> search(String q) async {
+      await tester.enterText(find.byType(TextField), q);
+      await tester.pumpAndSettle();
+    }
+
+    await search('krona');
+    expect(find.text('كرونة سويدية'), findsOneWidget);
+    expect(find.text('كرونة نرويجية'), findsNothing, reason: 'that one is a krone');
+    expect(find.text('دينار أردني'), findsNothing);
+    await search('SEK');
+    expect(find.text('كرونة سويدية'), findsOneWidget);
+    await search('دينار');
+    expect(find.text('دينار أردني'), findsOneWidget);
+    expect(find.text('دينار كويتي'), findsOneWidget);
+    await search('zzz');
+    expect(find.text('لا توجد عملة مطابقة'), findsOneWidget);
+  });
+
   testWidgets('Settings in Arabic is right-to-left and translated', (tester) async {
     await openSettings(tester, locale: const Locale('ar'));
     expect(find.widgetWithText(AppBar, 'الإعدادات'), findsOneWidget);

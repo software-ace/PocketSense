@@ -367,6 +367,7 @@
       }
     }
   },
+  "noCurrencyMatches": "No currency matches",
   "currencyChangeNote": "Amounts aren't converted: 12.5 stays 12.5 in the new currency.",
   "languageSystem": "System default",
   "voiceDownloading": "Downloading speech model…",

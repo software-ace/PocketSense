@@ -710,6 +710,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get noCurrencyMatches => 'No currency matches';
+
+  @override
   String get currencyChangeNote =>
       'Amounts aren\'t converted: 12.5 stays 12.5 in the new currency.';
 
