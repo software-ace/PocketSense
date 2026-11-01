@@ -59,7 +59,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 **Made for Jordan, in two languages**
 - **Currency:** Jordanian dinars by default, with three decimals: **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
-  - **Settings → General → Currency**, or the welcome screen, switches to one of 68 others, from SAR and AED to USD, EUR and INR, each with its usual decimals (2 for USD, 0 for JPY).
+  - **Settings → General → Currency**, or the welcome screen, switches to one of 68 others, from SAR and AED to USD, EUR and INR, with a search by name or code, each with its usual decimals (2 for USD, 0 for JPY).
   - It's one currency for all your data, with no exchange rates, so the app stays offline. Switching relabels amounts; it doesn't convert them.
   - Backups carry the currency, and importing one switches to it. Two devices sync only when they use the same currency.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.
