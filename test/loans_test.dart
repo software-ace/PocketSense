@@ -174,7 +174,9 @@ void main() {
       expect(entries.single.description, 'Payment for Lina');
     });
 
-    testWidgets('Record repayment starts at what is left and refuses more', (tester) async {
+    testWidgets('Record repayment starts at what is left and refuses more, saying how much even under Hide amounts', (tester) async {
+      maskAmounts = true;
+      addTearDown(() => maskAmounts = false);
       final id = (await tester.runAsync(() => lend('Ahmad', 120000, DateTime.now())))!;
       await pumpScreenWithDb(tester, LoanScreen(loanId: id));
 
@@ -186,7 +188,7 @@ void main() {
       await tester.enterText(amount, '200');
       await tester.tap(find.descendant(of: find.byType(BottomSheet), matching: find.text('Save')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('At most'), findsOneWidget);
+      expect(find.text("At most JOD\u00A0120.000, what's left"), findsOneWidget);
 
       await tester.enterText(amount, '20');
       await tester.tap(find.descendant(of: find.byType(BottomSheet), matching: find.text('Save')));

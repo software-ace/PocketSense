@@ -29,6 +29,7 @@ void main() {
       expect(formatMoney(-1234567, showSign: true, locale: 'en'), 'JOD\u00A0•••');
       expect(formatMoney(12500, locale: 'ar'), '\u2066•••\u2069\u00A0د.أ');
       expect(compactAmount(1500), '•••');
+      expect(formatMoney(12500, locale: 'en', showHidden: true), 'JOD\u00A012.500', reason: "a form's limit");
       expect(formatMoney(null), '—');
     });
   });

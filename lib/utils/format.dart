@@ -61,12 +61,14 @@ NumberFormat _number(int decimals) =>
 
 /// "JOD 12.500" in English; "12.500 د.أ" in Arabic. The number sits in a
 /// left-to-right isolate so a minus sign stays next to it in RTL text.
-String formatMoney(int? fils, {bool showSign = false, String? locale}) {
+/// [showHidden]: real even under Hide amounts, for a form's limits.
+String formatMoney(int? fils, {bool showSign = false, String? locale, bool showHidden = false}) {
   if (fils == null) return '—';
   final c = appCurrency;
   // The same ••• for every amount: its length or sign would hint at the value.
-  final sign = maskAmounts ? '' : (fils < 0 ? '-' : (showSign ? '+' : ''));
-  final n = maskAmounts ? '•••' : _number(c.decimals).format(fils.abs() / filsPerDinar);
+  final mask = maskAmounts && !showHidden;
+  final sign = mask ? '' : (fils < 0 ? '-' : (showSign ? '+' : ''));
+  final n = mask ? '•••' : _number(c.decimals).format(fils.abs() / filsPerDinar);
   return _arabic(locale) ? '\u2066$sign$n\u2069\u00A0${c.arabic ?? c.code}' : '$sign${c.code}\u00A0$n';
 }
 

@@ -706,7 +706,7 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
                 controller: _amountCtrl,
                 label: l.amount,
                 // An edit can't make the loan smaller than what's been paid back.
-                check: (fils) => existing != null && fils < existing.repaidFils ? l.amountAtLeastRepaid(formatMoney(existing.repaidFils)) : null,
+                check: (fils) => existing != null && fils < existing.repaidFils ? l.amountAtLeastRepaid(formatMoney(existing.repaidFils, showHidden: true)) : null,
               ),
               const SizedBox(height: 12),
               _DateField(label: l.date, value: _date, onPicked: (d) => setState(() => _date = d)),
@@ -755,7 +755,8 @@ class _RepaymentSheetState extends State<_RepaymentSheet> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final loan = widget.loan;
-    final left = formatMoney(loan.remainingFils);
+    // A form: the limit you type against shows even under Hide amounts.
+    final left = formatMoney(loan.remainingFils, showHidden: true);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
