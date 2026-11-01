@@ -8,6 +8,7 @@ import 'data/local_store.dart';
 import 'data/repo.dart';
 import 'l10n/l10n.dart';
 import 'screens/onboarding_screen.dart';
+import 'security/amount_privacy.dart';
 import 'security/lock_gate.dart';
 import 'settings/app_settings.dart';
 import 'shell.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
   });
   await AppSettings.load();
   QuickAddRequests.listen();
+  AmountPrivacy.init();
   runApp(const PocketSenseApp());
 }
 

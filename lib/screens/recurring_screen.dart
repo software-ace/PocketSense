@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/recurring.dart';
@@ -108,7 +109,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.navRecurring), actions: const [SyncButton(), SettingsButton()]),
+      appBar: AppBar(title: Text(l.navRecurring), actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(heroTag: null, onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),

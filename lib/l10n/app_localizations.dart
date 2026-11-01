@@ -1544,6 +1544,24 @@ abstract class AppLocalizations {
   /// **'Unlock with fingerprint or face'**
   String get useBiometrics;
 
+  /// No description provided for @hideAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide amounts'**
+  String get hideAmounts;
+
+  /// No description provided for @hideAmountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show ••• for every amount until you tap the eye'**
+  String get hideAmountsSubtitle;
+
+  /// No description provided for @showAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts'**
+  String get showAmounts;
+
   /// No description provided for @privateScreen.
   ///
   /// In en, this message translates to:

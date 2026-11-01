@@ -958,6 +958,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get useBiometrics => 'Unlock with fingerprint or face';
 
   @override
+  String get hideAmounts => 'Hide amounts';
+
+  @override
+  String get hideAmountsSubtitle =>
+      'Show ••• for every amount until you tap the eye';
+
+  @override
+  String get showAmounts => 'Show amounts';
+
+  @override
   String get privateScreen => 'Private screen';
 
   @override

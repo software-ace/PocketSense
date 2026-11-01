@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/amount_field.dart';
@@ -98,7 +99,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.navBudgets), actions: const [SyncButton(), SettingsButton()]),
+      appBar: AppBar(title: Text(l.navBudgets), actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(heroTag: null, onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),

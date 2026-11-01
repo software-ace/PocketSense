@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
 import '../widgets/startup_error.dart';
+import 'amount_privacy.dart';
 import 'app_lock.dart';
 import 'biometrics.dart';
 import 'pin_pad.dart';
@@ -80,6 +81,8 @@ class _LockGateState extends State<LockGate> {
       LockGate.unlocked.value = _error == null && _locked == false;
       return;
     }
+    // Shown amounts hide again with the lock, with or without a PIN.
+    AmountPrivacy.revealed.value = false;
     _check();
   }
 

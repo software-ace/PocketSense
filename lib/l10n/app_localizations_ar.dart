@@ -976,6 +976,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get useBiometrics => 'الفتح بالبصمة أو الوجه';
 
   @override
+  String get hideAmounts => 'إخفاء المبالغ';
+
+  @override
+  String get hideAmountsSubtitle => 'عرض ••• بدل كل مبلغ حتى تضغط على العين';
+
+  @override
+  String get showAmounts => 'إظهار المبالغ';
+
+  @override
   String get privateScreen => 'شاشة خاصة';
 
   @override

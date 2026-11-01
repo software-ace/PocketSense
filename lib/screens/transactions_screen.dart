@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../security/lock_gate.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
@@ -200,6 +201,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         actions: [
           if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: l.addByVoice, onPressed: _addByVoice),
           IconButton(icon: const Icon(Icons.add), tooltip: l.addTransaction, onPressed: _addTransaction),
+          const AmountsButton(),
           const SyncButton(),
           const SettingsButton(),
         ],
@@ -238,7 +240,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     return Scaffold(
       appBar: AppBar(
         title: Text(l.navActivity),
-        actions: const [SyncButton(), SettingsButton()],
+        actions: const [AmountsButton(), SyncButton(), SettingsButton()],
       ),
       // Both ways to add sit in thumb reach; the app bar keeps only status.
       floatingActionButton: voiceEntrySupported

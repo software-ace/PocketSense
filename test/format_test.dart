@@ -21,6 +21,16 @@ void main() {
       expect(formatMoney(-12500, locale: 'ar'), '\u2066-12.500\u2069\u00A0د.أ');
       expect(formatMoney(12500, locale: 'ar_JO'), contains('12.500'));
     });
+
+    test('Hide amounts: the same ••• for every amount, with no sign', () {
+      maskAmounts = true;
+      addTearDown(() => maskAmounts = false);
+      expect(formatMoney(12500, locale: 'en'), 'JOD\u00A0•••');
+      expect(formatMoney(-1234567, showSign: true, locale: 'en'), 'JOD\u00A0•••');
+      expect(formatMoney(12500, locale: 'ar'), '\u2066•••\u2069\u00A0د.أ');
+      expect(compactAmount(1500), '•••');
+      expect(formatMoney(null), '—');
+    });
   });
 
   group('parseAmount', () {

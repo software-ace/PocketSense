@@ -172,4 +172,19 @@ void main() {
     expect(sent, [false, false], reason: 'applied again at the next launch');
     debugDefaultTargetPlatformOverride = null;
   });
+
+  testWidgets('Hide amounts is on by default, and turning it off is saved', (tester) async {
+    await AppSettings.load();
+    expect(AppSettings.hideAmounts.value, isTrue);
+
+    await openSettings(tester);
+    final toggle = find.widgetWithText(SwitchListTile, 'Hide amounts');
+    await tester.scrollUntilVisible(toggle, 200);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(AppSettings.hideAmounts.value, isFalse);
+    AppSettings.hideAmounts.value = true;
+    await AppSettings.load();
+    expect(AppSettings.hideAmounts.value, isFalse, reason: 'read back from storage');
+  });
 }

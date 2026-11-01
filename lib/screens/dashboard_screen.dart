@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
@@ -175,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(desktop ? l.navOverview : l.navHome), centerTitle: false, actions: const [SyncButton(), SettingsButton()]),
+      appBar: AppBar(title: Text(desktop ? l.navOverview : l.navHome), centerTitle: false, actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: CustomScrollView(

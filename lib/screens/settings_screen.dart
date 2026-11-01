@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../data/backup.dart';
 import '../data/local_store.dart';
 import '../l10n/l10n.dart';
+import '../security/amount_privacy.dart';
 import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
@@ -243,6 +244,11 @@ class _SecuritySectionState extends State<_SecuritySection> {
     await _refresh();
   }
 
+  Future<void> _toggleHideAmounts(bool on) async {
+    AmountPrivacy.revealed.value = false;
+    await AppSettings.setHideAmounts(on);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -266,6 +272,16 @@ class _SecuritySectionState extends State<_SecuritySection> {
             onChanged: _toggleBiometrics,
           ),
       ],
+      ValueListenableBuilder(
+        valueListenable: AppSettings.hideAmounts,
+        builder: (context, on, _) => SwitchListTile(
+          secondary: const Icon(Icons.remove_red_eye_outlined),
+          title: Text(l.hideAmounts),
+          subtitle: Text(l.hideAmountsSubtitle),
+          value: on,
+          onChanged: _toggleHideAmounts,
+        ),
+      ),
       if (defaultTargetPlatform == TargetPlatform.android)
         ValueListenableBuilder(
           valueListenable: AppSettings.privateScreen,

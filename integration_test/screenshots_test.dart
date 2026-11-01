@@ -143,6 +143,8 @@ void main() {
     AppLock.instance = AppLock(store: MemorySecretStore());
     // Not over the screenshots: this run is a build with a number too.
     AppSettings.whatsNewSeen = 1 << 30;
+    // The store images show amounts, and no eye for hiding them.
+    AppSettings.hideAmounts.value = false;
     final store = phone ? await LocalStore.open() : await LocalStore.openInMemoryForTest();
     LocalStore.overrideInstanceForTest(store);
     await Backup.import(store, utf8.decode(gzip.decode(base64.decode(_demo))));

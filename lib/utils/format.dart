@@ -46,6 +46,10 @@ const currencies = [
 /// What amounts are shown in. AppSettings sets it before the app starts.
 Currency appCurrency = currencies.first;
 
+/// Hide amounts: every amount reads ••• (no digits, no sign) until revealed.
+/// Set by AmountPrivacy, which also rebuilds the app when it changes.
+bool maskAmounts = false;
+
 bool _arabic(String? locale) => (locale ?? Intl.getCurrentLocale()).startsWith('ar');
 
 /// Latin digits in both languages (what banks and shops in the region
@@ -60,13 +64,15 @@ NumberFormat _number(int decimals) =>
 String formatMoney(int? fils, {bool showSign = false, String? locale}) {
   if (fils == null) return '—';
   final c = appCurrency;
-  final sign = fils < 0 ? '-' : (showSign ? '+' : '');
-  final n = _number(c.decimals).format(fils.abs() / filsPerDinar);
+  // The same ••• for every amount: its length or sign would hint at the value.
+  final sign = maskAmounts ? '' : (fils < 0 ? '-' : (showSign ? '+' : ''));
+  final n = maskAmounts ? '•••' : _number(c.decimals).format(fils.abs() / filsPerDinar);
   return _arabic(locale) ? '\u2066$sign$n\u2069\u00A0${c.arabic ?? c.code}' : '$sign${c.code}\u00A0$n';
 }
 
 /// Short axis label without the currency, e.g. "1.5k" or "250".
 String compactAmount(double dinars) {
+  if (maskAmounts) return '•••';
   String trim(double v) => v == v.roundToDouble() ? '${v.toInt()}' : v.toStringAsFixed(1);
   return dinars >= 1000 ? '${trim(dinars / 1000)}k' : trim(dinars);
 }

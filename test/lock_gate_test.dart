@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/db_key.dart';
 import 'package:pocket_sense/l10n/app_localizations.dart';
+import 'package:pocket_sense/security/amount_privacy.dart';
 import 'package:pocket_sense/security/app_lock.dart';
 import 'package:pocket_sense/security/lock_gate.dart';
 
@@ -70,6 +71,19 @@ void main() {
     expect(LockGate.unlocked.value, isFalse);
     await typePin(tester, '2468');
     expect(LockGate.unlocked.value, isTrue);
+  });
+
+  testWidgets('shown amounts hide again after the time away, with or without a PIN', (tester) async {
+    await pumpGate(tester);
+    AmountPrivacy.revealed.value = true;
+    goAway(tester);
+    await comeBack(tester);
+    expect(AmountPrivacy.revealed.value, isTrue, reason: 'back within 30 seconds');
+
+    await pumpGate(tester, relockAfter: Duration.zero);
+    goAway(tester);
+    await comeBack(tester);
+    expect(AmountPrivacy.revealed.value, isFalse);
   });
 
   testWidgets('without a PIN, LockGate.unlocked opens again on return', (tester) async {

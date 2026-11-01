@@ -24,6 +24,7 @@ class AppSettings {
   static const _syncOnKey = 'sync.enabled';
   static const _syncNameKey = 'sync.name';
   static const _privateScreenKey = 'privateScreen';
+  static const _hideAmountsKey = 'hideAmounts';
   static const _currencyKey = 'currency';
   static const _whatsNewKey = 'whatsNew.seen';
   static const _themeKey = 'theme';
@@ -52,6 +53,10 @@ class AppSettings {
   /// before this is even read.
   static final privateScreen = ValueNotifier(true);
 
+  /// Amounts show as ••• until revealed with the eye (AmountPrivacy). On by
+  /// default, after an update too.
+  static final hideAmounts = ValueNotifier(true);
+
   /// What amounts are shown in (JOD until chosen). Mirrors [appCurrency],
   /// which the formatting functions read.
   static final currency = ValueNotifier(appCurrency);
@@ -76,6 +81,7 @@ class AppSettings {
       );
       sync.value = (enabled: await _prefs.getBool(_syncOnKey) ?? false, name: await _prefs.getString(_syncNameKey) ?? '');
       privateScreen.value = await _prefs.getBool(_privateScreenKey) ?? true;
+      hideAmounts.value = await _prefs.getBool(_hideAmountsKey) ?? true;
       currency.value = appCurrency = Currency.byCode(await _prefs.getString(_currencyKey)) ?? currencies.first;
       whatsNewSeen = await _prefs.getInt(_whatsNewKey);
       if (!privateScreen.value) await _applyPrivateScreen();
@@ -125,6 +131,11 @@ class AppSettings {
     privateScreen.value = on;
     await _prefs.setBool(_privateScreenKey, on);
     await _applyPrivateScreen();
+  }
+
+  static Future<void> setHideAmounts(bool on) async {
+    hideAmounts.value = on;
+    await _prefs.setBool(_hideAmountsKey, on);
   }
 
   static Future<void> _applyPrivateScreen() async {
