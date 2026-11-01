@@ -268,6 +268,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       ? [_padded(Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: a), const SizedBox(width: 16), Expanded(child: b)]))]
       : [_padded(a), _gap, _padded(b)];
 
+  /// A big amount shrinks to fit its card instead of wrapping (or overflowing).
+  static Widget _fit(Widget amount) =>
+      FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: amount);
+
   Widget _statCard(ThemeData theme, String label, String value, IconData icon, Color accent) {
     return Card(
       margin: EdgeInsets.zero,
@@ -284,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                 Expanded(child: Text(label, style: theme.textTheme.bodySmall, overflow: TextOverflow.ellipsis)),
               ],
             ),
-            Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            _fit(Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
           ],
         ),
       ),
@@ -298,7 +302,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(label, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
-            Text(formatMoney(fils), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color)),
+            _fit(Text(formatMoney(fils), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color))),
           ]),
         );
     return Card(

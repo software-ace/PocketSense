@@ -43,6 +43,18 @@ void main() {
     expect(find.text('Other'), findsOneWidget); // F + G + no merchant
   });
 
+  testWidgets('a long amount shrinks to fit its card instead of wrapping', (tester) async {
+    await tester.runAsync(() async {
+      await FinanceRepo().insertTransaction(amountFils: 14842150, type: 'expense', date: DateTime.now(), description: 'x');
+      await FinanceRepo().insertLoan(person: 'P', direction: 'lent', amountFils: 14842150, date: DateTime.now(), description: 'x');
+    });
+    await pumpDashboard(tester);
+    expect(tester.takeException(), isNull);
+    // One line, as tall as this month's JOD 0.000 next to it: not wrapped.
+    double height(String text) => tester.getSize(find.text(text).first).height;
+    expect(height('JOD\u00A014,842.150'), height('JOD\u00A00.000'));
+  });
+
   testWidgets('the trend charts draw with data, and the week starts on Saturday in Arabic', (tester) async {
     final today = DateTime.now();
     await tester.runAsync(() async {
