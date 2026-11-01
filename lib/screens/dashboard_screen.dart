@@ -33,6 +33,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   List<({String? label, int fils, String? color})> _byCategory = [];
   List<({String? label, int fils})> _byMerchant = [];
   List<({DateTime month, int income, int expense})> _monthly = [];
+  // The month Monthly Income vs Spending shows; null follows the current one.
+  DateTime? _pickedMonth;
+  ({int income, int expense}) _pickedTotals = (income: 0, expense: 0);
+  List<DateTime> _dataMonths = [];
   ({List<int> thisMonth, List<int> lastMonth}) _pace = (thisMonth: const [], lastMonth: const []);
   List<int> _weekday = const [];
   List<({DateTime day, int fils})> _daily = [];
@@ -69,6 +73,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _repo.monthPace(now),
         _repo.weekdayAverages(now),
         _repo.loans(),
+        _repo.transactionMonths(),
+        _repo.totals(_pickedFrom(now), _pickedTo(now)),
       ]);
 
       if (!mounted) return;
@@ -83,6 +89,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _pace = results[7] as ({List<int> thisMonth, List<int> lastMonth});
         _weekday = results[8] as List<int>;
         _loans = results[9] as List<Loan>;
+        _dataMonths = results[10] as List<DateTime>;
+        _pickedTotals = results[11] as ({int income, int expense});
         _loading = false;
       });
     } catch (e) {
@@ -92,6 +100,72 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _loading = false;
       });
     }
+  }
+
+  // The picked month: all of a past one; the current one up to today.
+  DateTime _pickedFrom(DateTime now) => _pickedMonth ?? DateTime(now.year, now.month);
+  DateTime _pickedTo(DateTime now) {
+    final m = _pickedMonth;
+    return m == null ? now : DateTime(m.year, m.month + 1, 0);
+  }
+
+  // Reloads only this chart, so the rest of Home doesn't flash.
+  Future<void> _pickMonth(DateTime month) async {
+    final now = DateTime.now();
+    setState(() => _pickedMonth = month.year == now.year && month.month == now.month ? null : month);
+    final totals = await _repo.totals(_pickedFrom(now), _pickedTo(now));
+    if (mounted) setState(() => _pickedTotals = totals);
+  }
+
+  // Which month the chart shows: a year column and a month column, each
+  // with ▲ (later) and ▼ (earlier), kept between the oldest month with
+  // entries and the current month (or a later one with entries). Tapping
+  // either opens the list of all of them, newest first.
+  Widget _monthPicker(ThemeData theme) {
+    final l = context.l10n;
+    final material = MaterialLocalizations.of(context);
+    final now = DateTime.now();
+    final current = DateTime(now.year, now.month);
+    final selected = _pickedMonth ?? current;
+    final months = {current, ..._dataMonths}.toList()..sort((a, b) => b.compareTo(a));
+    final newest = months.first, oldest = months.last;
+    // A year step can land outside the months there are: stop at the edge.
+    DateTime clamp(DateTime m) => m.isAfter(newest) ? newest : (m.isBefore(oldest) ? oldest : m);
+
+    Widget arrow(IconData icon, String tooltip, DateTime to, bool enabled) => IconButton(
+          icon: Icon(icon),
+          tooltip: tooltip,
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 40, height: 24),
+          onPressed: enabled ? () => _pickMonth(clamp(to)) : null,
+        );
+    Widget column(String text, Widget up, Widget down) => Column(mainAxisSize: MainAxisSize.min, children: [
+          up,
+          PopupMenuButton<DateTime>(
+            tooltip: l.pickMonth,
+            initialValue: selected,
+            onSelected: _pickMonth,
+            itemBuilder: (_) => [
+              for (final m in months) CheckedPopupMenuItem(value: m, checked: m == selected, child: Text(DateFormat.yMMM().format(m))),
+            ],
+            child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(text, style: theme.textTheme.labelLarge)),
+          ),
+          down,
+        ]);
+
+    return Row(key: const Key('monthPicker'), mainAxisSize: MainAxisSize.min, children: [
+      column(
+        DateFormat.y().format(selected),
+        arrow(Icons.keyboard_arrow_up, l.nextYear, DateTime(selected.year + 1, selected.month), selected.year < newest.year),
+        arrow(Icons.keyboard_arrow_down, l.previousYear, DateTime(selected.year - 1, selected.month), selected.year > oldest.year),
+      ),
+      column(
+        DateFormat.MMM().format(selected),
+        arrow(Icons.keyboard_arrow_up, material.nextMonthTooltip, DateTime(selected.year, selected.month + 1), selected.isBefore(newest)),
+        arrow(Icons.keyboard_arrow_down, material.previousMonthTooltip, DateTime(selected.year, selected.month - 1), selected.isAfter(oldest)),
+      ),
+    ]);
   }
 
   @override
@@ -151,6 +225,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                 _chartCard(theme, l.chartByMerchant, _buildPieChart(_merchantSlices()))),
             _gap,
             _padded(_chartCard(theme, l.chartMonthly, _buildMonthlyChart())),
+            _gap,
+            _padded(_chartCard(theme, l.chartMonthTotals, _buildMonthTotalsChart(), action: _monthPicker(theme))),
             _gap,
             ..._pair(desktop, _chartCard(theme, l.chartPace, _buildPaceChart()), _chartCard(theme, l.chartWeekday, _buildWeekdayChart())),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -250,14 +326,17 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     );
   }
 
-  Widget _chartCard(ThemeData theme, String title, Widget chart) {
+  Widget _chartCard(ThemeData theme, String title, Widget chart, {Widget? action}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: theme.textTheme.titleSmall),
+            Row(children: [
+              Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
+              ?action,
+            ]),
             const SizedBox(height: 12),
             SizedBox(height: 200, child: chart),
           ],
@@ -408,6 +487,36 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       ),
       const SizedBox(height: 8),
       _legend([(l.income, Colors.green), (l.expense, Colors.redAccent)]),
+    ]);
+  }
+
+  // The picked month's income and spending as a pie with their amounts on it.
+  Widget _buildMonthTotalsChart() {
+    final l = context.l10n;
+    final (:income, :expense) = _pickedTotals;
+    final total = income + expense;
+    if (total == 0) return Center(child: Text(l.noData));
+    PieChartSectionData slice(int fils, Color color) => PieChartSectionData(
+          value: fils.toDouble(),
+          color: color,
+          radius: 54,
+          // Too thin a slice has no room: the legend has its amount too.
+          showTitle: fils / total > 0.12,
+          // Code and number on two lines, so the amount fits in the ring.
+          title: formatMoney(fils).replaceFirst('\u00A0', '\n'),
+          titleStyle: TextStyle(
+              fontSize: 10, fontWeight: FontWeight.w600, color: color.computeLuminance() > 0.2 ? Colors.black87 : Colors.white),
+        );
+    return Column(children: [
+      Expanded(
+        child: PieChart(PieChartData(
+          sections: [if (income > 0) slice(income, Colors.green), if (expense > 0) slice(expense, Colors.redAccent)],
+          centerSpaceRadius: 30,
+          sectionsSpace: 2,
+        )),
+      ),
+      const SizedBox(height: 8),
+      _legend([('${l.income}: ${formatMoney(income)}', Colors.green), ('${l.expense}: ${formatMoney(expense)}', Colors.redAccent)]),
     ]);
   }
 

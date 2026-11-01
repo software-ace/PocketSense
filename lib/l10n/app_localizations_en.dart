@@ -255,6 +255,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartMonthly => 'Income vs Spending (6 months)';
 
   @override
+  String get nextYear => 'Next year';
+
+  @override
+  String get previousYear => 'Previous year';
+
+  @override
+  String get pickMonth => 'Pick month';
+
+  @override
+  String get chartMonthTotals => 'Monthly Income vs Spending';
+
+  @override
   String get chartPace => 'This Month vs Last Month';
 
   @override

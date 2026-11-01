@@ -560,6 +560,30 @@ abstract class AppLocalizations {
   /// **'Income vs Spending (6 months)'**
   String get chartMonthly;
 
+  /// No description provided for @nextYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Next year'**
+  String get nextYear;
+
+  /// No description provided for @previousYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous year'**
+  String get previousYear;
+
+  /// No description provided for @pickMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick month'**
+  String get pickMonth;
+
+  /// No description provided for @chartMonthTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Income vs Spending'**
+  String get chartMonthTotals;
+
   /// No description provided for @chartPace.
   ///
   /// In en, this message translates to:

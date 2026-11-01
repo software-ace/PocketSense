@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/dashboard_screen.dart';
 
@@ -49,10 +50,17 @@ void main() {
       await FinanceRepo().insertTransaction(amountFils: 90000, type: 'income', date: today, description: 'y');
     });
     await pumpDashboard(tester);
-    for (final title in ['Income vs Spending (6 months)', 'This Month vs Last Month', 'By Weekday (12-week daily average)']) {
+    // Home builds its cards lazily, so check each chart once it's in view.
+    for (final (title, chart) in [
+      ('Income vs Spending (6 months)', BarChart),
+      ('Monthly Income vs Spending', PieChart),
+      ('This Month vs Last Month', LineChart),
+      ('By Weekday (12-week daily average)', BarChart),
+    ]) {
       await scrollTo(tester, title);
+      final card = find.ancestor(of: find.text(title), matching: find.byType(Card));
+      expect(find.descendant(of: card, matching: find.byType(chart)), findsOneWidget, reason: title);
     }
-    expect(find.byType(BarChart), findsNWidgets(2));
     expect(find.text('This month'), findsOneWidget);
     expect(find.text('Last month'), findsOneWidget);
     expect(find.text('No data'), findsNothing);
@@ -63,5 +71,67 @@ void main() {
     // Saturday first.
     final labels = tester.widgetList<Text>(find.descendant(of: find.byType(BarChart).last, matching: find.byType(Text))).map((t) => t.data);
     expect(labels.where((d) => d != null && double.tryParse(d) == null).toList(), ['س', 'ح', 'ن', 'ث', 'ر', 'خ', 'ج']);
+  });
+
+  // What the month picker shows (month names are on the chart's axis too).
+  Finder inPicker(String text) => find.descendant(of: find.byKey(const Key('monthPicker')), matching: find.text(text));
+  void expectPicked(DateTime m) {
+    expect(inPicker(DateFormat.y().format(m)), findsOneWidget);
+    expect(inPicker(DateFormat.MMM().format(m)), findsOneWidget);
+  }
+
+  testWidgets('Monthly Income vs Spending shows a month picked from the list', (tester) async {
+    final now = DateTime.now();
+    final old = DateTime(now.year, now.month - 8, 15);
+    await tester.runAsync(() async {
+      await FinanceRepo().insertTransaction(amountFils: 7000, type: 'income', date: old, description: 'x');
+      await FinanceRepo().insertTransaction(amountFils: 9500, type: 'expense', date: old, description: 'y');
+    });
+    await pumpDashboard(tester);
+    await scrollTo(tester, 'Monthly Income vs Spending');
+    expect(find.textContaining('Income: '), findsNothing, reason: 'nothing this month yet');
+
+    await tester.tap(inPicker(DateFormat.MMM().format(now)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(DateFormat.yMMM().format(old)));
+    await settleWithDb(tester);
+
+    expectPicked(old);
+    // Slice labels are painted, not widgets: read them off the chart.
+    expect(tester.widget<PieChart>(find.byType(PieChart).last).data.sections.map((x) => x.title), ['JOD\n7.000', 'JOD\n9.500']);
+    expect(find.text('Expense: JOD\u00A09.500'), findsOneWidget, reason: 'and in the legend');
+  });
+
+  testWidgets('the arrows step Monthly Income vs Spending by month and by year, within the months there are', (tester) async {
+    final now = DateTime.now();
+    DateTime back(int months) => DateTime(now.year, now.month - months);
+    IconButton arrow(String tooltip) => tester.widget<IconButton>(find.ancestor(of: find.byTooltip(tooltip), matching: find.byType(IconButton)));
+    Future<void> tap(String tooltip) async {
+      await tester.tap(find.byTooltip(tooltip));
+      await settleWithDb(tester);
+    }
+
+    // Entries this month last year, and two months ago.
+    await tester.runAsync(() async {
+      await FinanceRepo().insertTransaction(amountFils: 7000, type: 'income', date: DateTime(now.year - 1, now.month, 3), description: 'x');
+      await FinanceRepo().insertTransaction(amountFils: 900, type: 'expense', date: DateTime(now.year, now.month - 2, 3), description: 'y');
+    });
+    await pumpDashboard(tester);
+    await scrollTo(tester, 'Monthly Income vs Spending');
+
+    expectPicked(back(0));
+    expect(arrow('Next month').onPressed, isNull, reason: 'nothing after the current month');
+    expect(arrow('Next year').onPressed, isNull);
+    await tap('Previous month');
+    expectPicked(back(1));
+    await tap('Next month');
+    expectPicked(back(0));
+
+    await tap('Previous year');
+    expectPicked(back(12));
+    expect(arrow('Previous month').onPressed, isNull, reason: 'nothing before the oldest month with entries');
+    expect(arrow('Previous year').onPressed, isNull);
+    await tap('Next year');
+    expectPicked(back(0));
   });
 }

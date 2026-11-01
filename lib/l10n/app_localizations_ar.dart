@@ -255,6 +255,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chartMonthly => 'الدخل والإنفاق (6 أشهر)';
 
   @override
+  String get nextYear => 'السنة التالية';
+
+  @override
+  String get previousYear => 'السنة السابقة';
+
+  @override
+  String get pickMonth => 'اختر الشهر';
+
+  @override
+  String get chartMonthTotals => 'الدخل مقابل الإنفاق الشهري';
+
+  @override
   String get chartPace => 'هذا الشهر مقابل الشهر الماضي';
 
   @override

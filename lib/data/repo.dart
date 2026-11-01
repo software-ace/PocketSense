@@ -527,6 +527,14 @@ class FinanceRepo {
     return [for (var i = 0; i < months; i++) (month: DateTime(first.year, first.month + i), income: income[i], expense: expense[i])];
   }
 
+  /// The months that have any entries, newest first, as the 1st of each.
+  Future<List<DateTime>> transactionMonths() async {
+    final store = await _db;
+    // Dates are stored as yyyy-MM-dd, so the first 7 characters are the month.
+    final rows = await store.db.rawQuery('SELECT DISTINCT substr(date, 1, 7) AS m FROM transactions ORDER BY m DESC');
+    return [for (final r in rows) DateTime.parse('${r['m']}-01')];
+  }
+
   /// Expense fils spent so far by each day of the month, for comparing the
   /// pace of spending: this month up to [now]'s day, and all of last month.
   Future<({List<int> thisMonth, List<int> lastMonth})> monthPace(DateTime now) async {
