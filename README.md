@@ -22,11 +22,15 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 | ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Loans: what's owed to you and what you owe, per person](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_loans.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
 
 <details>
-<summary>More: sync, Arabic, and the desktop layout</summary>
+<summary>More: sync, the quick add widget, Arabic, and the desktop layout</summary>
 
 | Settings → Sync | Pairing |
 |---|---|
 | ![Sync settings with two paired devices](fastlane/metadata/android/en-US/images/phoneScreenshots/7_sync.png) | ![Pairing: both devices show the same 6-digit code](fastlane/metadata/android/en-US/images/phoneScreenshots/8_pair.png) |
+
+| Quick add widget | Long-press the app icon |
+|---|---|
+| ![The quick add widget on the home screen: Expense, Income and voice buttons](fastlane/metadata/android/en-US/images/phoneScreenshots/9_widget.png) | ![The app icon's shortcuts: add expense, add income, add by voice](fastlane/metadata/android/en-US/images/phoneScreenshots/9_widget_shortcuts.png) |
 
 | الرئيسية | المخططات | الديون | الحركات | الميزانيات | الإعدادات |
 |---|---|---|---|---|---|
@@ -51,6 +55,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
   - On Linux it runs an offline model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), about 45 MB, downloaded once on first use).
+- **Quick add widget (Android):** a home-screen widget with Expense, Income and 🎤 buttons; the same three are on the app icon when you long-press it. Each opens the form (or voice entry) straight away, after the app lock if it's on. The widget shows no amounts.
 - **Budgets:** a weekly (Monday to Sunday) or monthly limit per expense category, with progress, what's left, and a warning when you go over.
 - **Recurring:** bills, subscriptions and salary, repeating weekly, every two weeks, monthly, quarterly or yearly from a first due date. Each shows when it's next due. **Post as transaction** records it in one tap, and an item can be paused instead of deleted.
 - **Loans:** money you lent or borrowed, per person. Lending, borrowing and each repayment are ordinary entries (*Payment for Ahmad*, *Payment from Ahmad*) in the **Loans Paid** and **Loans Received** categories, so your totals follow the cash. The **Loans** card on Home, under the four totals, shows what's owed to you and what you owe. Each loan shows what's left, with partial repayments, a due date that turns red when it's passed, and **Settle** to close it. Editing an entry in Activity updates its loan; deleting a loan deletes its entries.
@@ -95,6 +100,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - If the keystore doesn't respond, the app says so and offers **Try again**. It never deletes anything to get past the error, and with a PIN set it stays locked until the PIN can be checked.
 - **Private screen:** on Android the app is hidden in the recent-apps preview and can't be captured in screenshots or screen recordings. It's on by default; **Settings → Security → Private screen** turns it off, e.g. to take a screenshot.
 - **App lock:** **Settings → Security** sets a 4–6 digit PIN. It's asked for at launch and after 30 seconds in the background, and on Android you can also use a fingerprint or face. After 5 wrong PINs you have to wait, 30 seconds at first and then longer.
+  - The quick add widget and the app-icon shortcuts open the app through the lock like any launch, and the form waits until it's unlocked. The widget itself shows no amounts.
 - **A forgotten PIN can't be recovered.** The lock screen offers to erase everything, after which you can import a backup with your backup password.
 - **Backups:** **Settings → Backup** exports everything to a file encrypted with a backup password (AES-256-GCM, key from PBKDF2), and imports it back. **Automatic backup** writes one a day to a folder you pick (on Android, inside Documents or Download) and keeps the last 10.
   - The app remembers the backup password on the device, so automatic backups need no input. You'll need it to restore anywhere else; **if you forget it, your backups can't be opened.**
@@ -154,7 +160,7 @@ flutter test
 
 `docs/demo-backup.json` is an unencrypted backup with a year of made-up entries, budgets, recurring items, merchants and loans (November 1, 2025 to October 26, 2026). `test/backup_test.dart` checks it still imports.
 
-`integration_test/take_screenshots.sh` retakes every screenshot from the real app, filled with that file:
+`integration_test/take_screenshots.sh` retakes the app's screenshots from the real app, filled with that file:
 
 ```sh
 integration_test/take_screenshots.sh           # Linux, then a running Android emulator
@@ -163,6 +169,7 @@ integration_test/take_screenshots.sh android   # just fastlane/…/phoneScreensh
 ```
 
 - On Linux it uses an in-memory database and settings, so your own data is never touched.
+- `9_widget.png` and `9_widget_shortcuts.png` show the launcher, not the app, so they're taken by hand on the emulator (light mode, `adb exec-out screencap -p`).
 - On Android it installs a debug build on the emulator, and the demo data replaces that install's data.
 - It saves the app's own pixels, so there's no status bar or window frame. The desktop shots are 1280×800 at 1.5×.
 - The sync shots fake the paired and nearby devices on screen; sync itself never starts, so nothing is sent and no sync key is created.
@@ -179,7 +186,7 @@ lib/
   voice/       speech engines: Android recognizer, Linux offline model
   models/      row models and the starter categories
   screens/     Home, Activity, Budgets, Recurring, Loans, Categories, Settings, Sync
-  utils/       money and date formatting, recurring dates, voice parsing
+  utils/       money and date formatting, recurring dates, voice parsing, widget requests
   widgets/     shared widgets: amount field, empty/error states, voice sheet
 linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script
 fdroid/           F-Droid build recipe
@@ -228,6 +235,7 @@ Running the workflow by hand (Actions → Release → Run workflow) builds every
 - One currency at a time, with no conversion between currencies.
 - Android and Linux only, and biometric unlock is Android-only.
 - Voice entry understands English sentences only.
+- The quick add widget and the app-icon shortcuts are Android-only, and their labels follow the phone's language, not the one chosen in the app.
 - Arabic month names are the standard ones (سبتمبر), not the Levantine ones (أيلول).
 - Sync works only on the same local network, and only while the app is open on both devices.
 - On Linux, a firewall that blocks incoming connections (ufw on some distros, firewalld on Fedora) stops sync until port 47823 is allowed: `sudo ufw allow 47823` or `sudo firewall-cmd --permanent --add-port=47823/tcp --add-port=47823/udp && sudo firewall-cmd --reload`.

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the app icon: the widget's three actions (MainActivity.quickAdd). -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:icon="@drawable/ic_shortcut_expense"
+        android:shortcutId="add_expense"
+        android:shortcutShortLabel="@string/shortcut_add_expense">
+        <intent
+            android:action="ace.software.pocketsense.ADD_EXPENSE"
+            android:targetClass="ace.software.pocketsense.MainActivity"
+            android:targetPackage="ace.software.pocketsense" />
+    </shortcut>
+    <shortcut
+        android:icon="@drawable/ic_shortcut_income"
+        android:shortcutId="add_income"
+        android:shortcutShortLabel="@string/shortcut_add_income">
+        <intent
+            android:action="ace.software.pocketsense.ADD_INCOME"
+            android:targetClass="ace.software.pocketsense.MainActivity"
+            android:targetPackage="ace.software.pocketsense" />
+    </shortcut>
+    <shortcut
+        android:icon="@drawable/ic_shortcut_voice"
+        android:shortcutId="add_voice"
+        android:shortcutShortLabel="@string/quick_add_voice">
+        <intent
+            android:action="ace.software.pocketsense.ADD_VOICE"
+            android:targetClass="ace.software.pocketsense.MainActivity"
+            android:targetPackage="ace.software.pocketsense" />
+    </shortcut>
+</shortcuts>

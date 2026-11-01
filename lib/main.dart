@@ -12,6 +12,7 @@ import 'security/lock_gate.dart';
 import 'settings/app_settings.dart';
 import 'shell.dart';
 import 'sync/sync_service.dart';
+import 'utils/quick_add.dart';
 import 'widgets/startup_error.dart';
 
 Future<void> main() async {
@@ -21,6 +22,7 @@ Future<void> main() async {
     yield LicenseEntryWithLineBreaks(['Noto Sans Arabic'], await rootBundle.loadString('assets/fonts/OFL.txt'));
   });
   await AppSettings.load();
+  QuickAddRequests.listen();
   runApp(const PocketSenseApp());
 }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="quick_add_widget_bg">#FF1E1E26</color>
+    <color name="quick_add_expense_bg">#FF6B1F1A</color>
+    <color name="quick_add_expense_fg">#FFFFDAD6</color>
+    <color name="quick_add_income_bg">#FF1F4A25</color>
+    <color name="quick_add_income_fg">#FFCDEFC8</color>
+    <color name="quick_add_voice_bg">#FF34388F</color>
+    <color name="quick_add_voice_fg">#FFE1E0FF</color>
+</resources>

@@ -17,9 +17,10 @@ void main() {
     erased = 0;
   });
 
-  Future<void> pumpGate(WidgetTester tester) async {
+  Future<void> pumpGate(WidgetTester tester, {Duration relockAfter = const Duration(seconds: 30)}) async {
     await tester.pumpWidget(localizedApp(LockGate(
       onEraseAll: () async => erased++,
+      relockAfter: relockAfter,
       child: const Scaffold(body: Text('the app')),
     )));
     // Let the keystore reads (real futures) finish, then build.
@@ -38,6 +39,48 @@ void main() {
   }
 
   bool appVisible(WidgetTester tester) => find.text('the app').hitTestable().evaluate().isNotEmpty;
+
+  void goAway(WidgetTester tester) {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+  }
+
+  Future<void> comeBack(WidgetTester tester) async {
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+  }
+
+  // What the home-screen widget's requests wait on: voice entry would listen
+  // under the lock screen otherwise.
+  testWidgets('LockGate.unlocked is false while locked and from the moment the app goes away', (tester) async {
+    addTearDown(() => LockGate.unlocked.value = true);
+    await tester.runAsync(() => AppLock.instance.setPin('2468'));
+    await pumpGate(tester, relockAfter: Duration.zero);
+    expect(LockGate.unlocked.value, isFalse);
+    await typePin(tester, '2468');
+    expect(LockGate.unlocked.value, isTrue);
+
+    // A widget tap arrives before the app shows again: closed already.
+    goAway(tester);
+    expect(LockGate.unlocked.value, isFalse);
+    await comeBack(tester);
+    expect(find.text('Enter your PIN'), findsOneWidget);
+    expect(LockGate.unlocked.value, isFalse);
+    await typePin(tester, '2468');
+    expect(LockGate.unlocked.value, isTrue);
+  });
+
+  testWidgets('without a PIN, LockGate.unlocked opens again on return', (tester) async {
+    addTearDown(() => LockGate.unlocked.value = true);
+    await pumpGate(tester);
+    expect(LockGate.unlocked.value, isTrue);
+    goAway(tester);
+    expect(LockGate.unlocked.value, isFalse);
+    await comeBack(tester);
+    expect(LockGate.unlocked.value, isTrue);
+  });
 
   testWidgets('without a PIN the app shows straight away', (tester) async {
     await pumpGate(tester);

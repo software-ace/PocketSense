@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quick_add_expense">مصروف</string>
+    <string name="quick_add_income">دخل</string>
+    <string name="quick_add_voice">إضافة بالصوت</string>
+    <string name="quick_add_widget_description">أضف مصروفًا أو دخلًا أو إدخالًا صوتيًا</string>
+    <string name="shortcut_add_expense">إضافة مصروف</string>
+    <string name="shortcut_add_income">إضافة دخل</string>
+</resources>

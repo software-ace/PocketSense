@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Quick add widget and app-icon shortcuts. These follow the phone's
+         language (the app's own language setting lives in Flutter). -->
+    <string name="quick_add_expense">Expense</string>
+    <string name="quick_add_income">Income</string>
+    <string name="quick_add_voice">Add by voice</string>
+    <string name="quick_add_widget_description">Add an expense, income or voice entry</string>
+    <string name="shortcut_add_expense">Add expense</string>
+    <string name="shortcut_add_income">Add income</string>
+</resources>

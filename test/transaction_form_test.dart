@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
+import 'package:pocket_sense/security/lock_gate.dart';
 import 'package:pocket_sense/utils/format.dart';
+import 'package:pocket_sense/utils/quick_add.dart';
 
 import 'helpers/screen_with_db.dart';
 
@@ -22,6 +24,41 @@ void main() {
     await tester.tap(find.text('Category (optional)'));
     await tester.pumpAndSettle();
   }
+
+  Set<String> sheetType(WidgetTester tester) => tester.widget<SegmentedButton<String>>(find.byType(SegmentedButton<String>).last).selected; // the sheet's, not the list filter's
+
+  testWidgets('the home-screen widget opens the form with its type chosen, from launch or while running', (tester) async {
+    addTearDown(() => QuickAddRequests.pending.value = null);
+    // Waiting from launch: opened once the screen is up.
+    QuickAddRequests.pending.value = QuickAdd.income;
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    expect(find.text('New transaction'), findsOneWidget);
+    expect(sheetType(tester), {'income'});
+    expect(QuickAddRequests.pending.value, isNull, reason: 'acted on once');
+
+    await tester.tapAt(const Offset(10, 10)); // dismiss
+    await tester.pumpAndSettle();
+    expect(find.text('New transaction'), findsNothing);
+
+    // Tapped while locked: waits for the unlock (voice would listen under the lock screen).
+    addTearDown(() => LockGate.unlocked.value = true);
+    LockGate.unlocked.value = false;
+    QuickAddRequests.pending.value = QuickAdd.expense;
+    await settleWithDb(tester);
+    expect(find.text('New transaction'), findsNothing);
+    LockGate.unlocked.value = true;
+    await settleWithDb(tester);
+    expect(find.text('New transaction'), findsOneWidget);
+    expect(sheetType(tester), {'expense'});
+  });
+
+  test('quick add actions from Android', () {
+    expect(QuickAddRequests.parse('expense'), QuickAdd.expense);
+    expect(QuickAddRequests.parse('income'), QuickAdd.income);
+    expect(QuickAddRequests.parse('voice'), QuickAdd.voice);
+    expect(QuickAddRequests.parse(null), isNull);
+    expect(QuickAddRequests.parse('other'), isNull);
+  });
 
   testWidgets('category list only offers categories of the chosen type', (tester) async {
     await openAddSheet(tester);

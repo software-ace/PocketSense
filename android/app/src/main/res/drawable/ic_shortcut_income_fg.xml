@@ -1,0 +1,8 @@
+<!-- Adaptive shortcut icon foreground: 108dp canvas, glyph within the 72dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="2" android:scaleY="2" android:translateX="30" android:translateY="30">
+        <path android:fillColor="@color/quick_add_income_fg" android:pathData="M4,12l1.41,1.41L11,7.83V20h2V7.83l5.58,5.59L20,12l-8,-8 -8,8z"/>
+    </group>
+</vector>

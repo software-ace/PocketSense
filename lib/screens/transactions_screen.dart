@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/lock_gate.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
+import '../utils/quick_add.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
@@ -36,6 +38,34 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   void initState() {
     super.initState();
     _load();
+    // A request from launch is already waiting; later ones arrive while running.
+    QuickAddRequests.pending.addListener(_onQuickAdd);
+    LockGate.unlocked.addListener(_onQuickAdd);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onQuickAdd());
+  }
+
+  @override
+  void dispose() {
+    QuickAddRequests.pending.removeListener(_onQuickAdd);
+    LockGate.unlocked.removeListener(_onQuickAdd);
+    super.dispose();
+  }
+
+  /// The home-screen widget or an app-icon shortcut: open the form over
+  /// whichever tab is showing, once unlocked (voice would listen under the
+  /// lock screen otherwise).
+  void _onQuickAdd() {
+    final request = QuickAddRequests.pending.value;
+    if (request == null || !LockGate.unlocked.value || !mounted) return;
+    QuickAddRequests.pending.value = null;
+    switch (request) {
+      case QuickAdd.voice when voiceEntrySupported:
+        _addByVoice();
+      case QuickAdd.income:
+        _addTransaction(type: 'income');
+      case QuickAdd.expense || QuickAdd.voice:
+        _addTransaction();
+    }
   }
 
   Future<void> _load() async {
@@ -59,8 +89,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     }
   }
 
-  Future<void> _addTransaction() async {
-    final draft = await _showForm(context, null);
+  Future<void> _addTransaction({String type = 'expense'}) async {
+    final draft = await _showForm(context, null, type: type);
     if (draft == null || !mounted) return;
     try {
       await _repo.insertTransaction(
@@ -344,11 +374,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     }).catchError((_) {});
   }
 
-  Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing) async {
+  Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing, {String? type}) async {
     final result = await showModalBottomSheet<_TxDraft>(
       context: context,
       isScrollControlled: true,
-      builder: (c) => _TxFormSheet(existing: existing),
+      builder: (c) => _TxFormSheet(existing: existing, type: type),
     );
     return result;
   }
@@ -414,7 +444,8 @@ class _TxFormSheet extends StatefulWidget {
   final Transaction? existing;
   final VoiceDraft? voice; // pre-fill from a spoken sentence
   final String? heard;
-  const _TxFormSheet({this.existing, this.voice, this.heard});
+  final String? type; // a new one's starting type
+  const _TxFormSheet({this.existing, this.voice, this.heard, this.type});
   @override
   State<_TxFormSheet> createState() => _TxFormSheetState();
 }
@@ -424,7 +455,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late final _amtCtrl = TextEditingController(text: _initialFils != null ? amountToInput(_initialFils) : '');
   late final _descCtrl = TextEditingController(text: widget.existing?.description ?? widget.voice?.description ?? '');
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? widget.voice?.merchant ?? '');
-  late String _type = widget.existing?.type ?? widget.voice?.type ?? 'expense';
+  late String _type = widget.existing?.type ?? widget.voice?.type ?? widget.type ?? 'expense';
   late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
   late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
   List<dynamic> _cats = [];

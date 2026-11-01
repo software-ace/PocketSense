@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive, so launchers fill their icon shape instead of shrinking it
+     into a circle (drawable/ic_shortcut_expense.xml before Android 8). -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/quick_add_expense_bg"/>
+    <foreground android:drawable="@drawable/ic_shortcut_expense_fg"/>
+</adaptive-icon>
