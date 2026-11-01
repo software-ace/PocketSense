@@ -48,6 +48,11 @@ void main() {
     expect(parse('paid 12 dirhams and 25 fils for parking').amountFils, 12250, reason: 'a UAE fils is a hundredth');
     appCurrency = Currency.byCode('JOD')!;
     expect(parse('paid 12 dinars and 25 fils for parking').amountFils, 12025, reason: 'a Jordanian fils is a thousandth');
+    appCurrency = Currency.byCode('SEK')!;
+    final k = parse('spent 250 kronor on groceries');
+    expect((k.amountFils, k.description), (250000, 'Groceries'));
+    appCurrency = Currency.byCode('MXN')!;
+    expect(parse('paid 40 pesos and 50 centavos for the bus').amountFils, 40500);
   });
 
   test('income from words and category, merchant after "from"', () {

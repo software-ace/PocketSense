@@ -16,8 +16,8 @@ class VoiceDraft {
 
 const _incomeWords = ['earned', 'received', 'got paid', 'income', 'salary', 'paycheck', 'payday', 'refund', 'sold', 'deposit', 'bonus'];
 // Names of money, whatever the app's currency: the number is what counts.
-const _mainUnits = r'dinars?|jds?|jod|dollars?|bucks?|euros?|pounds?|riyals?|rials?|dirhams?|rupees?|liras?|yen|yuan|francs?';
-const _smallUnits = r'fils|piasters?|piastres?|qirsh|cents?|halalas?|baisas?';
+const _mainUnits = r'dinars?|jds?|jod|dollars?|bucks?|euros?|pounds?|riyals?|rials?|dirhams?|rupees?|liras?|yen|yuan|francs?|pesos?|kron(?:a|or|e|er|ur)|korunas?|reais|baht|ringgits?|zlotys?|forints?|rubles?|roubles?|rupiahs?|nairas?|takas?|hryvnias?|shillings?|ouguiyas?|denars?|leks?';
+const _smallUnits = r'fils|piasters?|piastres?|qirsh|cents?|halalas?|baisas?|centavos?';
 const _weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 // Everyday words → starter categories (by their key in defaultCategories).

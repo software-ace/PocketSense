@@ -7,7 +7,7 @@
 ![Platforms: Android, Linux](https://img.shields.io/badge/platforms-Android%20%7C%20Linux-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
-A private personal finance tracker for Android and Linux. It works fully offline, in English and Arabic, in Jordanian dinars or any of 27 other currencies.
+A private personal finance tracker for Android and Linux. It works fully offline, in English and Arabic, in Jordanian dinars or any of 68 other currencies.
 
 There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
@@ -59,7 +59,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 **Made for Jordan, in two languages**
 - **Currency:** Jordanian dinars by default, with three decimals: **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
-  - **Settings → General → Currency**, or the welcome screen, switches to one of 27 others, from SAR and AED to USD, EUR and INR, each with its usual decimals (2 for USD, 0 for JPY).
+  - **Settings → General → Currency**, or the welcome screen, switches to one of 68 others, from SAR and AED to USD, EUR and INR, each with its usual decimals (2 for USD, 0 for JPY).
   - It's one currency for all your data, with no exchange rates, so the app stays offline. Switching relabels amounts; it doesn't convert them.
   - Backups carry the currency, and importing one switches to it. Two devices sync only when they use the same currency.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:pocket_sense/l10n/app_localizations.dart';
 import 'package:pocket_sense/settings/app_settings.dart';
 import 'package:pocket_sense/utils/format.dart';
 
@@ -107,6 +108,15 @@ void main() {
         expect(c.decimals, lessThanOrEqualTo(3), reason: c.code);
       }
       expect(currencies.map((c) => c.code).toSet(), hasLength(currencies.length));
+    });
+
+    test('every currency on offer has a name in each language, not just its code', () {
+      for (final locale in const [Locale('en'), Locale('ar')]) {
+        final l = lookupAppLocalizations(locale);
+        for (final c in currencies) {
+          expect(l.currencyName(c.code), isNot(c.code), reason: '${c.code} in $locale');
+        }
+      }
     });
   });
 

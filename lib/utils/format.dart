@@ -32,8 +32,15 @@ const currencies = [
   Currency('QAR', 'ر.ق'), Currency('BHD', 'د.ب'), Currency('OMR', 'ر.ع'), Currency('EGP', 'ج.م'), //
   Currency('IQD', 'د.ع'), Currency('LBP', 'ل.ل'), Currency('SYP', 'ل.س'), Currency('MAD', 'د.م'), //
   Currency('DZD', 'د.ج'), Currency('TND', 'د.ت'), Currency('LYD', 'د.ل'), Currency('YER', 'ر.ي'), //
-  Currency('SDG', 'ج.س'), Currency('USD'), Currency('EUR'), Currency('GBP'), Currency('TRY'), //
-  Currency('INR'), Currency('PKR'), Currency('CAD'), Currency('AUD'), Currency('CHF'), Currency('JPY'), Currency('CNY'),
+  Currency('SDG', 'ج.س'), Currency('MRU'), Currency('DJF'), Currency('SOS'), Currency('KMF'), //
+  Currency('USD'), Currency('EUR'), Currency('GBP'), Currency('JPY'), Currency('CNY'), Currency('CHF'), //
+  Currency('CAD'), Currency('AUD'), Currency('HKD'), Currency('SGD'), Currency('SEK'), Currency('KRW'), //
+  Currency('NOK'), Currency('NZD'), Currency('INR'), Currency('MXN'), Currency('TWD'), Currency('ZAR'), //
+  Currency('BRL'), Currency('DKK'), Currency('PLN'), Currency('THB'), Currency('IDR'), Currency('CZK'), //
+  Currency('TRY'), Currency('HUF'), Currency('CLP'), Currency('PHP'), Currency('MYR'), Currency('RON'), //
+  Currency('RUB'), Currency('COP'), Currency('PEN'), Currency('ARS'), Currency('BGN'), Currency('NGN'), //
+  Currency('ISK'), Currency('VND'), Currency('PKR'), Currency('BDT'), Currency('UAH'), Currency('KES'), //
+  Currency('RSD'), Currency('ALL'), Currency('BAM'), Currency('MKD'), Currency('MDL'), Currency('BYN'),
 ];
 
 /// What amounts are shown in. AppSettings sets it before the app starts.
