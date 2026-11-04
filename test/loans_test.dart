@@ -197,6 +197,18 @@ void main() {
       expect(find.textContaining('repaid'), findsOneWidget);
     });
 
+    testWidgets("a reminder's Create Transaction opens Record repayment, once", (tester) async {
+      final id = (await tester.runAsync(() => lend('Ahmad', 120000, DateTime.now())))!;
+      await pumpScreenWithDb(tester, LoanScreen(loanId: id, repay: true));
+      expect(find.descendant(of: find.byType(BottomSheet), matching: find.text('Record repayment')), findsOneWidget);
+
+      await tester.tapAt(const Offset(20, 20)); // closes the sheet
+      await settleWithDb(tester);
+      await tester.runAsync(() => repo.insertTransaction(amountFils: 1, type: 'expense', date: DateTime.now(), description: 'x'));
+      await settleWithDb(tester);
+      expect(find.byType(BottomSheet), findsNothing, reason: 'a reload after a data change does not open it again');
+    });
+
     testWidgets('Settle asks first, saying what it records; Cancel changes nothing', (tester) async {
       final id = (await tester.runAsync(() => lend('Ahmad', 120000, DateTime.now())))!;
       await pumpScreenWithDb(tester, LoanScreen(loanId: id));

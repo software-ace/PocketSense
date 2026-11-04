@@ -1475,4 +1475,115 @@ class AppLocalizationsEn extends AppLocalizations {
   String loanPaymentFrom(String person) {
     return 'Payment from $person';
   }
+
+  @override
+  String get reminder => 'Reminder';
+
+  @override
+  String get reminderOff => 'Off';
+
+  @override
+  String get reminderSameDayDueTime => 'Same day on due time';
+
+  @override
+  String reminderDaysBefore(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days before',
+      one: '1 day before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderWeekBefore => '1 week before';
+
+  @override
+  String get dueTime => 'Due time';
+
+  @override
+  String get reminderPermissionOff =>
+      'Notifications are off for Pocket Sense, so reminders won\'t show. Allow them in Android Settings → Apps → Pocket Sense → Notifications.';
+
+  @override
+  String get reminderBackgroundNote =>
+      'So reminders arrive, allow Pocket Sense to start on its own (Autostart) and to run without battery limits.';
+
+  @override
+  String get reminderOpenSettings => 'Open settings';
+
+  @override
+  String get reminderDesktopNote =>
+      'Reminders show while Pocket Sense is open, and any missed ones when you open it.';
+
+  @override
+  String get reminderTitle => 'Payment reminder';
+
+  @override
+  String get reminderChannel => 'Reminders';
+
+  @override
+  String get reminderOpen => 'Open';
+
+  @override
+  String get reminderCreate => 'Create Transaction';
+
+  @override
+  String get reminderDismiss => 'Dismiss';
+
+  @override
+  String reminderWhen(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'due in $days days',
+      one: 'due tomorrow',
+      zero: 'due today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderLate(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days overdue',
+      one: '1 day overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderRecurring(String name, String when) {
+    return 'Your $name is $when. Check Recurring.';
+  }
+
+  @override
+  String reminderRecurringAmount(String name, String amount, String when) {
+    return 'Your $name ($amount) is $when. Check Recurring.';
+  }
+
+  @override
+  String reminderLoan(String person, String when) {
+    return 'Your loan with $person is $when.';
+  }
+
+  @override
+  String reminderLent(String person, String amount, String when) {
+    return '$person owes you $amount, $when.';
+  }
+
+  @override
+  String reminderBorrowed(String person, String amount, String when) {
+    return 'You owe $person $amount, $when.';
+  }
+
+  @override
+  String get reminderAmounts => 'Amounts in reminders';
+
+  @override
+  String get reminderAmountsSubtitle =>
+      'Show amounts in recurring and loan reminder notifications';
 }

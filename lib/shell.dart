@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'data/auto_backup.dart';
+import 'data/repo.dart';
 import 'sync/sync_service.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
+import 'screens/loans_screen.dart';
 import 'screens/recurring_screen.dart';
 import 'l10n/l10n.dart';
+import 'security/lock_gate.dart';
+import 'utils/reminder_notifications.dart';
 import 'utils/platform.dart';
 import 'widgets/whats_new.dart';
 
@@ -35,14 +39,20 @@ class _ShellState extends State<Shell> {
     super.initState();
     AutoBackup.runIfDue();
     SyncService.instance.start().ignore();
+    ReminderNotifications.start().ignore();
+    ReminderNotifications.pending.addListener(_onReminderTap);
+    LockGate.unlocked.addListener(_onReminderTap);
     // After the first frame, when there's a context to show a dialog from.
     // With a PIN set it opens under the lock screen, seen once unlocked.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) showWhatsNewIfUpdated(context);
+      _onReminderTap();
     });
     _lifecycle = AppLifecycleListener(onResume: () {
       AutoBackup.runIfDue();
       SyncService.instance.resumed().ignore();
+      // Time has passed: the 90-day window moves, and Linux shows what's due.
+      ReminderNotifications.refresh().ignore();
     });
     _arrivals = SyncService.instance.arrivals.stream.listen((a) {
       if (!mounted) return;
@@ -55,7 +65,43 @@ class _ShellState extends State<Shell> {
     _lifecycle.dispose();
     _arrivals.cancel();
     SyncService.instance.stop();
+    ReminderNotifications.stop();
+    ReminderNotifications.pending.removeListener(_onReminderTap);
+    LockGate.unlocked.removeListener(_onReminderTap);
     super.dispose();
+  }
+
+  /// A tapped reminder, once unlocked: Recurring, or the loan it's about.
+  /// Create Transaction also posts the recurring item (as its ▶ button
+  /// does), or opens Record repayment for the loan.
+  void _onReminderTap() {
+    final pending = ReminderNotifications.pending.value;
+    if (pending == null || !LockGate.unlocked.value || !mounted) return;
+    ReminderNotifications.pending.value = null;
+    final create = pending.startsWith('create:');
+    final [kind, ...rest] = (create ? pending.substring('create:'.length) : pending).split(':');
+    final id = int.tryParse(rest.firstOrNull ?? '');
+    if (kind == 'recurring') {
+      setState(() => _index = _pages.indexWhere((p) => p is RecurringScreen));
+      if (create && id != null) _post(id);
+    } else if (kind == 'loan' && id != null) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoanScreen(loanId: id, repay: create)));
+    }
+  }
+
+  Future<void> _post(int recurringId) async {
+    final l = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final repo = FinanceRepo();
+      // Gone (deleted, maybe on another device) since the reminder: nothing to post.
+      final r = (await repo.recurring()).where((r) => r.id == recurringId).firstOrNull;
+      if (r == null) return;
+      await repo.postRecurring(r, description: l.recurringSuffix(r.description));
+      messenger.showSnackBar(SnackBar(content: Text(l.postedAsTransaction(r.description))));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(l.postFailed('$e')), backgroundColor: Colors.red));
+    }
   }
 
   static const _pages = <Widget>[

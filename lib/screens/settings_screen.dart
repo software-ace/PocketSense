@@ -293,6 +293,16 @@ class _SecuritySectionState extends State<_SecuritySection> {
             onChanged: AppSettings.setPrivateScreen,
           ),
         ),
+      ValueListenableBuilder(
+        valueListenable: AppSettings.reminderAmounts,
+        builder: (context, on, _) => SwitchListTile(
+          secondary: const Icon(Icons.notifications_outlined),
+          title: Text(l.reminderAmounts),
+          subtitle: Text(l.reminderAmountsSubtitle),
+          value: on,
+          onChanged: AppSettings.setReminderAmounts,
+        ),
+      ),
     ]);
   }
 }

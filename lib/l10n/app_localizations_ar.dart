@@ -1501,4 +1501,124 @@ class AppLocalizationsAr extends AppLocalizations {
   String loanPaymentFrom(String person) {
     return 'دفعة من $person';
   }
+
+  @override
+  String get reminder => 'تذكير';
+
+  @override
+  String get reminderOff => 'إيقاف';
+
+  @override
+  String get reminderSameDayDueTime => 'في نفس اليوم وقت الاستحقاق';
+
+  @override
+  String reminderDaysBefore(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'قبل $days يوم',
+      many: 'قبل $days يومًا',
+      few: 'قبل $days أيام',
+      two: 'قبل يومين',
+      one: 'قبل يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderWeekBefore => 'قبل أسبوع';
+
+  @override
+  String get dueTime => 'وقت الاستحقاق';
+
+  @override
+  String get reminderPermissionOff =>
+      'الإشعارات متوقفة لتطبيق Pocket Sense، لذا لن تظهر التذكيرات. فعّلها من إعدادات أندرويد ← التطبيقات ← Pocket Sense ← الإشعارات.';
+
+  @override
+  String get reminderBackgroundNote =>
+      'لتصلك التذكيرات، اسمح لتطبيق Pocket Sense بالتشغيل التلقائي وبالعمل دون قيود على البطارية.';
+
+  @override
+  String get reminderOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get reminderDesktopNote =>
+      'تظهر التذكيرات أثناء فتح Pocket Sense، وتظهر الفائتة منها عند فتحه.';
+
+  @override
+  String get reminderTitle => 'تذكير بالدفع';
+
+  @override
+  String get reminderChannel => 'التذكيرات';
+
+  @override
+  String get reminderOpen => 'فتح';
+
+  @override
+  String get reminderCreate => 'إنشاء معاملة';
+
+  @override
+  String get reminderDismiss => 'تجاهل';
+
+  @override
+  String reminderWhen(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'مستحق بعد $days يوم',
+      many: 'مستحق بعد $days يومًا',
+      few: 'مستحق بعد $days أيام',
+      two: 'مستحق بعد يومين',
+      one: 'مستحق غدًا',
+      zero: 'مستحق اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderLate(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'متأخر $days يوم',
+      many: 'متأخر $days يومًا',
+      few: 'متأخر $days أيام',
+      two: 'متأخر يومين',
+      one: 'متأخر يومًا واحدًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderRecurring(String name, String when) {
+    return '$name $when. راجع المتكررة.';
+  }
+
+  @override
+  String reminderRecurringAmount(String name, String amount, String when) {
+    return '$name ($amount) $when. راجع المتكررة.';
+  }
+
+  @override
+  String reminderLoan(String person, String when) {
+    return 'قرضك مع $person $when.';
+  }
+
+  @override
+  String reminderLent(String person, String amount, String when) {
+    return '$person مدين لك بـ $amount، $when.';
+  }
+
+  @override
+  String reminderBorrowed(String person, String amount, String when) {
+    return 'أنت مدين لـ $person بـ $amount، $when.';
+  }
+
+  @override
+  String get reminderAmounts => 'المبالغ في التذكيرات';
+
+  @override
+  String get reminderAmountsSubtitle =>
+      'عرض المبالغ في إشعارات تذكير المتكررة والقروض';
 }

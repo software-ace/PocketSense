@@ -58,6 +58,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **Quick add widget (Android):** a home-screen widget with Expense, Income and 🎤 buttons; the same three are on the app icon when you long-press it. Each opens the form (or voice entry) straight away, after the app lock if it's on. The widget shows no amounts.
 - **Budgets:** a weekly (Monday to Sunday) or monthly limit per expense category, with progress, what's left, and a warning when you go over.
 - **Recurring:** bills, subscriptions and salary, repeating weekly, every two weeks, monthly, quarterly or yearly from a first due date. Each shows when it's next due. **Post as transaction** records it in one tap, and an item can be paused instead of deleted.
+- **Reminders:** a recurring item or a loan with a due date can remind you on the day, or 1, 3 or 7 days before. It rings at the item's due time (9:00 unless you change it), and a loan still open on its due date reminds you again that day. Reminders sync with the item. They're local notifications, with no server involved. Notifications show no amounts unless **Settings → Amounts in reminders** is on, and a locked phone hides their text. On Linux they show while the app is open, and any you missed when you open it.
 - **Loans:** money you lent or borrowed, per person. Lending, borrowing and each repayment are ordinary entries (*Payment for Ahmad*, *Payment from Ahmad*) in the **Loans Paid** and **Loans Received** categories, so your totals follow the cash. The **Loans** card on Home, under the four totals, shows what's owed to you and what you owe. Each loan shows what's left, with partial repayments, a due date that turns red when it's passed, and **Settle** to close it. Editing an entry in Activity updates its loan; deleting a loan deletes its entries.
 - **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 16 common ones (groceries, dining out, coffee, rent, salary, loans paid and received…). Deleting a category keeps its entries, uncategorized, and removes its budget.
 - **Merchants:** **Settings → Merchants** adds, renames and deletes the places you pay or get paid by. In the transaction and recurring forms, the merchant field searches them as you type and offers to create one it doesn't find. Renaming a merchant updates past entries too; deleting one leaves them as they are.
@@ -188,7 +189,7 @@ lib/
   voice/       speech engines: Android recognizer, Linux offline model
   models/      row models and the starter categories
   screens/     Home, Activity, Budgets, Recurring, Loans, Categories, Settings, Sync
-  utils/       money and date formatting, recurring dates, voice parsing, widget requests
+  utils/       money and date formatting, recurring dates, reminders, voice parsing, widget requests
   widgets/     shared widgets: amount field, empty/error states, voice sheet
 linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script, AUR PKGBUILD
 fdroid/           F-Droid build recipe

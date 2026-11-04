@@ -61,7 +61,7 @@ class Merge {
     'budgets': ['category_uid', 'limit_fils'],
     'recurring_expenses': ['description', 'amount_fils', 'frequency', 'anchor_date'],
   };
-  static const _intColumns = {'amount_fils', 'limit_fils', 'active'};
+  static const _intColumns = {'amount_fils', 'limit_fils', 'active', 'due_time', 'reminder_days'};
   static const _dateColumns = {'date', 'anchor_date', 'due_date'};
 
   static bool _isUid(Object? v) => v is String && v.isNotEmpty && v.length <= 64;

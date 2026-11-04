@@ -910,5 +910,109 @@
         "type": "String"
       }
     }
-  }
+  },
+  "reminder": "Reminder",
+  "reminderOff": "Off",
+  "reminderSameDayDueTime": "Same day on due time",
+  "reminderDaysBefore": "{days, plural, =1{1 day before} other{{days} days before}}",
+  "@reminderDaysBefore": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderWeekBefore": "1 week before",
+  "dueTime": "Due time",
+  "reminderPermissionOff": "Notifications are off for Pocket Sense, so reminders won't show. Allow them in Android Settings → Apps → Pocket Sense → Notifications.",
+  "reminderBackgroundNote": "So reminders arrive, allow Pocket Sense to start on its own (Autostart) and to run without battery limits.",
+  "reminderOpenSettings": "Open settings",
+  "reminderDesktopNote": "Reminders show while Pocket Sense is open, and any missed ones when you open it.",
+  "reminderTitle": "Payment reminder",
+  "reminderChannel": "Reminders",
+  "reminderOpen": "Open",
+  "reminderCreate": "Create Transaction",
+  "reminderDismiss": "Dismiss",
+  "reminderWhen": "{days, plural, =0{due today} =1{due tomorrow} other{due in {days} days}}",
+  "@reminderWhen": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderLate": "{days, plural, =1{1 day overdue} other{{days} days overdue}}",
+  "@reminderLate": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderRecurring": "Your {name} is {when}. Check Recurring.",
+  "@reminderRecurring": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderRecurringAmount": "Your {name} ({amount}) is {when}. Check Recurring.",
+  "@reminderRecurringAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderLoan": "Your loan with {person} is {when}.",
+  "@reminderLoan": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderLent": "{person} owes you {amount}, {when}.",
+  "@reminderLent": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderBorrowed": "You owe {person} {amount}, {when}.",
+  "@reminderBorrowed": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderAmounts": "Amounts in reminders",
+  "reminderAmountsSubtitle": "Show amounts in recurring and loan reminder notifications"
 }

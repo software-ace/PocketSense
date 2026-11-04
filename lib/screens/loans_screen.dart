@@ -8,6 +8,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/data_aware.dart';
+import '../widgets/reminder_field.dart';
 import '../widgets/state_views.dart';
 
 /// The text of a loan's entries in Activity, in the UI language: money out
@@ -48,6 +49,8 @@ Future<void> addLoan(BuildContext context, {String? person}) async {
       date: draft.date,
       dueDate: draft.dueDate,
       note: draft.note,
+      reminderDays: draft.reminderDays,
+      dueMinutes: draft.dueMinutes,
       description: loanDescriber(l)(draft.direction == 'lent' ? 'expense' : 'income', draft.person),
     );
   } catch (e) {
@@ -357,14 +360,17 @@ class _Progress extends StatelessWidget {
 
 /// A loan, its repayments, and what can be done with it.
 class LoanScreen extends StatefulWidget {
-  const LoanScreen({super.key, required this.loanId});
+  const LoanScreen({super.key, required this.loanId, this.repay = false});
   final int loanId;
+  /// Opens Record repayment once loaded (a reminder's Create Transaction).
+  final bool repay;
 
   @override
   State<LoanScreen> createState() => _LoanScreenState();
 }
 
 class _LoanScreenState extends State<LoanScreen> with DataAware {
+  late bool _repayPending = widget.repay;
   final _repo = FinanceRepo();
   Loan? _loan;
   List<Transaction> _entries = [];
@@ -391,6 +397,10 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
         _error = null;
         _loading = false;
       });
+      if (_repayPending && loan != null && loan.open) {
+        _repayPending = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _repay(loan) : null);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -449,6 +459,8 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
           date: draft.date,
           dueDate: draft.dueDate,
           note: draft.note,
+          reminderDays: draft.reminderDays,
+          dueMinutes: draft.dueMinutes,
           describe: loanDescriber(l));
     } catch (e) {
       if (mounted) _toast(l.updateFailed('$e'));
@@ -599,7 +611,9 @@ class _LoanDraft {
   final DateTime date;
   final DateTime? dueDate;
   final String? note;
-  _LoanDraft(this.direction, this.person, this.amountFils, this.date, this.dueDate, this.note);
+  final int? reminderDays;
+  final int dueMinutes;
+  _LoanDraft(this.direction, this.person, this.amountFils, this.date, this.dueDate, this.note, this.reminderDays, this.dueMinutes);
 }
 
 /// New loan, laid out like New transaction; with [existing], edits it (its
@@ -620,6 +634,9 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
   late final _noteCtrl = TextEditingController(text: widget.existing?.note ?? '');
   late DateTime _date = widget.existing?.date ?? _today();
   late DateTime? _due = widget.existing?.dueDate;
+  late int? _reminderDays = widget.existing?.reminderDays;
+  // Its reminder rings at this time on its day.
+  late int _dueMinutes = widget.existing?.dueMinutes ?? defaultReminderMinutes;
   List<({String name, List<Loan> loans, int net})> _people = [];
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
@@ -655,7 +672,8 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
     }
     final note = _noteCtrl.text.trim();
     Navigator.pop(context,
-        _LoanDraft(_direction, _personCtrl.text.trim(), parseAmount(_amountCtrl.text)!, _date, _due, note.isEmpty ? null : note));
+        _LoanDraft(_direction, _personCtrl.text.trim(), parseAmount(_amountCtrl.text)!, _date, _due, note.isEmpty ? null : note,
+            _reminderDays, _dueMinutes));
   }
 
   @override
@@ -716,6 +734,13 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
                   value: _due,
                   onPicked: (d) => setState(() => _due = d),
                   onCleared: () => setState(() => _due = null)),
+              // A due time and reminder need a date to go with.
+              if (_due != null) ...[
+                const SizedBox(height: 12),
+                TimeField(label: l.dueTime, minutes: _dueMinutes, onPicked: (m) => setState(() => _dueMinutes = m)),
+                const SizedBox(height: 12),
+                ReminderField(days: _reminderDays, onChanged: (d) => setState(() => _reminderDays = d)),
+              ],
               const SizedBox(height: 12),
               TextField(controller: _noteCtrl, decoration: InputDecoration(labelText: l.notesOptional)),
               const SizedBox(height: 20),

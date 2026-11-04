@@ -37,7 +37,7 @@ class LocalStore {
   void notifyChanged() => changes.value++;
 
   static const fileName = 'pocketsense.db';
-  static const schemaVersion = 4;
+  static const schemaVersion = 6;
 
   /// Tables whose rows sync between paired devices, parents first.
   static const syncedTables = ['categories', 'merchants', 'loans', 'transactions', 'budgets', 'recurring_expenses'];
@@ -196,6 +196,7 @@ class LocalStore {
     await _upgradeToV2(db, {for (final c in defaultCategories) c.key: {(categoryNames[c.key] ?? c.name).toLowerCase()}});
     // Seeding already made the loan categories, or the caller wants none.
     await _upgradeToV4(db, categoryNames, addCategories: false);
+    await _upgradeToV6(db);
   }
 
   /// [categoryNames]: as for [open]; names the categories v4 adds.
@@ -204,6 +205,25 @@ class LocalStore {
     if (from < 2) await _upgradeToV2(db, starterNames);
     if (from < 3) await _upgradeToV3(db);
     if (from < 4) await _upgradeToV4(db, categoryNames);
+    if (from < 6) await _upgradeToV6(db);
+  }
+
+  /// v6 adds due times and reminders, part of the item so they sync with
+  /// it: due_time in minutes after midnight (null is 9:00), reminder_days
+  /// before it (null is off). Older apps drop these columns from synced rows
+  /// and leave them alone. Safe to run twice, like v4. (v5 was only a test
+  /// build's, with the loan's time named reminder_time.)
+  static Future<void> _upgradeToV6(sq.Database db) async {
+    const added = {
+      'recurring_expenses': ['due_time', 'reminder_days'],
+      'loans': ['due_time', 'reminder_days'],
+    };
+    for (final MapEntry(key: table, value: columns) in added.entries) {
+      final have = {for (final c in await db.rawQuery('PRAGMA table_info($table)')) c['name']};
+      for (final c in columns.where((c) => !have.contains(c))) {
+        await db.execute('ALTER TABLE $table ADD COLUMN $c INTEGER');
+      }
+    }
   }
 
   /// v2 adds what sync needs. Every synced row gets:

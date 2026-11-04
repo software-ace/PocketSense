@@ -116,6 +116,10 @@ class RecurringExpense {
   final String? categoryName;
   final String? merchant;
   final String? notes;
+  /// When on its due date it's due, in minutes after midnight.
+  final int dueMinutes;
+  /// Remind this many days before (0: on the day); null: no reminder.
+  final int? reminderDays;
 
   RecurringExpense({
     required this.id,
@@ -129,8 +133,13 @@ class RecurringExpense {
     this.categoryName,
     this.merchant,
     this.notes,
+    this.dueMinutes = defaultReminderMinutes,
+    this.reminderDays,
   });
 }
+
+/// 9:00, when a reminder or a due time isn't set.
+const defaultReminderMinutes = 9 * 60;
 
 /// Money lent to or borrowed from someone. The amounts are sums over the
 /// loan's transactions: for a loan you lent, its expenses are what you lent
@@ -145,6 +154,10 @@ class Loan {
   final int repaidFils;
   /// The first lending or borrowing entry's date; null if it was deleted.
   final DateTime? date;
+  /// As for [RecurringExpense.reminderDays]; only with a [dueDate].
+  final int? reminderDays;
+  /// As for [RecurringExpense.dueMinutes].
+  final int dueMinutes;
 
   Loan({
     required this.id,
@@ -155,6 +168,8 @@ class Loan {
     required this.amountFils,
     required this.repaidFils,
     this.date,
+    this.reminderDays,
+    this.dueMinutes = defaultReminderMinutes,
   });
 
   bool get lent => direction == 'lent';
@@ -176,6 +191,8 @@ class Loan {
         amountFils: m['amount_fils'] as int? ?? 0,
         repaidFils: m['repaid_fils'] as int? ?? 0,
         date: DateTime.tryParse(m['date']?.toString() ?? ''),
+        reminderDays: m['reminder_days'] as int?,
+        dueMinutes: m['due_time'] as int? ?? defaultReminderMinutes,
       );
 }
 

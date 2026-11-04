@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dart names the notification icon only as a string, so the release build's
+     resource shrinker can't see that it's used. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@drawable/ic_notification" />

@@ -285,6 +285,8 @@ class FinanceRepo {
           categoryName: m['category_id'] == null ? null : catById[m['category_id'] as int]?.name,
           merchant: m['merchant'] as String?,
           notes: m['notes'] as String?,
+          dueMinutes: m['due_time'] as int? ?? defaultReminderMinutes,
+          reminderDays: m['reminder_days'] as int?,
         )).toList()
       ..sort((a, b) {
         final byActive = b.active == a.active ? 0 : (b.active ? 1 : -1);
@@ -293,7 +295,7 @@ class FinanceRepo {
     return list;
   }
 
-  Future<int> insertRecurring({required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true}) async {
+  Future<int> insertRecurring({required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true, int dueMinutes = defaultReminderMinutes, int? reminderDays}) async {
     final store = await _db;
     return store.insertRow('recurring_expenses', {
       'description': description,
@@ -305,10 +307,12 @@ class FinanceRepo {
       'category_id': categoryId,
       'merchant': merchant,
       'notes': notes,
+      'due_time': dueMinutes,
+      'reminder_days': reminderDays,
     });
   }
 
-  Future<void> updateRecurring(int id, {required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active}) async {
+  Future<void> updateRecurring(int id, {required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active, int dueMinutes = defaultReminderMinutes, int? reminderDays}) async {
     final store = await _db;
     final values = <String, dynamic>{
       'description': description,
@@ -320,6 +324,8 @@ class FinanceRepo {
       'category_id': categoryId,
       'merchant': merchant,
       'notes': notes,
+      'due_time': dueMinutes,
+      'reminder_days': reminderDays,
     };
     if (active != null) values['active'] = active ? 1 : 0;
     await store.updateRow('recurring_expenses', id, values);
@@ -350,7 +356,7 @@ class FinanceRepo {
   Future<List<Loan>> loans() async {
     final store = await _db;
     final rows = await store.db.rawQuery('''
-      SELECT l.id, l.direction, l.person, l.due_date, l.note,
+      SELECT l.id, l.direction, l.person, l.due_date, l.note, l.reminder_days, l.due_time,
         coalesce(sum(CASE WHEN t.type = $_principalType THEN t.amount_fils END), 0) AS amount_fils,
         coalesce(sum(CASE WHEN t.type != $_principalType THEN t.amount_fils END), 0) AS repaid_fils,
         min(CASE WHEN t.type = $_principalType THEN t.date END) AS date
@@ -389,6 +395,8 @@ class FinanceRepo {
     required DateTime date,
     DateTime? dueDate,
     String? note,
+    int? reminderDays,
+    int dueMinutes = defaultReminderMinutes,
     required String description,
   }) async {
     final store = await _db;
@@ -400,6 +408,8 @@ class FinanceRepo {
         'person': person.trim(),
         'due_date': dueDate == null ? null : _isoDate(dueDate),
         'note': note,
+        'reminder_days': dueDate == null ? null : reminderDays,
+        'due_time': dueMinutes,
       });
       await store.insertIn(txn, 'transactions', _loanEntry(id, type, amountFils, date, description, categoryId));
       return id;
@@ -427,6 +437,8 @@ class FinanceRepo {
     required DateTime date,
     DateTime? dueDate,
     String? note,
+    int? reminderDays,
+    int dueMinutes = defaultReminderMinutes,
     required String Function(String type, String person) describe,
   }) async {
     final store = await _db;
@@ -440,7 +452,13 @@ class FinanceRepo {
     if (amountFils - rest <= 0) throw ArgumentError('The other entries already make ${loan.amountFils}');
     final categoryId = principals.isEmpty ? await _loanCategoryId(loan.principalType) : null;
     await store.write((txn) async {
-      await store.updateIn(txn, 'loans', id, {'person': name, 'due_date': dueDate == null ? null : _isoDate(dueDate), 'note': note});
+      await store.updateIn(txn, 'loans', id, {
+        'person': name,
+        'due_date': dueDate == null ? null : _isoDate(dueDate),
+        'note': note,
+        'reminder_days': dueDate == null ? null : reminderDays,
+        'due_time': dueMinutes,
+      });
       for (final t in entries) {
         final values = <String, Object?>{
           if (name != loan.person && t.description == describe(t.type, loan.person)) 'description': describe(t.type, name),

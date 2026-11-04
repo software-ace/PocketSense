@@ -2347,6 +2347,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment from {person}'**
   String loanPaymentFrom(String person);
+
+  /// No description provided for @reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminder;
+
+  /// No description provided for @reminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get reminderOff;
+
+  /// No description provided for @reminderSameDayDueTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Same day on due time'**
+  String get reminderSameDayDueTime;
+
+  /// No description provided for @reminderDaysBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day before} other{{days} days before}}'**
+  String reminderDaysBefore(int days);
+
+  /// No description provided for @reminderWeekBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week before'**
+  String get reminderWeekBefore;
+
+  /// No description provided for @dueTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Due time'**
+  String get dueTime;
+
+  /// No description provided for @reminderPermissionOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off for Pocket Sense, so reminders won\'t show. Allow them in Android Settings → Apps → Pocket Sense → Notifications.'**
+  String get reminderPermissionOff;
+
+  /// No description provided for @reminderBackgroundNote.
+  ///
+  /// In en, this message translates to:
+  /// **'So reminders arrive, allow Pocket Sense to start on its own (Autostart) and to run without battery limits.'**
+  String get reminderBackgroundNote;
+
+  /// No description provided for @reminderOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get reminderOpenSettings;
+
+  /// No description provided for @reminderDesktopNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders show while Pocket Sense is open, and any missed ones when you open it.'**
+  String get reminderDesktopNote;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment reminder'**
+  String get reminderTitle;
+
+  /// No description provided for @reminderChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminderChannel;
+
+  /// No description provided for @reminderOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get reminderOpen;
+
+  /// No description provided for @reminderCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction'**
+  String get reminderCreate;
+
+  /// No description provided for @reminderDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get reminderDismiss;
+
+  /// No description provided for @reminderWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{due today} =1{due tomorrow} other{due in {days} days}}'**
+  String reminderWhen(int days);
+
+  /// No description provided for @reminderLate.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day overdue} other{{days} days overdue}}'**
+  String reminderLate(int days);
+
+  /// No description provided for @reminderRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} is {when}. Check Recurring.'**
+  String reminderRecurring(String name, String when);
+
+  /// No description provided for @reminderRecurringAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} ({amount}) is {when}. Check Recurring.'**
+  String reminderRecurringAmount(String name, String amount, String when);
+
+  /// No description provided for @reminderLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your loan with {person} is {when}.'**
+  String reminderLoan(String person, String when);
+
+  /// No description provided for @reminderLent.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} owes you {amount}, {when}.'**
+  String reminderLent(String person, String amount, String when);
+
+  /// No description provided for @reminderBorrowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe {person} {amount}, {when}.'**
+  String reminderBorrowed(String person, String amount, String when);
+
+  /// No description provided for @reminderAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts in reminders'**
+  String get reminderAmounts;
+
+  /// No description provided for @reminderAmountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts in recurring and loan reminder notifications'**
+  String get reminderAmountsSubtitle;
 }
 
 class _AppLocalizationsDelegate

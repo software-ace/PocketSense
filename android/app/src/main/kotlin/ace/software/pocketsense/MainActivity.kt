@@ -2,8 +2,11 @@ package ace.software.pocketsense
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -75,6 +78,22 @@ class MainActivity : FlutterFragmentActivity() {
                 result.success(null)
             } else {
                 result.notImplemented()
+            }
+        }
+        backgroundChannel(flutterEngine)
+    }
+
+    // Reminders: some makers stop apps' alarms unless allowed in their own
+    // settings, which have no API; Dart names them and opens App info.
+    private fun backgroundChannel(flutterEngine: FlutterEngine) {
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "pocketsense/background").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "manufacturer" -> result.success(Build.MANUFACTURER)
+                "openAppSettings" -> {
+                    startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+                    result.success(null)
+                }
+                else -> result.notImplemented()
             }
         }
     }

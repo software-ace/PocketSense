@@ -12,6 +12,7 @@ import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import '../widgets/merchant_field.dart';
+import '../widgets/reminder_field.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -275,6 +276,9 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   late bool _active = widget.existing?.active ?? true;
   // Anchor date drives every future due date (weekday / day-of-month).
   late DateTime _anchor = widget.existing?.anchorDate ?? DateTime.now();
+  // Its reminder rings at this time on its day.
+  late int _dueMinutes = widget.existing?.dueMinutes ?? defaultReminderMinutes;
+  late int? _reminderDays = widget.existing?.reminderDays;
   bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
@@ -315,9 +319,9 @@ class _RecurringDialogState extends State<_RecurringDialog> {
       final merch = _merchCtrl.text.trim().isEmpty ? null : _merchCtrl.text.trim();
       final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
       if (widget.existing == null) {
-        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays);
       } else {
-        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -381,6 +385,10 @@ class _RecurringDialogState extends State<_RecurringDialog> {
               child: Text(DateFormat.yMMMd().format(_anchor)),
             ),
           ),
+          const SizedBox(height: 16),
+          TimeField(label: l.dueTime, minutes: _dueMinutes, onPicked: (m) => setState(() => _dueMinutes = m)),
+          const SizedBox(height: 16),
+          ReminderField(days: _reminderDays, onChanged: (d) => setState(() => _reminderDays = d)),
           const SizedBox(height: 16),
           DropdownButtonFormField<int>(
             // Keyed by type so the field resets when the category list changes.
