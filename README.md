@@ -134,6 +134,7 @@ Installed the APK from GitHub? [Obtainium](https://github.com/ImranR98/Obtainium
 | `PocketSense-<version>-linux-x64.rpm` | Fedora: `sudo dnf install ./…rpm`; openSUSE: `sudo zypper install ./…rpm` |
 | `PocketSense-<version>-linux-x64.AppImage` | Any distro: make it executable and run it. Update it in place with [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) or [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) |
 | `PocketSense-<version>-linux-x64.tar.gz` | Any distro: unpack it and run `./PocketSense/pocket_sense` |
+| [`linux/packaging/aur/PKGBUILD`](linux/packaging/aur/PKGBUILD) | Arch, CachyOS, Manjaro: in that folder, run `makepkg -si` |
 
 The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` command, and install what it needs. With the AppImage or the tarball, you need:
 - GTK 3 and EGL/GLES, which almost every desktop already has.
@@ -189,7 +190,7 @@ lib/
   screens/     Home, Activity, Budgets, Recurring, Loans, Categories, Settings, Sync
   utils/       money and date formatting, recurring dates, voice parsing, widget requests
   widgets/     shared widgets: amount field, empty/error states, voice sheet
-linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script
+linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script, AUR PKGBUILD
 fdroid/           F-Droid build recipe
 fastlane/         store listing: descriptions, changelogs, phone screenshots
 integration_test/ the screenshot run (see above)

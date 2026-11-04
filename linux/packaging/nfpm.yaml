@@ -9,9 +9,9 @@ priority: optional
 maintainer: software-ace <a.abuyahia@protonmail.com>
 description: |
   Offline, encrypted personal finance tracker.
-  Tracks income, expenses, budgets and recurring bills in Jordanian dinars,
-  in English or Arabic. Nothing leaves the device: the database is encrypted
-  with a key kept in your desktop keyring.
+  Tracks income, expenses, budgets, recurring bills and loans in any of 69
+  currencies, in English or Arabic. Nothing leaves the device: the database
+  is encrypted with a key kept in your desktop keyring.
 homepage: https://github.com/software-ace/PocketSense
 license: GPL-3.0-or-later
 
