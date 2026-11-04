@@ -132,7 +132,7 @@ Installed the APK from GitHub? [Obtainium](https://github.com/ImranR98/Obtainium
 |---|---|
 | `PocketSense-<version>-linux-x64.deb` | Debian, Ubuntu, Mint: `sudo apt install ./PocketSense-<version>-linux-x64.deb` |
 | `PocketSense-<version>-linux-x64.rpm` | Fedora: `sudo dnf install ./…rpm`; openSUSE: `sudo zypper install ./…rpm` |
-| `PocketSense-<version>-linux-x64.AppImage` | Any distro: make it executable and run it |
+| `PocketSense-<version>-linux-x64.AppImage` | Any distro: make it executable and run it. Update it in place with [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) or [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) |
 | `PocketSense-<version>-linux-x64.tar.gz` | Any distro: unpack it and run `./PocketSense/pocket_sense` |
 
 The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` command, and install what it needs. With the AppImage or the tarball, you need:

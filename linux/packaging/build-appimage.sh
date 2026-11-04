@@ -25,4 +25,8 @@ EOF
 chmod +x "$appdir"/AppRun
 
 # Extract-and-run: CI runners have no FUSE to mount appimagetool itself.
-ARCH=x86_64 VERSION="$version" APPIMAGE_EXTRACT_AND_RUN=1 appimagetool --no-appstream "$appdir" "$out"
+# -u embeds where updates live and writes "$out.zsync" beside it, so
+# AppImageUpdate or Gear Lever can update in place; the app itself stays offline.
+ARCH=x86_64 VERSION="$version" APPIMAGE_EXTRACT_AND_RUN=1 appimagetool --no-appstream \
+  -u "gh-releases-zsync|software-ace|PocketSense|latest|PocketSense-*-linux-x64.AppImage.zsync" \
+  "$appdir" "$out"
