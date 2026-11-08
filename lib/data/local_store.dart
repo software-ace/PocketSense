@@ -57,7 +57,10 @@ class LocalStore {
   // don't have the newer tables yet.
   static const _tablesBeforeV4 = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
 
-  static Future<String> _dir() async => Platform.isLinux ? linuxDataDir() : await sq.getDatabasesPath();
+  // The desktop opens SQLCipher through FFI; Android through sqflite_sqlcipher.
+  static bool get _desktop => Platform.isLinux || Platform.isWindows;
+
+  static Future<String> _dir() async => _desktop ? desktopDataDir() : await sq.getDatabasesPath();
 
   static Future<String> path() async => p.join(await _dir(), fileName);
 
@@ -71,7 +74,7 @@ class LocalStore {
     final file = await path();
     final key = await DbKey.obtain(dbExists: await File(file).exists());
     final sq.Database db;
-    if (Platform.isLinux) {
+    if (_desktop) {
       db = await openEncryptedFfi(file, key, categoryNames: categoryNames, starterNames: starterNames);
     } else {
       db = await sq.openDatabase(file,
@@ -84,8 +87,8 @@ class LocalStore {
     return _instance = await LocalStore._(db)._loadClock();
   }
 
-  /// Linux: sqflite_common_ffi on the system libsqlcipher (see hooks: in
-  /// pubspec.yaml). [hexKey] is a raw 256-bit key, so SQLCipher skips its
+  /// Linux and Windows: sqflite_common_ffi on the sqlite3 package's
+  /// bundled SQLCipher (see hooks: in pubspec.yaml). [hexKey] is a raw 256-bit key, so SQLCipher skips its
   /// passphrase KDF. The key must be the very first statement.
   @visibleForTesting
   static Future<sq.Database> openEncryptedFfi(String file, String hexKey,

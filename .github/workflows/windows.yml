@@ -1,0 +1,74 @@
+name: Windows
+
+# The Windows zip, setup.exe and .msi. The Release workflow calls this for
+# each tag and attaches them to the release; a push to windows-client or a
+# manual run keeps them as build artifacts instead, to try before a release.
+on:
+  push:
+    branches: [windows-client]
+  workflow_dispatch: {}
+  workflow_call: {}
+
+# Attaching to a release needs contents: write. Actions are pinned to commit
+# hashes, as in release.yml.
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    # A fixed image, so the Visual Studio and runtime it builds with don't
+    # change under us.
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version-file: pubspec.yaml
+
+      - name: Build Windows bundle
+        run: flutter build windows --release
+
+      # Pinned and checksummed, like the Linux tools: they shape what users
+      # install. WiX stays on 5.x, the last release under the MS-RL license.
+      - name: Install packaging tools
+        run: |
+          curl.exe -fsSL -o innosetup.exe https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe
+          if ((Get-FileHash innosetup.exe -Algorithm SHA256).Hash -ne '9C73C3BAE7ED48D44112A0F48E66742C00090BDB5BEF71D9D3C056C66E97B732') { throw 'Inno Setup checksum mismatch' }
+          Start-Process .\innosetup.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/DIR=C:\InnoSetup' -Wait
+          dotnet tool install --global wix --version 5.0.2
+
+      # Three ways to get the same bundle:
+      # - zip: unpack anywhere and run pocket_sense.exe.
+      # - setup.exe (Inno Setup): for you or for everyone, with a Start menu entry.
+      # - .msi (WiX): per machine, for installing across an organization.
+      - name: Package
+        run: |
+          $name = "PocketSense-$env:GITHUB_REF_NAME-windows-x64"
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([^+\s]+)').Matches[0].Groups[1].Value
+          $bundle = "$PWD\build\windows\x64\runner\Release"
+          # The Visual C++ runtime goes next to the exe: a fresh Windows may not have it.
+          Copy-Item C:\Windows\System32\msvcp140.dll, C:\Windows\System32\vcruntime140.dll, C:\Windows\System32\vcruntime140_1.dll $bundle
+          New-Item -ItemType Directory dist | Out-Null
+          Compress-Archive -Path "$bundle\*" -DestinationPath "dist\$name.zip"
+          & C:\InnoSetup\ISCC.exe /Q "/DAppVersion=$version" "/DSourceDir=$bundle" "/DOutputDir=$PWD\dist" "/DOutputName=$name-setup" windows\packaging\pocket-sense.iss
+          if ($LASTEXITCODE) { throw 'Inno Setup failed' }
+          wix build windows\packaging\pocket-sense.wxs -arch x64 -pdbtype none -d "Version=$version" -d "SourceDir=$bundle" -d "IconFile=$PWD\windows\runner\resources\app_icon.ico" -o "dist\$name.msi"
+          if ($LASTEXITCODE) { throw 'WiX failed' }
+          Get-ChildItem dist -File | Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content -Encoding ascii dist\SHA256SUMS-windows.txt
+          Get-ChildItem dist
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+
+      - name: Upload artifact (not a release)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: PocketSense-windows
+          path: dist/*

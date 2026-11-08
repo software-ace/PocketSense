@@ -16,14 +16,14 @@ import 'reminders.dart';
 /// Turns the items' reminders into notifications, again whenever data or a
 /// setting changes (sync included). Android schedules them with the system,
 /// which also shows ones missed while the phone was off once it's back on.
-/// Linux can't schedule, so they show while the app runs, missed ones when
+/// The desktop (Linux, Windows) shows them while the app runs, missed ones when
 /// it opens.
 abstract final class ReminderNotifications {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static final _prefs = SharedPreferencesAsync();
   // Android: alarms from an earlier run may still be pending.
   static const _scheduledKey = 'reminders.scheduled';
-  // Linux: reminders up to this time have been shown.
+  // Desktop: reminders up to this time have been shown.
   static const _shownKey = 'reminders.shownUntil';
 
   /// What a tapped notification asked for: its payload (`recurring:<id>` or
@@ -38,7 +38,7 @@ abstract final class ReminderNotifications {
   static Timer? _timer;
   static LocalStore? _store;
 
-  static bool get _supported => Platform.isAndroid || Platform.isLinux;
+  static bool get _supported => Platform.isAndroid || Platform.isLinux || Platform.isWindows;
   static List<Listenable> get _settings => [AppSettings.locale, AppSettings.reminderAmounts, AppSettings.currency];
 
   static Future<void> start() async {
@@ -48,7 +48,7 @@ abstract final class ReminderNotifications {
     for (final s in _settings) {
       s.addListener(refresh);
     }
-    if (Platform.isLinux) _timer = Timer.periodic(const Duration(minutes: 1), (_) => refresh());
+    if (!Platform.isAndroid) _timer = Timer.periodic(const Duration(minutes: 1), (_) => refresh());
     await refresh();
   }
 
@@ -136,6 +136,11 @@ abstract final class ReminderNotifications {
         LinuxNotificationAction(key: _create, label: l.reminderCreate),
         LinuxNotificationAction(key: _dismiss, label: l.reminderDismiss),
       ]),
+      windows: WindowsNotificationDetails(actions: [
+        // The action's arguments come back as its id.
+        WindowsAction(content: l.reminderCreate, arguments: _create),
+        WindowsAction(content: l.reminderDismiss, arguments: _dismiss),
+      ]),
     );
 
     if (Platform.isAndroid) {
@@ -182,6 +187,9 @@ abstract final class ReminderNotifications {
       settings: InitializationSettings(
         android: const AndroidInitializationSettings('ic_notification'),
         linux: LinuxInitializationSettings(defaultActionName: l.reminderOpen),
+        // A fixed GUID names the app to Windows; changing it orphans its notifications.
+        windows: const WindowsInitializationSettings(
+            appName: 'Pocket Sense', appUserModelId: 'ace.software.pocketsense', guid: '20fb7ecf-d10b-4ba4-becb-cfcf99983669'),
       ),
       onDidReceiveNotificationResponse: _respond,
     );
