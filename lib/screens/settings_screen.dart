@@ -10,6 +10,7 @@ import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
 import '../settings/home_layout_screen.dart';
+import '../settings/manage_accounts_screen.dart';
 import '../settings/app_settings.dart';
 import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
@@ -78,6 +79,13 @@ class SettingsScreen extends StatelessWidget {
           header(l.security),
           const _SecuritySection(),
           header(l.settingsData),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined),
+            title: Text(l.accounts),
+            subtitle: Text(l.accountsSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ManageAccountsScreen())),
+          ),
           ListTile(
             leading: const Icon(Icons.category_rounded),
             title: Text(l.categories),

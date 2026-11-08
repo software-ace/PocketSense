@@ -58,10 +58,10 @@ void main() {
       );
       await repo.insertTransaction(amountFils: 900000, type: 'income', date: DateTime(2026, 11, 1), description: 'Salary');
       final csv = await CsvFiles.export(CsvKind.transactions);
-      expect(csv.split('\r\n')[1], '"2026-11-01","income","900","Salary","",""', reason: 'oldest first');
+      expect(csv.split('\r\n')[1], '"2026-11-01","income","900","Salary","","","Cash"', reason: 'oldest first, with its account');
 
       LocalStore.overrideInstanceForTest(await LocalStore.openInMemoryForTest(seed: true));
-      expect(await importText(csv), (added: 2, duplicates: 0, rejected: 0, categoriesMatched: 1, newMerchants: 1, uncategorized: 1));
+      expect(await importText(csv), (added: 2, duplicates: 0, rejected: 0, categoriesMatched: 1, newMerchants: 1, uncategorized: 1, unknownAccounts: 0));
       final lunch = (await repo.transactions()).firstWhere((t) => t.type == 'expense');
       expect([lunch.description, lunch.merchant, lunch.categoryName, lunch.amountFils], ['Lunch, with "Sam"', 'Reem', food.name, 3500]);
       expect((await repo.merchants()).map((m) => m.name), ['Reem'], reason: 'a new merchant is saved to the list');
@@ -111,6 +111,18 @@ void main() {
         preview('when,what\n'),
         throwsA(isA<CsvLayoutException>().having((e) => e.missing, 'missing', ['date', 'type', 'amount', 'description'])),
       );
+    });
+
+    test('the account column puts each entry in its account; an unknown name goes to the default', () async {
+      final bank = await repo.insertAccount(name: 'Arab Bank', kind: 'bank');
+      final cash = await repo.defaultAccountId();
+      final r = await importText('date,type,amount,description,account\n'
+          '2026-11-01,income,900,Salary,arab bank\n'
+          '2026-11-02,expense,2,Coffee,\n'
+          '2026-11-03,expense,3,Lunch,Old Wallet\n');
+      expect([r.added, r.unknownAccounts], [3, 1]);
+      final byDesc = {for (final t in await repo.transactions()) t.description: t.accountId};
+      expect(byDesc, {'Salary': bank, 'Coffee': cash, 'Lunch': cash});
     });
 
     test('categories and merchants: a name you have, in any case, or repeated in the file, is a duplicate', () async {

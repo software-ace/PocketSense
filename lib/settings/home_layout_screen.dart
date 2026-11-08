@@ -11,6 +11,7 @@ class HomeLayoutScreen extends StatelessWidget {
   static String name(AppLocalizations l, HomeSection s) => switch (s) {
         HomeSection.totals => l.homeTotals,
         HomeSection.loans => l.loans,
+        HomeSection.accounts => l.accounts,
         HomeSection.daily => l.chartDaily,
         HomeSection.category => l.chartByCategory,
         HomeSection.merchant => l.chartByMerchant,

@@ -22,7 +22,7 @@ class CsvLayoutException implements Exception {
 
 /// One row of a file, as the preview shows it.
 class PreviewRow {
-  PreviewRow({required this.row, required this.values, required this.verdict, this.problem, this.insert, this.newMerchant});
+  PreviewRow({required this.row, required this.values, required this.verdict, this.problem, this.insert, this.newMerchant, this.unknownAccount = false});
 
   /// Its row number in the file; the header is row 1.
   final int row;
@@ -40,6 +40,10 @@ class PreviewRow {
   /// A transaction's merchant that isn't in the list yet: importing saves it.
   final String? newMerchant;
 
+  /// A transaction's account that isn't one of yours: it goes into the
+  /// default account.
+  final bool unknownAccount;
+
   String operator [](String column) => values[column] ?? '';
 }
 
@@ -51,7 +55,7 @@ class CsvPreview {
 }
 
 /// What an import did. The last three are for transactions only (0 otherwise).
-typedef ImportSummary = ({int added, int duplicates, int rejected, int categoriesMatched, int newMerchants, int uncategorized});
+typedef ImportSummary = ({int added, int duplicates, int rejected, int categoriesMatched, int newMerchants, int uncategorized, int unknownAccounts});
 
 /// Settings → Data and the Categories and Merchants screens: Pocket Sense's
 /// own CSV layouts. Export writes them; import reads the same columns (by
@@ -59,7 +63,7 @@ typedef ImportSummary = ({int added, int duplicates, int rejected, int categorie
 /// row, and only ever adds.
 abstract final class CsvFiles {
   static const columns = {
-    CsvKind.transactions: ['date', 'type', 'amount', 'description', 'category', 'merchant'],
+    CsvKind.transactions: ['date', 'type', 'amount', 'description', 'category', 'merchant', 'account'],
     CsvKind.categories: ['name', 'type', 'color'],
     CsvKind.merchants: ['name'],
   };
@@ -89,11 +93,15 @@ abstract final class CsvFiles {
     return encodeCsv([
       columns[kind]!,
       ...switch (kind) {
-        // Oldest first, as a statement reads.
-        CsvKind.transactions => [
-            for (final t in (await repo.transactions(limit: 1 << 30))..sort((a, b) => a.date.compareTo(b.date)))
-              [_iso(t.date), t.type, amountToInput(t.amountFils), t.description, t.categoryName ?? '', t.merchant ?? ''],
-          ],
+        // Oldest first, as a statement reads. Transfers aren't entries, so
+        // they aren't here.
+        CsvKind.transactions => await () async {
+            final accounts = {for (final a in await repo.accounts()) a.id: a.name};
+            return [
+              for (final t in (await repo.transactions(limit: 1 << 30))..sort((a, b) => a.date.compareTo(b.date)))
+                [_iso(t.date), t.type, amountToInput(t.amountFils), t.description, t.categoryName ?? '', t.merchant ?? '', accounts[t.accountId] ?? ''],
+            ];
+          }(),
         CsvKind.categories => [for (final c in await repo.categories()) [c.name, c.type, c.color]],
         CsvKind.merchants => [for (final m in await repo.merchants()) [m.name]],
       },
@@ -132,6 +140,12 @@ abstract final class CsvFiles {
     }
     final categories = {for (final c in await repo.categories()) '${c.type}/${c.name.toLowerCase()}': c.id};
     final merchants = {for (final m in await repo.merchants()) m.name.toLowerCase()};
+    // By name, open accounts first; empty or unknown: the default account.
+    final accounts = <String, int>{};
+    for (final a in await repo.accounts()) {
+      accounts.putIfAbsent(a.name.toLowerCase(), () => a.id);
+    }
+    final defaultAccount = await repo.defaultAccountId();
     final now = LocalStore.nowIso();
 
     return [
@@ -153,7 +167,8 @@ abstract final class CsvFiles {
             have[k] = n - 1;
             return PreviewRow(row: i + 2, values: r, verdict: CsvVerdict.duplicate);
           }
-          final category = r['category'] ?? '', merchant = r['merchant'] ?? '';
+          final category = r['category'] ?? '', merchant = r['merchant'] ?? '', account = r['account'] ?? '';
+          final accountId = accounts[account.toLowerCase()];
           return PreviewRow(
             row: i + 2,
             values: r,
@@ -165,9 +180,11 @@ abstract final class CsvFiles {
               'description': r['description'],
               'merchant': merchant.isEmpty ? null : merchant,
               'category_id': category.isEmpty ? null : categories['$type/${category.toLowerCase()}'],
+              'account_id': accountId ?? defaultAccount,
               'created_at': now,
             },
             newMerchant: merchant.isNotEmpty && !merchants.contains(merchant.toLowerCase()) ? merchant : null,
+            unknownAccount: account.isNotEmpty && accountId == null,
           );
         }(),
     ];
@@ -235,6 +252,7 @@ abstract final class CsvFiles {
       categoriesMatched: transactions ? {for (final r in add) ?r.insert!['category_id']}.length : 0,
       newMerchants: newMerchants.length,
       uncategorized: transactions ? add.where((r) => r.insert!['category_id'] == null).length : 0,
+      unknownAccounts: add.where((r) => r.unknownAccount).length,
     );
   }
 }

@@ -1,5 +1,7 @@
 import '../models/models.dart';
 import '../utils/budget_period.dart';
+import '../l10n/app_localizations.dart';
+import '../settings/app_settings.dart';
 import 'local_store.dart';
 
 // Date-only strings parse as local midnight; anything after the date is ignored.
@@ -57,6 +59,14 @@ class FinanceRepo {
       taken
         ..remove(c.name.toLowerCase())
         ..add(target.toLowerCase());
+      renamed++;
+    }
+    // The starter Cash account too, while it still has a starter name.
+    final cash = names[LocalStore.cashNameKey];
+    final row = (await store.selectRows('accounts', where: 'uid = ?', whereArgs: [LocalStore.cashUid])).firstOrNull;
+    final starters = {for (final l in AppLocalizations.supportedLocales) lookupAppLocalizations(l).cashAccount.toLowerCase()};
+    if (cash != null && row != null && row['name'] != cash && starters.contains((row['name'] as String).toLowerCase())) {
+      await store.updateRow('accounts', row['id'] as int, {'name': cash});
       renamed++;
     }
     return renamed;
@@ -125,6 +135,7 @@ class FinanceRepo {
     DateTime? to,
     String? q,
     int? loanId,
+    int? accountId,
     int limit = 200,
   }) async {
     final store = await _db;
@@ -149,6 +160,10 @@ class FinanceRepo {
     if (loanId != null) {
       where.add('loan_id = ?');
       args.add(loanId);
+    }
+    if (accountId != null) {
+      where.add('account_id = ?');
+      args.add(accountId);
     }
     final w = where.isEmpty ? null : where.join(' AND ');
     final rows = await store.selectRows('transactions', where: w, whereArgs: args);
@@ -178,6 +193,7 @@ class FinanceRepo {
     required String description,
     String? merchant,
     int? categoryId,
+    int? accountId,
   }) async {
     final store = await _db;
     return store.insertRow('transactions', {
@@ -187,6 +203,7 @@ class FinanceRepo {
       'description': description,
       'merchant': merchant,
       'category_id': categoryId,
+      'account_id': accountId ?? await defaultAccountId(),
       'created_at': LocalStore.nowIso(),
     });
   }
@@ -199,6 +216,7 @@ class FinanceRepo {
     required String description,
     String? merchant,
     int? categoryId,
+    int? accountId,
   }) async {
     final store = await _db;
     final values = <String, dynamic>{
@@ -209,6 +227,7 @@ class FinanceRepo {
       // Written even when null: that's how the form clears them.
       'merchant': merchant,
       'category_id': categoryId,
+      'account_id': ?accountId,
     };
     await store.updateRow('transactions', id, values);
   }
@@ -287,6 +306,7 @@ class FinanceRepo {
           notes: m['notes'] as String?,
           dueMinutes: m['due_time'] as int? ?? defaultReminderMinutes,
           reminderDays: m['reminder_days'] as int?,
+          accountId: m['account_id'] as int?,
         )).toList()
       ..sort((a, b) {
         final byActive = b.active == a.active ? 0 : (b.active ? 1 : -1);
@@ -295,8 +315,9 @@ class FinanceRepo {
     return list;
   }
 
-  Future<int> insertRecurring({required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true, int dueMinutes = defaultReminderMinutes, int? reminderDays}) async {
+  Future<int> insertRecurring({required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool active = true, int dueMinutes = defaultReminderMinutes, int? reminderDays, int? accountId}) async {
     final store = await _db;
+    final account = accountId ?? await defaultAccountId();
     return store.insertRow('recurring_expenses', {
       'description': description,
       'amount_fils': amountFils,
@@ -309,10 +330,11 @@ class FinanceRepo {
       'notes': notes,
       'due_time': dueMinutes,
       'reminder_days': reminderDays,
+      'account_id': account,
     });
   }
 
-  Future<void> updateRecurring(int id, {required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active, int dueMinutes = defaultReminderMinutes, int? reminderDays}) async {
+  Future<void> updateRecurring(int id, {required String description, required int amountFils, String type = 'expense', required String frequency, required DateTime anchorDate, int? categoryId, String? merchant, String? notes, bool? active, int dueMinutes = defaultReminderMinutes, int? reminderDays, int? accountId}) async {
     final store = await _db;
     final values = <String, dynamic>{
       'description': description,
@@ -326,6 +348,7 @@ class FinanceRepo {
       'notes': notes,
       'due_time': dueMinutes,
       'reminder_days': reminderDays,
+      'account_id': ?accountId,
     };
     if (active != null) values['active'] = active ? 1 : 0;
     await store.updateRow('recurring_expenses', id, values);
@@ -338,14 +361,172 @@ class FinanceRepo {
 
   /// Record this recurring item as a transaction dated today. [description]
   /// comes from the UI, in its language.
-  Future<void> postRecurring(RecurringExpense r, {required String description}) => insertTransaction(
-        amountFils: r.amountFils,
-        type: r.type,
-        date: DateTime.now(),
-        description: description,
-        merchant: (r.merchant?.isEmpty ?? true) ? null : r.merchant,
-        categoryId: r.categoryId,
-      );
+  Future<void> postRecurring(RecurringExpense r, {required String description}) async {
+    // Its own account, unless that was closed or deleted since.
+    final open = {for (final a in await accounts()) if (!a.closed) a.id};
+    await insertTransaction(
+      amountFils: r.amountFils,
+      type: r.type,
+      date: DateTime.now(),
+      description: description,
+      merchant: (r.merchant?.isEmpty ?? true) ? null : r.merchant,
+      categoryId: r.categoryId,
+      accountId: open.contains(r.accountId) ? r.accountId : null,
+    );
+  }
+
+  // ── Accounts and transfers ───────────────────────────────────────────
+
+  /// Every account with its balance: open ones first, then in the order added.
+  Future<List<Account>> accounts() async {
+    final store = await _db;
+    final rows = await store.db.rawQuery('''
+      SELECT a.id, a.uid, a.name, a.kind, a.opening_fils, a.closed,
+        a.opening_fils
+          + coalesce((SELECT sum(CASE t.type WHEN 'income' THEN t.amount_fils ELSE -t.amount_fils END)
+                      FROM transactions t WHERE t.account_id = a.id), 0)
+          + coalesce((SELECT sum(amount_fils) FROM transfers WHERE to_account_id = a.id), 0)
+          - coalesce((SELECT sum(amount_fils) FROM transfers WHERE from_account_id = a.id), 0) AS balance,
+        (SELECT count(*) FROM transactions t WHERE t.account_id = a.id) AS entries
+      FROM accounts a
+      ORDER BY a.closed, a.id
+    ''');
+    return [
+      for (final m in rows)
+        Account(
+          id: m['id'] as int,
+          uid: m['uid'] as String? ?? '',
+          name: m['name'] as String? ?? '',
+          kind: Account.kinds.contains(m['kind']) ? m['kind'] as String : 'cash',
+          openingFils: m['opening_fils'] as int? ?? 0,
+          closed: (m['closed'] as int? ?? 0) == 1,
+          balanceFils: m['balance'] as int? ?? 0,
+          entries: m['entries'] as int? ?? 0,
+        ),
+    ];
+  }
+
+  /// Where new entries go: the account chosen on this device while it's
+  /// open, else Cash, else the first open one.
+  Future<int> defaultAccountId() async {
+    final store = await _db;
+    final open = await store.db.query('accounts', columns: ['id', 'uid'], where: 'closed = 0', orderBy: 'id');
+    final chosen = AppSettings.defaultAccount.value;
+    for (final uid in [?chosen, LocalStore.cashUid]) {
+      final hit = open.where((r) => r['uid'] == uid).firstOrNull;
+      if (hit != null) return hit['id'] as int;
+    }
+    if (open.isNotEmpty) return open.first['id'] as int;
+    // None open (a peer closed the last one): any account, else a new Cash.
+    final any = (await store.db.query('accounts', columns: ['id'], orderBy: 'id', limit: 1)).firstOrNull;
+    return any?['id'] as int? ?? await insertAccount(name: 'Cash', kind: 'cash');
+  }
+
+  Future<int> insertAccount({required String name, required String kind, int openingFils = 0}) async =>
+      (await _db).insertRow('accounts', {'name': name.trim(), 'kind': kind, 'opening_fils': openingFils});
+
+  Future<void> updateAccount(int id, {required String name, required String kind, required int openingFils}) async =>
+      (await _db).updateRow('accounts', id, {'name': name.trim(), 'kind': kind, 'opening_fils': openingFils});
+
+  Future<void> setDefaultAccount(int id) async {
+    final uid = (await (await _db).selectRows('accounts', where: 'id = ?', whereArgs: [id])).first['uid'] as String;
+    await AppSettings.setDefaultAccount(uid);
+  }
+
+  Future<void> reopenAccount(int id) async => (await _db).updateRow('accounts', id, {'closed': 0});
+
+  /// Closes an account: kept with its history, hidden from Home, pickers and
+  /// Transfer. Money left in it moves to [intoId] first, as a transfer (a
+  /// negative balance, a card's debt, is paid from [intoId] instead), and so
+  /// do its recurring items, so nothing posts into a hidden account. [intoId]
+  /// also becomes the default if this one was. The last open account can't
+  /// be closed.
+  Future<void> closeAccount(int id, {int? intoId}) async {
+    final store = await _db;
+    final all = await accounts();
+    final account = all.firstWhere((a) => a.id == id);
+    final open = all.where((a) => !a.closed).toList();
+    if (account.closed) return;
+    if (open.length <= 1) throw StateError('The last open account can\'t be closed');
+    final recurring = await store.selectRows('recurring_expenses', where: 'account_id = ?', whereArgs: [id]);
+    final needsTarget = account.balanceFils != 0 || recurring.isNotEmpty;
+    if (needsTarget && !open.any((a) => a.id == intoId && a.id != id)) {
+      throw ArgumentError('An open account to move the balance and recurring items into is needed');
+    }
+    final wasDefault = await defaultAccountId() == id;
+    await store.write((txn) async {
+      if (account.balanceFils != 0) {
+        final out = account.balanceFils > 0;
+        await store.insertIn(txn, 'transfers', {
+          'from_account_id': out ? id : intoId,
+          'to_account_id': out ? intoId : id,
+          'amount_fils': account.balanceFils.abs(),
+          'date': _isoDate(DateTime.now()),
+          'created_at': LocalStore.nowIso(),
+        });
+      }
+      for (final r in recurring) {
+        await store.updateIn(txn, 'recurring_expenses', r['id'] as int, {'account_id': intoId});
+      }
+      await store.updateIn(txn, 'accounts', id, {'closed': 1});
+    });
+    if (wasDefault && intoId != null) await setDefaultAccount(intoId);
+  }
+
+  /// Deletes an account. Nothing in it is lost: its entries, recurring
+  /// items, transfers and opening balance move to [intoId] (transfers
+  /// between the two would then go from an account to itself, so those
+  /// go). [intoId] also becomes the default if this one was. The last open
+  /// account can't be deleted.
+  Future<void> deleteAccount(int id, {required int intoId}) async {
+    final store = await _db;
+    final all = await accounts();
+    final account = all.firstWhere((a) => a.id == id);
+    if (intoId == id || !all.any((a) => a.id == intoId)) throw ArgumentError('Pick another account');
+    if (!account.closed && all.where((a) => !a.closed).length <= 1) throw StateError('The last open account can\'t be deleted');
+    final wasDefault = await defaultAccountId() == id;
+    await store.write((txn) async {
+      await store.moveAccountIn(txn, id, intoId);
+      await store.deleteIn(txn, 'accounts', id);
+    });
+    if (wasDefault) await setDefaultAccount(intoId);
+  }
+
+  /// Transfers, newest first; [accountId]: only those in or out of it.
+  Future<List<Transfer>> transfers({int? accountId}) async {
+    final rows = await (await _db).selectRows('transfers',
+        where: accountId == null ? null : 'from_account_id = ? OR to_account_id = ?', whereArgs: accountId == null ? null : [accountId, accountId]);
+    return rows.map(Transfer.fromMap).toList()
+      ..sort((a, b) {
+        final byDate = b.date.compareTo(a.date);
+        return byDate != 0 ? byDate : (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0));
+      });
+  }
+
+  static void _checkTransfer(int fromId, int toId, int amountFils) {
+    if (fromId == toId) throw ArgumentError('A transfer needs two different accounts');
+    if (amountFils <= 0) throw ArgumentError('A transfer must be more than 0');
+  }
+
+  Future<int> insertTransfer({required int fromId, required int toId, required int amountFils, required DateTime date, String? note}) async {
+    _checkTransfer(fromId, toId, amountFils);
+    return (await _db).insertRow('transfers', {
+      'from_account_id': fromId,
+      'to_account_id': toId,
+      'amount_fils': amountFils,
+      'date': _isoDate(date),
+      'note': note,
+      'created_at': LocalStore.nowIso(),
+    });
+  }
+
+  Future<void> updateTransfer(int id, {required int fromId, required int toId, required int amountFils, required DateTime date, String? note}) async {
+    _checkTransfer(fromId, toId, amountFils);
+    await (await _db).updateRow('transfers', id,
+        {'from_account_id': fromId, 'to_account_id': toId, 'amount_fils': amountFils, 'date': _isoDate(date), 'note': note});
+  }
+
+  Future<void> deleteTransfer(int id) async => (await _db).deleteRow('transfers', id);
 
   // ── Loans ────────────────────────────────────────────────────────────
 
@@ -375,13 +556,14 @@ class FinanceRepo {
     return (await (await _db).selectRows('categories', where: 'uid = ?', whereArgs: ['default:$key'])).firstOrNull?['id'] as int?;
   }
 
-  Map<String, Object?> _loanEntry(int loanId, String type, int amountFils, DateTime date, String description, int? categoryId) => {
+  Map<String, Object?> _loanEntry(int loanId, String type, int amountFils, DateTime date, String description, int? categoryId, int accountId) => {
         'amount_fils': amountFils,
         'type': type,
         'date': _isoDate(date),
         'description': description,
         'category_id': categoryId,
         'loan_id': loanId,
+        'account_id': accountId,
         'created_at': LocalStore.nowIso(),
       };
 
@@ -402,6 +584,7 @@ class FinanceRepo {
     final store = await _db;
     final type = direction == 'lent' ? 'expense' : 'income';
     final categoryId = await _loanCategoryId(type);
+    final accountId = await defaultAccountId();
     return store.write((txn) async {
       final id = await store.insertIn(txn, 'loans', {
         'direction': direction,
@@ -411,7 +594,7 @@ class FinanceRepo {
         'reminder_days': dueDate == null ? null : reminderDays,
         'due_time': dueMinutes,
       });
-      await store.insertIn(txn, 'transactions', _loanEntry(id, type, amountFils, date, description, categoryId));
+      await store.insertIn(txn, 'transactions', _loanEntry(id, type, amountFils, date, description, categoryId, accountId));
       return id;
     });
   }
@@ -423,7 +606,8 @@ class FinanceRepo {
     final fils = amountFils ?? loan.remainingFils;
     if (fils <= 0 || fils > loan.remainingFils) throw ArgumentError('A repayment must be more than 0 and at most ${loan.remainingFils}');
     final categoryId = await _loanCategoryId(loan.repaymentType);
-    await (await _db).insertRow('transactions', _loanEntry(loanId, loan.repaymentType, fils, date, description, categoryId));
+    final accountId = await defaultAccountId();
+    await (await _db).insertRow('transactions', _loanEntry(loanId, loan.repaymentType, fils, date, description, categoryId, accountId));
   }
 
   /// Edits a loan. [amountFils] and [date] change its lending or borrowing
@@ -451,6 +635,7 @@ class FinanceRepo {
     final rest = principals.skip(1).fold(0, (sum, t) => sum + t.amountFils);
     if (amountFils - rest <= 0) throw ArgumentError('The other entries already make ${loan.amountFils}');
     final categoryId = principals.isEmpty ? await _loanCategoryId(loan.principalType) : null;
+    final accountId = await defaultAccountId();
     await store.write((txn) async {
       await store.updateIn(txn, 'loans', id, {
         'person': name,
@@ -468,7 +653,7 @@ class FinanceRepo {
       }
       // Its entry was deleted in Activity: the edit puts one back.
       if (principals.isEmpty) {
-        await store.insertIn(txn, 'transactions', _loanEntry(id, loan.principalType, amountFils, date, describe(loan.principalType, name), categoryId));
+        await store.insertIn(txn, 'transactions', _loanEntry(id, loan.principalType, amountFils, date, describe(loan.principalType, name), categoryId, accountId));
       }
     });
   }
@@ -489,14 +674,16 @@ class FinanceRepo {
   // ── Aggregates (computed over local rows) ────────────────────────────
 
   /// Aggregate income/expense fils within [from],[to].
-  Future<({int income, int expense})> totals(DateTime from, DateTime to) async {
+  /// [accountId]: only that account's entries.
+  Future<({int income, int expense})> totals(DateTime from, DateTime to, {int? accountId}) async {
     final store = await _db;
     final lo = _isoDate(from);
     final hi = _isoDate(to);
+    final account = accountId == null ? '' : ' AND account_id = $accountId';
     final exp = await store.selectRows('transactions',
-        where: 'date >= ? AND date <= ? AND type = ?', whereArgs: [lo, hi, 'expense']);
+        where: 'date >= ? AND date <= ? AND type = ?$account', whereArgs: [lo, hi, 'expense']);
     final inc = await store.selectRows('transactions',
-        where: 'date >= ? AND date <= ? AND type = ?', whereArgs: [lo, hi, 'income']);
+        where: 'date >= ? AND date <= ? AND type = ?$account', whereArgs: [lo, hi, 'income']);
     int sum(List<Map<String, dynamic>> l) => l.fold(0, (a, b) => a + (b['amount_fils'] as int));
     return (income: sum(inc), expense: sum(exp));
   }

@@ -40,7 +40,7 @@ void main() {
     final json = await Backup.export(store, now: DateTime.utc(2026, 9, 29));
     final doc = decode(json);
     expect(doc['format'], 'pocketsense-backup');
-    expect(doc['version'], 2);
+    expect(doc['version'], 3);
     expect(doc['currency'], 'JOD');
     expect(doc['exported_at'], '2026-09-29T00:00:00.000Z');
 
@@ -64,9 +64,18 @@ void main() {
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 15, merchants: 37, loans: 4, transactions: 671, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    expect(summary, (categories: 15, merchants: 37, loans: 4, transactions: 690, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
     // Ahmad 70 and Lina 40 owe you; you owe Omar 125; Sara is settled.
     expect(loanTotals(await repo.loans()), (owedToYou: 110000, youOwe: 125000));
+    // Cash topped up at the ATM, the card paid off on the 25th (so it owes
+    // since Oct 25), and JOD 200 saved each payday.
+    expect([for (final a in await repo.accounts()) (a.name, a.balanceFils)], [
+      ('Cash', 109600),
+      ('Arab Bank', 965090),
+      ('Savings', 5600000),
+      ('Visa card', -113490),
+    ]);
+    expect((await repo.recurring()).firstWhere((r) => r.description == 'Rent').reminderDays, 3);
   });
 
   test('import replaces what was there and notifies listeners', () async {
@@ -107,7 +116,7 @@ void main() {
 
     test('corrupt JSON', () => expectProblem('{"format": "pocketsense-b', BackupProblem.notJson));
     test('some other JSON file', () => expectProblem('{"hello": "world"}', BackupProblem.notABackup));
-    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 3), BackupProblem.tooNew));
+    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 4), BackupProblem.tooNew));
     test('a currency the app doesn\'t offer', () => expectProblem(jsonEncode(valid()..['currency'] = 'XYZ'), BackupProblem.wrongCurrency));
 
     test('an export says which currency its amounts are in', () async {

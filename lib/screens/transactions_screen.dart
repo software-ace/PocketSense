@@ -9,6 +9,7 @@ import '../security/lock_gate.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/quick_add.dart';
+import '../widgets/account_field.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
@@ -90,23 +91,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     }
   }
 
-  Future<void> _addTransaction({String type = 'expense'}) async {
-    final draft = await _showForm(context, null, type: type);
-    if (draft == null || !mounted) return;
-    try {
-      await _repo.insertTransaction(
-        amountFils: draft.amountFils,
-        type: draft.type,
-        date: draft.date,
-        description: draft.description,
-        merchant: draft.merchant,
-        categoryId: draft.categoryId,
-      );
-      await _load();
-    } catch (e) {
-      if (mounted) _toast(context.l10n.addFailed('$e'));
-    }
-  }
+  Future<void> _addTransaction({String type = 'expense'}) => addTransaction(context, type: type);
 
   /// Speak → parse → the normal form, pre-filled, so nothing is saved
   /// without the user checking it.
@@ -130,6 +115,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         description: draft.description,
         merchant: draft.merchant,
         categoryId: draft.categoryId,
+        accountId: draft.accountId,
       );
       await _load();
     } catch (e) {
@@ -149,6 +135,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         description: draft.description,
         merchant: draft.merchant,
         categoryId: draft.categoryId,
+        accountId: draft.accountId,
       );
       await _load();
     } catch (e) {
@@ -386,6 +373,32 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   }
 }
 
+/// Opens the new-entry form and saves what it returns; open tabs reload by
+/// themselves. [accountId]: the account it starts in (an account's own
+/// screen); null is the default.
+Future<void> addTransaction(BuildContext context, {String type = 'expense', int? accountId}) async {
+  final draft = await showModalBottomSheet<_TxDraft>(
+    context: context,
+    isScrollControlled: true,
+    builder: (c) => _TxFormSheet(type: type, accountId: accountId),
+  );
+  if (draft == null || !context.mounted) return;
+  final l = context.l10n;
+  try {
+    await FinanceRepo().insertTransaction(
+      amountFils: draft.amountFils,
+      type: draft.type,
+      date: draft.date,
+      description: draft.description,
+      merchant: draft.merchant,
+      categoryId: draft.categoryId,
+      accountId: draft.accountId,
+    );
+  } catch (e) {
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.addFailed('$e'))));
+  }
+}
+
 /// Extended-FAB-shaped pill split in two: [ 🎤 | + Add ].
 class _AddSplitFab extends StatelessWidget {
   final VoidCallback onVoice;
@@ -438,8 +451,9 @@ class _TxDraft {
   final String description;
   final String? merchant;
   final int? categoryId;
+  final int? accountId;
   final DateTime date;
-  _TxDraft(this.amountFils, this.type, this.description, {required this.date, this.merchant, this.categoryId});
+  _TxDraft(this.amountFils, this.type, this.description, {required this.date, this.merchant, this.categoryId, this.accountId});
 }
 
 class _TxFormSheet extends StatefulWidget {
@@ -447,7 +461,8 @@ class _TxFormSheet extends StatefulWidget {
   final VoiceDraft? voice; // pre-fill from a spoken sentence
   final String? heard;
   final String? type; // a new one's starting type
-  const _TxFormSheet({this.existing, this.voice, this.heard, this.type});
+  final int? accountId; // a new one's account; null is the default
+  const _TxFormSheet({this.existing, this.voice, this.heard, this.type, this.accountId});
   @override
   State<_TxFormSheet> createState() => _TxFormSheetState();
 }
@@ -459,6 +474,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? widget.voice?.merchant ?? '');
   late String _type = widget.existing?.type ?? widget.voice?.type ?? widget.type ?? 'expense';
   late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
+  late int? _accountId = widget.existing?.accountId ?? widget.accountId;
   late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
   List<dynamic> _cats = [];
   final _formKey = GlobalKey<FormState>();
@@ -565,6 +581,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
             items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
+          AccountField(value: _accountId, onChanged: (v) => setState(() => _accountId = v)),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () {
@@ -577,7 +594,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
               final merch = _merchCtrl.text.trim();
               // Saved as typed (maybe empty): the fallback title is filled in when
               // shown, so it follows the UI language instead of the one at save time.
-              Navigator.pop(context, _TxDraft(fils, _type, desc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
+              Navigator.pop(context, _TxDraft(fils, _type, desc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId, accountId: _accountId));
             },
             child: Text(l.save),
           ),

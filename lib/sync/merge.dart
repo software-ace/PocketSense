@@ -12,8 +12,9 @@ class SyncDataException implements Exception {
 }
 
 /// What sync sends between devices, and how it's merged in. Rows travel
-/// with their uid instead of the local integer id, and category_uid and
-/// loan_uid instead of category_id and loan_id. Each row is
+/// with their uid instead of the local integer id, and with the uids of the
+/// rows they point at (category_uid, loan_uid, account_uid and a transfer's
+/// from_ and to_account_uid) instead of local ids. Each row is
 /// last-writer-wins by its hlc.
 ///
 /// ponytail: last-writer-wins per row, not per field: two devices editing
@@ -31,6 +32,7 @@ class Merge {
   static Future<Map<String, Object?>> changesSince(LocalStore store, int since) => store.db.transaction((txn) async {
         final catUid = {for (final r in await txn.query('categories', columns: ['id', 'uid'])) r['id']: r['uid']};
         final loanUid = {for (final r in await txn.query('loans', columns: ['id', 'uid'])) r['id']: r['uid']};
+        final accountUid = {for (final r in await txn.query('accounts', columns: ['id', 'uid'])) r['id']: r['uid']};
         final tables = <String, Object>{};
         for (final t in LocalStore.syncedTables) {
           tables[t] = [
@@ -40,6 +42,8 @@ class Merge {
                   if (!_localColumns.contains(e.key)) e.key: e.value,
                 if (r.containsKey('category_id')) 'category_uid': catUid[r['category_id']],
                 if (r.containsKey('loan_id')) 'loan_uid': loanUid[r['loan_id']],
+                for (final c in _accountColumns)
+                  if (r.containsKey(c)) '${c.substring(0, c.length - 3)}_uid': accountUid[r[c]],
               },
           ];
         }
@@ -50,7 +54,11 @@ class Merge {
       });
 
   // Meaningful on this device only; the uid columns above stand in for them.
-  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id'};
+  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id', ..._accountColumns};
+
+  // Columns that point at an account, sent as <name>_uid (account_uid…).
+  static const _accountColumns = {'account_id', 'from_account_id', 'to_account_id'};
+  static const _uidColumns = {'category_uid', 'loan_uid', 'account_uid', 'from_account_uid', 'to_account_uid'};
 
   // Columns that must be present (and not null) in every row from a peer.
   static const _required = {
@@ -60,8 +68,10 @@ class Merge {
     'transactions': ['amount_fils', 'type', 'date', 'description'],
     'budgets': ['category_uid', 'limit_fils'],
     'recurring_expenses': ['description', 'amount_fils', 'frequency', 'anchor_date'],
+    'accounts': ['name', 'kind'],
+    'transfers': ['amount_fils', 'date', 'from_account_uid', 'to_account_uid'],
   };
-  static const _intColumns = {'amount_fils', 'limit_fils', 'active', 'due_time', 'reminder_days'};
+  static const _intColumns = {'amount_fils', 'limit_fils', 'active', 'due_time', 'reminder_days', 'opening_fils', 'closed'};
   static const _dateColumns = {'date', 'anchor_date', 'due_date'};
 
   static bool _isUid(Object? v) => v is String && v.isNotEmpty && v.length <= 64;
@@ -79,8 +89,7 @@ class Merge {
       // Only known columns: a newer app's extra fields are dropped.
       final columns = {
         for (final c in await store.db.rawQuery('PRAGMA table_info($t)')) c['name'] as String,
-        'category_uid',
-        'loan_uid',
+        ..._uidColumns,
       }..removeAll(_localColumns);
       rows[t] = [
         for (final r in list)
@@ -99,8 +108,9 @@ class Merge {
             if (type != null && type != 'income' && type != 'expense') throw SyncDataException('$t: type');
             final direction = r['direction'];
             if (direction != null && direction != 'lent' && direction != 'borrowed') throw SyncDataException('$t: direction');
-            if (r['category_uid'] != null && !_isUid(r['category_uid'])) throw SyncDataException('$t: category_uid');
-            if (r['loan_uid'] != null && !_isUid(r['loan_uid'])) throw SyncDataException('$t: loan_uid');
+            for (final c in _uidColumns) {
+              if (r[c] != null && !_isUid(r[c])) throw SyncDataException('$t: $c');
+            }
             return {for (final e in r.entries) if (columns.contains(e.key)) e.key as String: e.value};
           }(),
       ];
@@ -155,6 +165,17 @@ class Merge {
         return (await txn.query('categories', columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
       }
 
+      Future<int?> accountId(String? uid) async =>
+          uid == null ? null : (await txn.query('accounts', columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
+
+      // Where rows go when their account is gone: Cash, else the first open
+      // account, else any, other than [except].
+      Future<int?> fallbackAccount(int? except) async {
+        final rows = await txn.query('accounts',
+            columns: ['id', 'uid'], where: except == null ? null : 'id != ?', whereArgs: except == null ? null : [except], orderBy: 'closed, id');
+        return (rows.where((a) => a['uid'] == LocalStore.cashUid).firstOrNull ?? rows.firstOrNull)?['id'] as int?;
+      }
+
       // Rows go first, then tombstones (except a category's, when one with
       // its name arrives: see below). Uncategorizing a deleted category's
       // entries is then a fresh change only for entries this batch didn't
@@ -165,6 +186,12 @@ class Merge {
         final id = (await txn.query(table, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
         if (id != null) {
           if (table == 'categories') await store.releaseCategory(txn, id, incoming: incomingRows);
+          // The device that deleted it already moved its rows and opening
+          // balance; this catches entries added here since.
+          if (table == 'accounts') {
+            final into = await fallbackAccount(id);
+            if (into != null) await store.moveAccountIn(txn, id, into, addOpening: false);
+          }
           await txn.delete(table, where: 'id = ?', whereArgs: [id]);
         }
         await tombstone(table, uid, {'hlc': hlc, 'seq': store.nextSeq()});
@@ -180,9 +207,30 @@ class Merge {
           if ((await newest(t, uid)).compareTo(r['hlc'] as String) >= 0) continue;
           final values = {
             for (final e in r.entries)
-              if (e.key != 'category_uid' && e.key != 'loan_uid') e.key: e.value,
+              if (!_uidColumns.contains(e.key)) e.key: e.value,
             'seq': store.nextSeq(),
           };
+          // Accounts by uid. One deleted here meanwhile: the fallback
+          // account, as a fresh change so every device agrees.
+          for (final c in _accountColumns) {
+            final key = '${c.substring(0, c.length - 3)}_uid';
+            if (!r.containsKey(key)) continue;
+            final aUid = r[key] as String?;
+            var id = await accountId(aUid);
+            if (id == null) {
+              id = await fallbackAccount(null);
+              values.addAll(store.stamp());
+            }
+            values[c] = id;
+          }
+          // Both ends of a transfer landed on one account: it can't be one.
+          if (t == 'transfers' && values['from_account_id'] == values['to_account_id']) {
+            final local = (await txn.query(t, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
+            if (local != null) await txn.delete(t, where: 'id = ?', whereArgs: [local]);
+            await tombstone(t, uid, store.stamp());
+            changed++;
+            continue;
+          }
           if (r.containsKey('category_uid')) {
             final catUid = r['category_uid'] as String?;
             final cid = await categoryId(catUid);

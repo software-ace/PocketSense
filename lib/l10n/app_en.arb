@@ -438,7 +438,7 @@
   "importTransactions": "Import Transactions",
   "importTransactionsSubtitle": "Add entries from a CSV file",
   "exportTransactions": "Export Transactions",
-  "exportTransactionsSubtitle": "Save all entries as a CSV file for a spreadsheet",
+  "exportTransactionsSubtitle": "Save all entries as a CSV file for a spreadsheet. Transfers between accounts aren't included.",
   "importCsv": "Import CSV",
   "exportCsv": "Export CSV",
   "csvSaved": "CSV file saved.",
@@ -481,7 +481,7 @@
   "csvRuleDate": "date: year-month-day, like 2026-11-08.",
   "csvRuleType": "type: income or expense.",
   "csvRuleAmount": "amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.",
-  "csvRuleOptional": "category and merchant can be empty. Columns can be in any order, and others are ignored.",
+  "csvRuleOptional": "category, merchant and account can be empty: an empty or unknown account means your default one. Columns can be in any order, and others are ignored.",
   "csvExample": "Example",
   "csvNoRowsHere": "No rows here.",
   "csvImportN": "{count, plural, =0{Nothing to import} =1{Import 1 transaction} other{Import {count} transactions}}",
@@ -1123,5 +1123,163 @@
     }
   },
   "reminderAmounts": "Amounts in reminders",
-  "reminderAmountsSubtitle": "Show amounts in recurring and loan reminder notifications"
+  "reminderAmountsSubtitle": "Show amounts in recurring and loan reminder notifications",
+  "cashAccount": "Cash",
+  "account": "Account",
+  "accounts": "Accounts",
+  "accountsSubtitle": "Add, rename, close or delete your cash, bank, savings and card accounts",
+  "accountClosedName": "{name} (closed)",
+  "@accountClosedName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountKind": "{kind, select, bank{Bank} savings{Savings} card{Card} other{Cash}}",
+  "@accountKind": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "accountEntries": "{count, plural, =0{No entries} =1{1 entry} other{{count} entries}}",
+  "@accountEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalBalance": "Total balance",
+  "balance": "Balance",
+  "transfer": "Transfer",
+  "editTransfer": "Edit transfer",
+  "transferFrom": "From",
+  "transferTo": "To",
+  "transferSwap": "Swap From and To",
+  "transferSame": "Pick two different accounts.",
+  "transferAfter": "After this transfer",
+  "transferNotIncome": "Transfers between your accounts aren't income or spending: totals, charts and budgets stay the same.",
+  "transferBelowZero": "This takes {name} below zero. You can still go ahead.",
+  "@transferBelowZero": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "transferToAccount": "To {name}",
+  "@transferToAccount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "transferFromAccount": "From {name}",
+  "@transferFromAccount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTransfer": "Delete transfer",
+  "manageAccounts": "Manage",
+  "accountGone": "This account was deleted.",
+  "incomeThisMonth": "In this month",
+  "spentThisMonth": "Out this month",
+  "addEntry": "Add entry",
+  "openingBalance": "Opening balance",
+  "openingBalanceHint": "What's in it today; it isn't counted as income. For a card you owe, start with a minus: -120.",
+  "defaultBadge": "Default",
+  "newAccount": "New account",
+  "editAccount": "Edit account",
+  "accountName": "Name",
+  "accountKindLabel": "Kind",
+  "useForNewEntries": "Use for new entries",
+  "useForNewEntriesHint": "To change it, turn it on for another account",
+  "closedAccounts": "Closed · {count}",
+  "@closedAccounts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reopen": "Reopen",
+  "closedAccountsNote": "Closed accounts keep their history, so past charts and totals don't change. They're hidden from Home, the account pickers and Transfer.",
+  "lastAccountNote": "You need at least one open account, so this one stays.",
+  "closeAccount": "Close account",
+  "closeAccountHint": "Keeps its history. Hides it from Home, pickers and Transfer.",
+  "closeAccountTitle": "Close {name}?",
+  "@closeAccountTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "closeAccountMoney": "{name} still holds {amount}. It moves, as a transfer, to:",
+  "@closeAccountMoney": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "closeAccountOwes": "{name} owes {amount}. Pay it off, as a transfer, from:",
+  "@closeAccountOwes": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "closeAccountRecurring": "{count, plural, =1{Its recurring item moves there too.} other{Its {count} recurring items move there too.}}",
+  "@closeAccountRecurring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "closeAccountKeeps": "Its entries stay in your history and charts. You can reopen it in Settings → Accounts.",
+  "closeAccountConfirm": "Close",
+  "deleteAccount": "Delete account",
+  "deleteAccountTitle": "Delete {name}?",
+  "@deleteAccountTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountBody": "{count, plural, =0{Nothing in it is deleted: its transfers and opening balance move to:} =1{Nothing in it is deleted: its entry, transfers and opening balance move to:} other{Nothing in it is deleted: its {count} entries, transfers and opening balance move to:}}",
+  "@deleteAccountBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAccountNoUndo": "This can't be undone, here or on your paired devices. Just stopped using it? Close it instead.",
+  "deleteAccountConfirm": "Move and delete",
+  "becomesDefaultIfDefault": "If this was your default account, {name} becomes the default.",
+  "@becomesDefaultIfDefault": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "csvSumUnknownAccounts": "Rows put in your default account (account not found)"
 }

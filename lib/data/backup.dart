@@ -97,12 +97,13 @@ class Backup {
   static Future<List<int>> _key(String password, List<int> salt, int iterations) =>
       Isolate.run(() => pbkdf2Sha256(utf8.encode(password), salt, iterations, 32));
 
-  /// 2 added loans. A version-1 file still imports, with none; an older
-  /// app refuses a version-2 file rather than drop its loans.
-  static const version = 2;
+  /// 2 added loans, 3 accounts and transfers. An older file still imports
+  /// (its entries go into one Cash account, as on upgrade); an older app
+  /// refuses a newer file rather than drop what it can't hold.
+  static const version = 3;
 
   // Parents first: this is the insert order, and reversed the delete order.
-  static const _tables = ['categories', 'merchants', 'loans', 'transactions', 'budgets', 'recurring_expenses'];
+  static const _tables = ['categories', 'merchants', 'loans', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
 
   // Columns that must be present (and not null) in every row.
   static const _required = {
@@ -112,10 +113,15 @@ class Backup {
     'transactions': ['id', 'amount_fils', 'type', 'date', 'description'],
     'budgets': ['id', 'category_id', 'limit_fils'],
     'recurring_expenses': ['id', 'description', 'amount_fils', 'frequency', 'anchor_date'],
+    'accounts': ['id', 'name', 'kind'],
+    'transfers': ['id', 'from_account_id', 'to_account_id', 'amount_fils', 'date'],
   };
 
   // SQLite would store "abc" in an INTEGER column, so check types up front.
-  static const _intColumns = {'id', 'amount_fils', 'limit_fils', 'category_id', 'loan_id', 'active'};
+  static const _intColumns = {
+    'id', 'amount_fils', 'limit_fils', 'category_id', 'loan_id', 'active', 'due_time', 'reminder_days', //
+    'account_id', 'from_account_id', 'to_account_id', 'opening_fils', 'closed',
+  };
 
   static Map<String, Object?> _row(String table, Object? r, Set<String> columns) {
     if (r is! Map) throw BackupException(BackupProblem.badData, table);
@@ -179,6 +185,17 @@ class Backup {
       if (list is! List) throw BackupException(BackupProblem.badData, t);
       final columns = {for (final c in await store.db.rawQuery('PRAGMA table_info($t)')) c['name'] as String};
       rows[t] = [for (final r in list) _row(t, r, columns)];
+    }
+    // Before accounts: everything goes into one Cash account (keeping the
+    // name it has here), as on upgrade.
+    if (rows['accounts']!.isEmpty) {
+      final cash = (await store.db.query('accounts', columns: ['name'], where: 'uid = ?', whereArgs: [LocalStore.cashUid])).firstOrNull;
+      rows['accounts'] = [
+        {'id': 1, 'name': cash?['name'] ?? 'Cash', 'kind': 'cash', 'uid': LocalStore.cashUid},
+      ];
+      for (final t in ['transactions', 'recurring_expenses']) {
+        rows[t] = [for (final r in rows[t]!) {...r, 'account_id': r['account_id'] ?? 1}];
+      }
     }
 
     try {

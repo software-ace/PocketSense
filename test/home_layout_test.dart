@@ -16,12 +16,21 @@ void main() {
     addTearDown(() => AppSettings.homeLayout.value = (order: HomeSection.values, hidden: const {}));
   });
 
-  test('a saved layout reads back: unknown names dropped, new sections shown at the end, Loans never hidden', () {
+  test('a saved layout reads back: unknown names dropped, Loans never hidden, a new section placed where it belongs', () {
     final layout = AppSettings.homeLayoutFrom(['recent', 'gone', 'daily', 'recent', 'loans'], ['daily', 'loans', 'gone']);
-    expect(layout.order.take(3), [HomeSection.recent, HomeSection.daily, HomeSection.loans]);
-    expect(layout.order.toSet(), HomeSection.values.toSet(), reason: 'every section once');
+    final order = layout.order;
+    expect(order.toSet(), HomeSection.values.toSet(), reason: 'every section once');
+    expect(order.indexOf(HomeSection.recent) < order.indexOf(HomeSection.daily), isTrue, reason: 'the saved order is kept');
+    expect(order.indexOf(HomeSection.daily) < order.indexOf(HomeSection.loans), isTrue);
     expect(layout.hidden, {HomeSection.daily});
     expect(AppSettings.homeLayoutFrom(null, null).order, HomeSection.values, reason: 'nothing saved: the default order');
+  });
+
+  test('Accounts, added after a layout was saved, goes right under Totals, not at the bottom', () {
+    final saved = [for (final s in HomeSection.values) if (s != HomeSection.accounts) s.name].reversed.toList();
+    final order = AppSettings.homeLayoutFrom(saved, null).order;
+    expect(order[order.indexOf(HomeSection.totals) + 1], HomeSection.accounts);
+    expect(order.first, HomeSection.recent, reason: 'the rest keeps its saved order');
   });
 
   testWidgets('Home follows the layout: hidden parts are gone, the rest in its order', (tester) async {

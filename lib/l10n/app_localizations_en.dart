@@ -838,7 +838,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportTransactionsSubtitle =>
-      'Save all entries as a CSV file for a spreadsheet';
+      'Save all entries as a CSV file for a spreadsheet. Transfers between accounts aren\'t included.';
 
   @override
   String get importCsv => 'Import CSV';
@@ -933,7 +933,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get csvRuleOptional =>
-      'category and merchant can be empty. Columns can be in any order, and others are ignored.';
+      'category, merchant and account can be empty: an empty or unknown account means your default one. Columns can be in any order, and others are ignored.';
 
   @override
   String get csvExample => 'Example';
@@ -1836,4 +1836,231 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reminderAmountsSubtitle =>
       'Show amounts in recurring and loan reminder notifications';
+
+  @override
+  String get cashAccount => 'Cash';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get accounts => 'Accounts';
+
+  @override
+  String get accountsSubtitle =>
+      'Add, rename, close or delete your cash, bank, savings and card accounts';
+
+  @override
+  String accountClosedName(String name) {
+    return '$name (closed)';
+  }
+
+  @override
+  String accountKind(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'bank': 'Bank',
+      'savings': 'Savings',
+      'card': 'Card',
+      'other': 'Cash',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String accountEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+      zero: 'No entries',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get totalBalance => 'Total balance';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
+  String get transfer => 'Transfer';
+
+  @override
+  String get editTransfer => 'Edit transfer';
+
+  @override
+  String get transferFrom => 'From';
+
+  @override
+  String get transferTo => 'To';
+
+  @override
+  String get transferSwap => 'Swap From and To';
+
+  @override
+  String get transferSame => 'Pick two different accounts.';
+
+  @override
+  String get transferAfter => 'After this transfer';
+
+  @override
+  String get transferNotIncome =>
+      'Transfers between your accounts aren\'t income or spending: totals, charts and budgets stay the same.';
+
+  @override
+  String transferBelowZero(String name) {
+    return 'This takes $name below zero. You can still go ahead.';
+  }
+
+  @override
+  String transferToAccount(String name) {
+    return 'To $name';
+  }
+
+  @override
+  String transferFromAccount(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get deleteTransfer => 'Delete transfer';
+
+  @override
+  String get manageAccounts => 'Manage';
+
+  @override
+  String get accountGone => 'This account was deleted.';
+
+  @override
+  String get incomeThisMonth => 'In this month';
+
+  @override
+  String get spentThisMonth => 'Out this month';
+
+  @override
+  String get addEntry => 'Add entry';
+
+  @override
+  String get openingBalance => 'Opening balance';
+
+  @override
+  String get openingBalanceHint =>
+      'What\'s in it today; it isn\'t counted as income. For a card you owe, start with a minus: -120.';
+
+  @override
+  String get defaultBadge => 'Default';
+
+  @override
+  String get newAccount => 'New account';
+
+  @override
+  String get editAccount => 'Edit account';
+
+  @override
+  String get accountName => 'Name';
+
+  @override
+  String get accountKindLabel => 'Kind';
+
+  @override
+  String get useForNewEntries => 'Use for new entries';
+
+  @override
+  String get useForNewEntriesHint =>
+      'To change it, turn it on for another account';
+
+  @override
+  String closedAccounts(int count) {
+    return 'Closed · $count';
+  }
+
+  @override
+  String get reopen => 'Reopen';
+
+  @override
+  String get closedAccountsNote =>
+      'Closed accounts keep their history, so past charts and totals don\'t change. They\'re hidden from Home, the account pickers and Transfer.';
+
+  @override
+  String get lastAccountNote =>
+      'You need at least one open account, so this one stays.';
+
+  @override
+  String get closeAccount => 'Close account';
+
+  @override
+  String get closeAccountHint =>
+      'Keeps its history. Hides it from Home, pickers and Transfer.';
+
+  @override
+  String closeAccountTitle(String name) {
+    return 'Close $name?';
+  }
+
+  @override
+  String closeAccountMoney(String name, String amount) {
+    return '$name still holds $amount. It moves, as a transfer, to:';
+  }
+
+  @override
+  String closeAccountOwes(String name, String amount) {
+    return '$name owes $amount. Pay it off, as a transfer, from:';
+  }
+
+  @override
+  String closeAccountRecurring(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count recurring items move there too.',
+      one: 'Its recurring item moves there too.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get closeAccountKeeps =>
+      'Its entries stay in your history and charts. You can reopen it in Settings → Accounts.';
+
+  @override
+  String get closeAccountConfirm => 'Close';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String deleteAccountTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String deleteAccountBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nothing in it is deleted: its $count entries, transfers and opening balance move to:',
+      one: 'Nothing in it is deleted: its entry, transfers and opening balance move to:',
+      zero: 'Nothing in it is deleted: its transfers and opening balance move to:',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAccountNoUndo =>
+      'This can\'t be undone, here or on your paired devices. Just stopped using it? Close it instead.';
+
+  @override
+  String get deleteAccountConfirm => 'Move and delete';
+
+  @override
+  String becomesDefaultIfDefault(String name) {
+    return 'If this was your default account, $name becomes the default.';
+  }
+
+  @override
+  String get csvSumUnknownAccounts =>
+      'Rows put in your default account (account not found)';
 }

@@ -852,7 +852,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get exportTransactionsSubtitle =>
-      'حفظ كل الحركات في ملف CSV لجداول البيانات';
+      'حفظ كل الحركات في ملف CSV لجداول البيانات. لا تُضمَّن التحويلات بين الحسابات.';
 
   @override
   String get importCsv => 'استيراد CSV';
@@ -947,7 +947,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get csvRuleOptional =>
-      'يمكن ترك category وmerchant فارغين. ترتيب الأعمدة حر، وتُتجاهل الأعمدة الأخرى.';
+      'يمكن ترك category وmerchant وaccount فارغة: الحساب الفارغ أو غير المعروف يعني حسابك الافتراضي. ترتيب الأعمدة حر، وتُتجاهل الأعمدة الأخرى.';
 
   @override
   String get csvExample => 'مثال';
@@ -1883,4 +1883,241 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get reminderAmountsSubtitle =>
       'عرض المبالغ في إشعارات تذكير المتكررة والقروض';
+
+  @override
+  String get cashAccount => 'نقد';
+
+  @override
+  String get account => 'الحساب';
+
+  @override
+  String get accounts => 'الحسابات';
+
+  @override
+  String get accountsSubtitle =>
+      'أضف حساباتك النقدية والبنكية والادخارية وبطاقاتك، أو أعد تسميتها أو أغلقها أو احذفها';
+
+  @override
+  String accountClosedName(String name) {
+    return '$name (مغلق)';
+  }
+
+  @override
+  String accountKind(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'bank': 'بنك',
+      'savings': 'ادخار',
+      'card': 'بطاقة',
+      'other': 'نقد',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String accountEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count حركة',
+      many: '$count حركة',
+      few: '$count حركات',
+      two: 'حركتان',
+      one: 'حركة واحدة',
+      zero: 'لا حركات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get totalBalance => 'الرصيد الإجمالي';
+
+  @override
+  String get balance => 'الرصيد';
+
+  @override
+  String get transfer => 'تحويل';
+
+  @override
+  String get editTransfer => 'تعديل التحويل';
+
+  @override
+  String get transferFrom => 'من';
+
+  @override
+  String get transferTo => 'إلى';
+
+  @override
+  String get transferSwap => 'تبديل من وإلى';
+
+  @override
+  String get transferSame => 'اختر حسابين مختلفين.';
+
+  @override
+  String get transferAfter => 'بعد هذا التحويل';
+
+  @override
+  String get transferNotIncome =>
+      'التحويل بين حساباتك ليس دخلًا ولا إنفاقًا: تبقى المجاميع والمخططات والميزانيات كما هي.';
+
+  @override
+  String transferBelowZero(String name) {
+    return 'هذا يجعل رصيد $name أقل من صفر. يمكنك المتابعة مع ذلك.';
+  }
+
+  @override
+  String transferToAccount(String name) {
+    return 'إلى $name';
+  }
+
+  @override
+  String transferFromAccount(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get deleteTransfer => 'حذف التحويل';
+
+  @override
+  String get manageAccounts => 'إدارة';
+
+  @override
+  String get accountGone => 'حُذف هذا الحساب.';
+
+  @override
+  String get incomeThisMonth => 'الوارد هذا الشهر';
+
+  @override
+  String get spentThisMonth => 'الصادر هذا الشهر';
+
+  @override
+  String get addEntry => 'إضافة حركة';
+
+  @override
+  String get openingBalance => 'الرصيد الافتتاحي';
+
+  @override
+  String get openingBalanceHint =>
+      'ما فيه اليوم، ولا يُحسب دخلًا. لبطاقة عليك دين، ابدأ بإشارة سالب: -120.';
+
+  @override
+  String get defaultBadge => 'افتراضي';
+
+  @override
+  String get newAccount => 'حساب جديد';
+
+  @override
+  String get editAccount => 'تعديل الحساب';
+
+  @override
+  String get accountName => 'الاسم';
+
+  @override
+  String get accountKindLabel => 'النوع';
+
+  @override
+  String get useForNewEntries => 'استخدامه للحركات الجديدة';
+
+  @override
+  String get useForNewEntriesHint => 'لتغييره، فعّله لحساب آخر';
+
+  @override
+  String closedAccounts(int count) {
+    return 'المغلقة · $count';
+  }
+
+  @override
+  String get reopen => 'إعادة فتح';
+
+  @override
+  String get closedAccountsNote =>
+      'تحتفظ الحسابات المغلقة بسجلها، فلا تتغير المخططات والمجاميع السابقة. وتختفي من الرئيسية وقوائم اختيار الحساب والتحويل.';
+
+  @override
+  String get lastAccountNote =>
+      'يلزم حساب مفتوح واحد على الأقل، لذا يبقى هذا الحساب.';
+
+  @override
+  String get closeAccount => 'إغلاق الحساب';
+
+  @override
+  String get closeAccountHint =>
+      'يحتفظ بسجله، ويختفي من الرئيسية وقوائم الاختيار والتحويل.';
+
+  @override
+  String closeAccountTitle(String name) {
+    return 'إغلاق $name؟';
+  }
+
+  @override
+  String closeAccountMoney(String name, String amount) {
+    return 'ما زال في $name مبلغ $amount. يُنقل، كتحويل، إلى:';
+  }
+
+  @override
+  String closeAccountOwes(String name, String amount) {
+    return 'على $name دين $amount. يُسدّد، كتحويل، من:';
+  }
+
+  @override
+  String closeAccountRecurring(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'وتنتقل إليه حركاته المتكررة الـ$count أيضًا.',
+      many: 'وتنتقل إليه حركاته المتكررة الـ$count أيضًا.',
+      few: 'وتنتقل إليه حركاته المتكررة الـ$count أيضًا.',
+      two: 'وتنتقل إليه حركتاه المتكررتان أيضًا.',
+      one: 'وتنتقل إليه حركته المتكررة أيضًا.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get closeAccountKeeps =>
+      'تبقى حركاته في سجلك ومخططاتك، ويمكنك إعادة فتحه من الإعدادات ← الحسابات.';
+
+  @override
+  String get closeAccountConfirm => 'إغلاق';
+
+  @override
+  String get deleteAccount => 'حذف الحساب';
+
+  @override
+  String deleteAccountTitle(String name) {
+    return 'حذف $name؟';
+  }
+
+  @override
+  String deleteAccountBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لا يُحذف شيء مما فيه: تُنقل حركاته الـ$count وتحويلاته ورصيده الافتتاحي إلى:',
+      many:
+          'لا يُحذف شيء مما فيه: تُنقل حركاته الـ$count وتحويلاته ورصيده الافتتاحي إلى:',
+      few:
+          'لا يُحذف شيء مما فيه: تُنقل حركاته الـ$count وتحويلاته ورصيده الافتتاحي إلى:',
+      two: 'لا يُحذف شيء مما فيه: تُنقل حركتاه وتحويلاته ورصيده الافتتاحي إلى:',
+      one: 'لا يُحذف شيء مما فيه: تُنقل حركته وتحويلاته ورصيده الافتتاحي إلى:',
+      zero: 'لا يُحذف شيء مما فيه: تُنقل تحويلاته ورصيده الافتتاحي إلى:',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAccountNoUndo =>
+      'لا يمكن التراجع عن هذا، هنا أو على أجهزتك المقترنة. توقفت عن استخدامه فقط؟ أغلقه بدلًا من ذلك.';
+
+  @override
+  String get deleteAccountConfirm => 'نقل وحذف';
+
+  @override
+  String becomesDefaultIfDefault(String name) {
+    return 'إن كان هذا حسابك الافتراضي، يصبح $name هو الافتراضي.';
+  }
+
+  @override
+  String get csvSumUnknownAccounts =>
+      'صفوف وُضعت في حسابك الافتراضي (الحساب غير موجود)';
 }

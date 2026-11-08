@@ -42,9 +42,12 @@ void main() {
     await (await a.store()).insertRow('transactions', {'amount_fils': 1, 'type': 'expense', 'date': '2026-09-01', 'description': 'a'});
     await (await b.store()).insertRow('transactions', {'amount_fils': 2, 'type': 'expense', 'date': '2026-09-01', 'description': 'b'});
     final n = await a.syncWith(paired.peer, loopback, b.port);
-    expect(n, 1);
+    // The other's entry, and the two devices' Cash settling on one copy.
+    expect(n, greaterThan(0));
     expect(await count(a, 'transactions'), 2);
     expect(await count(b, 'transactions'), 2);
+    expect(await count(a, 'accounts'), 1, reason: 'one Cash on both devices, not one each');
+    expect(await count(b, 'accounts'), 1);
 
     // Nothing new: nothing changes, either way.
     final again = Peer((await (await a.store()).db.query('peers')).single);

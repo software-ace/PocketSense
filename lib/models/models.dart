@@ -47,6 +47,8 @@ class Transaction {
   final DateTime? createdAt;
   /// The loan this entry lends, borrows or repays, if any.
   final int? loanId;
+  /// The account its money came from or went into.
+  final int? accountId;
 
   Transaction({
     required this.id,
@@ -60,6 +62,7 @@ class Transaction {
     this.categoryColor,
     this.createdAt,
     this.loanId,
+    this.accountId,
   });
 
   factory Transaction.fromMap(Map<String, dynamic> m) => Transaction(
@@ -73,6 +76,7 @@ class Transaction {
         categoryName: m['category_name'] as String?,
         categoryColor: m['category_color'] as String?,
         createdAt: DateTime.tryParse(m['created_at']?.toString() ?? '')?.toLocal(),
+        accountId: m['account_id'] as int?,
         loanId: m['loan_id'] as int?,
       );
 }
@@ -120,6 +124,8 @@ class RecurringExpense {
   final int dueMinutes;
   /// Remind this many days before (0: on the day); null: no reminder.
   final int? reminderDays;
+  /// The account it's posted to.
+  final int? accountId;
 
   RecurringExpense({
     required this.id,
@@ -135,6 +141,7 @@ class RecurringExpense {
     this.notes,
     this.dueMinutes = defaultReminderMinutes,
     this.reminderDays,
+    this.accountId,
   });
 }
 
@@ -201,3 +208,70 @@ class Loan {
       owedToYou: loans.where((l) => l.lent).fold(0, (sum, l) => sum + l.remainingFils),
       youOwe: loans.where((l) => !l.lent).fold(0, (sum, l) => sum + l.remainingFils),
     );
+
+/// Somewhere money is kept: cash, a bank account, savings or a card.
+class Account {
+  Account({
+    required this.id,
+    required this.uid,
+    required this.name,
+    required this.kind,
+    required this.openingFils,
+    required this.closed,
+    required this.balanceFils,
+    required this.entries,
+  });
+
+  final int id;
+  final String uid;
+  final String name;
+
+  /// One of [kinds]; an unknown one (from a newer app) shows as cash.
+  final String kind;
+
+  /// What was in it when it was added; not income.
+  final int openingFils;
+
+  /// Closed: kept with its history, hidden from Home, pickers and Transfer.
+  final bool closed;
+
+  /// Opening balance + income − spending + transfers in − transfers out.
+  /// Negative for a card that's owed.
+  final int balanceFils;
+
+  /// How many entries are in it (transfers not counted).
+  final int entries;
+
+  static const kinds = ['cash', 'bank', 'savings', 'card'];
+}
+
+/// Money moved between two of your accounts: neither income nor spending.
+class Transfer {
+  Transfer({
+    required this.id,
+    required this.fromId,
+    required this.toId,
+    required this.amountFils,
+    required this.date,
+    this.note,
+    this.createdAt,
+  });
+
+  final int id;
+  final int? fromId;
+  final int? toId;
+  final int amountFils;
+  final DateTime date;
+  final String? note;
+  final DateTime? createdAt;
+
+  factory Transfer.fromMap(Map<String, dynamic> m) => Transfer(
+        id: m['id'] as int,
+        fromId: m['from_account_id'] as int?,
+        toId: m['to_account_id'] as int?,
+        amountFils: m['amount_fils'] as int,
+        date: DateTime.parse(m['date'].toString()),
+        note: m['note'] as String?,
+        createdAt: DateTime.tryParse(m['created_at']?.toString() ?? '')?.toLocal(),
+      );
+}

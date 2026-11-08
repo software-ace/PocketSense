@@ -128,17 +128,20 @@ class _BootState extends State<Boot> {
     if (_opening == null) {
       _opening = _open();
     } else {
-      final names = starterCategoryNames(context.l10n);
+      final names = _starterNames(context.l10n);
       _opening!.then((_) => _localizeCategories(names)).ignore();
     }
   }
 
   Future<void> _open() async {
-    final names = starterCategoryNames(context.l10n);
+    final names = _starterNames(context.l10n);
     await LocalStore.open(categoryNames: names, starterNames: starterCategoryDefaultNames());
     // The system language may have changed since they were created.
     await _localizeCategories(names);
   }
+
+  // The starter categories' names and the first account's, in the UI language.
+  static Map<String, String> _starterNames(AppLocalizations l) => {...starterCategoryNames(l), LocalStore.cashNameKey: l.cashAccount};
 
   static Future<void> _localizeCategories(Map<String, String> names) =>
       FinanceRepo().localizeStarterCategories(names, starterCategoryDefaultNames());

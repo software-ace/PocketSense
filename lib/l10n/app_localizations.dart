@@ -1367,7 +1367,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportTransactionsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Save all entries as a CSV file for a spreadsheet'**
+  /// **'Save all entries as a CSV file for a spreadsheet. Transfers between accounts aren\'t included.'**
   String get exportTransactionsSubtitle;
 
   /// No description provided for @importCsv.
@@ -1541,7 +1541,7 @@ abstract class AppLocalizations {
   /// No description provided for @csvRuleOptional.
   ///
   /// In en, this message translates to:
-  /// **'category and merchant can be empty. Columns can be in any order, and others are ignored.'**
+  /// **'category, merchant and account can be empty: an empty or unknown account means your default one. Columns can be in any order, and others are ignored.'**
   String get csvRuleOptional;
 
   /// No description provided for @csvExample.
@@ -2893,6 +2893,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show amounts in recurring and loan reminder notifications'**
   String get reminderAmountsSubtitle;
+
+  /// No description provided for @cashAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cashAccount;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accounts;
+
+  /// No description provided for @accountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add, rename, close or delete your cash, bank, savings and card accounts'**
+  String get accountsSubtitle;
+
+  /// No description provided for @accountClosedName.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (closed)'**
+  String accountClosedName(String name);
+
+  /// No description provided for @accountKind.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, bank{Bank} savings{Savings} card{Card} other{Cash}}'**
+  String accountKind(String kind);
+
+  /// No description provided for @accountEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No entries} =1{1 entry} other{{count} entries}}'**
+  String accountEntries(int count);
+
+  /// No description provided for @totalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get totalBalance;
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// No description provided for @transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transfer;
+
+  /// No description provided for @editTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit transfer'**
+  String get editTransfer;
+
+  /// No description provided for @transferFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get transferFrom;
+
+  /// No description provided for @transferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get transferTo;
+
+  /// No description provided for @transferSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap From and To'**
+  String get transferSwap;
+
+  /// No description provided for @transferSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick two different accounts.'**
+  String get transferSame;
+
+  /// No description provided for @transferAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After this transfer'**
+  String get transferAfter;
+
+  /// No description provided for @transferNotIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers between your accounts aren\'t income or spending: totals, charts and budgets stay the same.'**
+  String get transferNotIncome;
+
+  /// No description provided for @transferBelowZero.
+  ///
+  /// In en, this message translates to:
+  /// **'This takes {name} below zero. You can still go ahead.'**
+  String transferBelowZero(String name);
+
+  /// No description provided for @transferToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'To {name}'**
+  String transferToAccount(String name);
+
+  /// No description provided for @transferFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String transferFromAccount(String name);
+
+  /// No description provided for @deleteTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transfer'**
+  String get deleteTransfer;
+
+  /// No description provided for @manageAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manageAccounts;
+
+  /// No description provided for @accountGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This account was deleted.'**
+  String get accountGone;
+
+  /// No description provided for @incomeThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'In this month'**
+  String get incomeThisMonth;
+
+  /// No description provided for @spentThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Out this month'**
+  String get spentThisMonth;
+
+  /// No description provided for @addEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get addEntry;
+
+  /// No description provided for @openingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get openingBalance;
+
+  /// No description provided for @openingBalanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s in it today; it isn\'t counted as income. For a card you owe, start with a minus: -120.'**
+  String get openingBalanceHint;
+
+  /// No description provided for @defaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultBadge;
+
+  /// No description provided for @newAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'New account'**
+  String get newAccount;
+
+  /// No description provided for @editAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get editAccount;
+
+  /// No description provided for @accountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get accountName;
+
+  /// No description provided for @accountKindLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get accountKindLabel;
+
+  /// No description provided for @useForNewEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for new entries'**
+  String get useForNewEntries;
+
+  /// No description provided for @useForNewEntriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To change it, turn it on for another account'**
+  String get useForNewEntriesHint;
+
+  /// No description provided for @closedAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed · {count}'**
+  String closedAccounts(int count);
+
+  /// No description provided for @reopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get reopen;
+
+  /// No description provided for @closedAccountsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed accounts keep their history, so past charts and totals don\'t change. They\'re hidden from Home, the account pickers and Transfer.'**
+  String get closedAccountsNote;
+
+  /// No description provided for @lastAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You need at least one open account, so this one stays.'**
+  String get lastAccountNote;
+
+  /// No description provided for @closeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Close account'**
+  String get closeAccount;
+
+  /// No description provided for @closeAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps its history. Hides it from Home, pickers and Transfer.'**
+  String get closeAccountHint;
+
+  /// No description provided for @closeAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close {name}?'**
+  String closeAccountTitle(String name);
+
+  /// No description provided for @closeAccountMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} still holds {amount}. It moves, as a transfer, to:'**
+  String closeAccountMoney(String name, String amount);
+
+  /// No description provided for @closeAccountOwes.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} owes {amount}. Pay it off, as a transfer, from:'**
+  String closeAccountOwes(String name, String amount);
+
+  /// No description provided for @closeAccountRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Its recurring item moves there too.} other{Its {count} recurring items move there too.}}'**
+  String closeAccountRecurring(int count);
+
+  /// No description provided for @closeAccountKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Its entries stay in your history and charts. You can reopen it in Settings → Accounts.'**
+  String get closeAccountKeeps;
+
+  /// No description provided for @closeAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeAccountConfirm;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String deleteAccountTitle(String name);
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing in it is deleted: its transfers and opening balance move to:} =1{Nothing in it is deleted: its entry, transfers and opening balance move to:} other{Nothing in it is deleted: its {count} entries, transfers and opening balance move to:}}'**
+  String deleteAccountBody(int count);
+
+  /// No description provided for @deleteAccountNoUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone, here or on your paired devices. Just stopped using it? Close it instead.'**
+  String get deleteAccountNoUndo;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Move and delete'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @becomesDefaultIfDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'If this was your default account, {name} becomes the default.'**
+  String becomesDefaultIfDefault(String name);
+
+  /// No description provided for @csvSumUnknownAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows put in your default account (account not found)'**
+  String get csvSumUnknownAccounts;
 }
 
 class _AppLocalizationsDelegate

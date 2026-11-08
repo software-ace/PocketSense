@@ -13,6 +13,8 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../settings/manage_accounts_screen.dart';
+import 'accounts_screen.dart';
 import 'loans_screen.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -46,6 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   List<int> _weekday = const [];
   List<({DateTime day, int fils})> _daily = [];
   List<Loan> _loans = [];
+  List<Account> _accounts = [];
 
   @override
   void onDataChanged() => _load();
@@ -88,6 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _repo.loans(),
         _repo.transactionMonths(),
         _repo.totals(_pickedFrom(_Chart.totals, now), _pickedTo(_Chart.totals, now)),
+        _repo.accounts(),
       ]);
 
       if (!mounted) return;
@@ -104,6 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _loans = results[9] as List<Loan>;
         _dataMonths = results[10] as List<DateTime>;
         _pickedTotals = results[11] as ({int income, int expense});
+        _accounts = results[12] as List<Account>;
         _loading = false;
       });
     } catch (e) {
@@ -236,6 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           HomeSection.weekday => _chartCard(theme, l.chartWeekday, _buildWeekdayChart()),
           HomeSection.totals => _totals(theme, desktop),
           HomeSection.loans => _loansCard(theme),
+          HomeSection.accounts => _accountsCard(theme),
           HomeSection.recent => throw ArgumentError(s), // slivers, below
         };
     final shown = [for (final s in layout.order) if (!layout.hidden.contains(s)) s];
@@ -328,6 +334,48 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           ],
         ),
       ),
+    );
+  }
+
+  // Every open account and the total; the way into Accounts and Transfer.
+  // Amounts follow Hide amounts here, like the rest of Home.
+  Widget _accountsCard(ThemeData theme) {
+    final l = context.l10n;
+    final open = [for (final a in _accounts) if (!a.closed) a];
+    final total = _accounts.fold(0, (sum, a) => sum + a.balanceFils);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        InkWell(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AccountsScreen())),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Icon(Icons.account_balance_wallet_outlined, size: 18, color: theme.colorScheme.primary),
+                const SizedBox(width: 6),
+                Expanded(child: Text(l.accounts, style: theme.textTheme.titleSmall)),
+                const Icon(Icons.chevron_right, size: 20),
+              ]),
+              const SizedBox(height: 8),
+              Text(l.totalBalance, style: theme.textTheme.bodySmall),
+              _fit(Text(formatMoney(total), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
+            ]),
+          ),
+        ),
+        for (final a in open) AccountTile(account: a),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+          child: Row(children: [
+            if (open.length > 1) ...[
+              Expanded(child: FilledButton.icon(onPressed: () => showTransferSheet(context), icon: const Icon(Icons.swap_horiz), label: Text(l.transfer))),
+              const SizedBox(width: 8),
+            ],
+            Expanded(child: OutlinedButton.icon(onPressed: () => showAccountForm(context), icon: const Icon(Icons.add), label: Text(l.newAccount))),
+          ]),
+        ),
+      ]),
     );
   }
 

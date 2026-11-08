@@ -11,6 +11,7 @@ import '../utils/recurring.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../widgets/account_field.dart';
 import '../widgets/merchant_field.dart';
 import '../widgets/reminder_field.dart';
 import 'settings_screen.dart';
@@ -279,6 +280,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   // Its reminder rings at this time on its day.
   late int _dueMinutes = widget.existing?.dueMinutes ?? defaultReminderMinutes;
   late int? _reminderDays = widget.existing?.reminderDays;
+  late int? _accountId = widget.existing?.accountId;
   bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
@@ -319,9 +321,9 @@ class _RecurringDialogState extends State<_RecurringDialog> {
       final merch = _merchCtrl.text.trim().isEmpty ? null : _merchCtrl.text.trim();
       final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
       if (widget.existing == null) {
-        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays);
+        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays, accountId: _accountId);
       } else {
-        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays);
+        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays, accountId: _accountId);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -400,6 +402,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
           ),
           const SizedBox(height: 16),
           MerchantField(controller: _merchCtrl),
+          AccountField(value: _accountId, onChanged: (v) => setState(() => _accountId = v)),
           const SizedBox(height: 16),
           TextField(controller: _notesCtrl, decoration: InputDecoration(labelText: l.notesOptional, hintText: l.notesHint)),
           if (widget.existing != null) ...[

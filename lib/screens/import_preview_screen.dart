@@ -303,9 +303,9 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
     final (rules, example) = switch (_kind) {
       CsvKind.transactions => (
           [l.csvRuleDate, l.csvRuleType, l.csvRuleAmount, l.csvRuleOptional],
-          'date,type,amount,description,category,merchant\n'
-              '2026-11-08,expense,12.75,Morning coffee,Coffee,Rumi Cafe\n'
-              '2026-11-01,income,"1,250",October salary,Salary,'
+          'date,type,amount,description,category,merchant,account\n'
+              '2026-11-08,expense,12.75,Morning coffee,Coffee,Rumi Cafe,Cash\n'
+              '2026-11-01,income,"1,250",October salary,Salary,,Arab Bank'
         ),
       CsvKind.categories => (
           [l.csvRuleName, l.csvRuleType, l.csvRuleColor],
@@ -389,6 +389,7 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
         (l.csvSumCategories, s.categoriesMatched, false),
         (l.csvSumMerchants, s.newMerchants, false),
         (l.csvSumUncategorized, s.uncategorized, false),
+        if (s.unknownAccounts > 0) (l.csvSumUnknownAccounts, s.unknownAccounts, false),
       ],
     ];
     return Center(
