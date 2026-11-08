@@ -132,12 +132,12 @@ void main() {
 
   testWidgets('Settings offers backup export and import', (tester) async {
     await openSettings(tester);
-    await tester.scrollUntilVisible(find.widgetWithText(ListTile, 'Import data'), 200);
-    expect(find.widgetWithText(ListTile, 'Export data'), findsOneWidget);
-    expect(find.widgetWithText(ListTile, 'Import data'), findsOneWidget);
+    await tester.scrollUntilVisible(find.widgetWithText(ListTile, 'Import Backup'), 200);
+    expect(find.widgetWithText(ListTile, 'Export Backup'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Import Backup'), findsOneWidget);
 
     // No backup password yet: export asks for one before writing anything.
-    await tester.tap(find.widgetWithText(ListTile, 'Export data'));
+    await tester.tap(find.widgetWithText(ListTile, 'Export Backup'));
     await tester.pumpAndSettle();
     expect(find.text('Choose a backup password'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'short');

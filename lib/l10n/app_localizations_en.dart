@@ -816,13 +816,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup => 'Backup';
 
   @override
-  String get exportData => 'Export data';
+  String get exportData => 'Export Backup';
 
   @override
   String get exportDataSubtitle => 'Save everything to an encrypted file';
 
   @override
-  String get importData => 'Import data';
+  String get importData => 'Import Backup';
 
   @override
   String get importDataSubtitle => 'Replace everything with a backup file';

@@ -830,13 +830,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup => 'النسخ الاحتياطي';
 
   @override
-  String get exportData => 'تصدير البيانات';
+  String get exportData => 'تصدير نسخة احتياطية';
 
   @override
   String get exportDataSubtitle => 'حفظ كل البيانات في ملف مشفّر';
 
   @override
-  String get importData => 'استيراد البيانات';
+  String get importData => 'استيراد نسخة احتياطية';
 
   @override
   String get importDataSubtitle => 'استبدال كل البيانات بملف نسخة احتياطية';

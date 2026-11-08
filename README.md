@@ -45,7 +45,7 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 
 </details>
 
-The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import data** to try the app with a year of entries.
+The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import Backup** to try the app with a year of entries.
 
 ## Features
 

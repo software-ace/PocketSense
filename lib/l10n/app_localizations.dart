@@ -1325,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportData.
   ///
   /// In en, this message translates to:
-  /// **'Export data'**
+  /// **'Export Backup'**
   String get exportData;
 
   /// No description provided for @exportDataSubtitle.
@@ -1337,7 +1337,7 @@ abstract class AppLocalizations {
   /// No description provided for @importData.
   ///
   /// In en, this message translates to:
-  /// **'Import data'**
+  /// **'Import Backup'**
   String get importData;
 
   /// No description provided for @importDataSubtitle.

@@ -430,9 +430,9 @@
     }
   },
   "backup": "Backup",
-  "exportData": "Export data",
+  "exportData": "Export Backup",
   "exportDataSubtitle": "Save everything to an encrypted file",
-  "importData": "Import data",
+  "importData": "Import Backup",
   "importDataSubtitle": "Replace everything with a backup file",
   "exportDone": "Backup saved.",
   "exportFailed": "Export failed: {error}",
