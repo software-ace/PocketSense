@@ -9,6 +9,7 @@ import '../security/amount_privacy.dart';
 import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
+import '../settings/home_layout_screen.dart';
 import '../settings/app_settings.dart';
 import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
@@ -65,6 +66,13 @@ class SettingsScreen extends StatelessWidget {
                 if (await pickCurrency(context, existingData: true)) (await LocalStore.instance()).notifyChanged();
               },
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.dashboard_customize_outlined),
+            title: Text(l.homePage),
+            subtitle: Text(l.homePageSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeLayoutScreen())),
           ),
           header(l.security),
           const _SecuritySection(),

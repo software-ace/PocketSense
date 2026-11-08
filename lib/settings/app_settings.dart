@@ -26,6 +26,8 @@ class AppSettings {
   static const _privateScreenKey = 'privateScreen';
   static const _hideAmountsKey = 'hideAmounts';
   static const _reminderAmountsKey = 'reminderAmounts';
+  static const _homeOrderKey = 'homeOrder';
+  static const _homeHiddenKey = 'homeHidden';
   static const _currencyKey = 'currency';
   static const _whatsNewKey = 'whatsNew.seen';
   static const _themeKey = 'theme';
@@ -61,6 +63,11 @@ class AppSettings {
   /// Amounts in reminder notifications: off, as they show outside the app.
   static final reminderAmounts = ValueNotifier(false);
 
+  /// What Home shows, in order, and what of it is hidden: everything, in
+  /// [HomeSection]'s order, until changed in Settings → Home page.
+  static final homeLayout = ValueNotifier<({List<HomeSection> order, Set<HomeSection> hidden})>(
+      (order: HomeSection.values, hidden: const {}));
+
   /// What amounts are shown in (JOD until chosen). Mirrors [appCurrency],
   /// which the formatting functions read.
   static final currency = ValueNotifier(appCurrency);
@@ -87,6 +94,7 @@ class AppSettings {
       privateScreen.value = await _prefs.getBool(_privateScreenKey) ?? true;
       hideAmounts.value = await _prefs.getBool(_hideAmountsKey) ?? true;
       reminderAmounts.value = await _prefs.getBool(_reminderAmountsKey) ?? false;
+      homeLayout.value = homeLayoutFrom(await _prefs.getStringList(_homeOrderKey), await _prefs.getStringList(_homeHiddenKey));
       currency.value = appCurrency = Currency.byCode(await _prefs.getString(_currencyKey)) ?? currencies.first;
       whatsNewSeen = await _prefs.getInt(_whatsNewKey);
       if (!privateScreen.value) await _applyPrivateScreen();
@@ -143,6 +151,24 @@ class AppSettings {
     await _prefs.setBool(_hideAmountsKey, on);
   }
 
+  /// The saved names, read back: unknown ones (from a newer app) are
+  /// dropped, and sections added since are shown, at the end.
+  @visibleForTesting
+  static ({List<HomeSection> order, Set<HomeSection> hidden}) homeLayoutFrom(List<String>? order, List<String>? hidden) {
+    final byName = HomeSection.values.asNameMap();
+    final saved = [...{for (final n in order ?? const <String>[]) ?byName[n]}];
+    return (
+      order: [...saved, ...HomeSection.values.where((s) => !saved.contains(s))],
+      hidden: {for (final n in hidden ?? const <String>[]) ?byName[n]}..remove(HomeSection.loans),
+    );
+  }
+
+  static Future<void> setHomeLayout(List<HomeSection> order, Set<HomeSection> hidden) async {
+    homeLayout.value = (order: order, hidden: hidden);
+    await _prefs.setStringList(_homeOrderKey, [for (final s in order) s.name]);
+    await _prefs.setStringList(_homeHiddenKey, [for (final s in hidden) s.name]);
+  }
+
   static Future<void> setReminderAmounts(bool on) async {
     reminderAmounts.value = on;
     await _prefs.setBool(_reminderAmountsKey, on);
@@ -176,3 +202,7 @@ class AppSettings {
     Intl.defaultLocale = code;
   }
 }
+
+/// What Home can show, in its default order. Loans can't be hidden: its
+/// card is the only way into Loans.
+enum HomeSection { totals, loans, daily, category, merchant, monthTotals, monthly, pace, weekday, recent }

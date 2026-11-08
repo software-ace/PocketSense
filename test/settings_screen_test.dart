@@ -163,6 +163,9 @@ void main() {
     await openSettings(tester);
     final toggle = find.widgetWithText(SwitchListTile, 'Private screen');
     await tester.scrollUntilVisible(toggle, 200);
+    // Barely in view isn't enough to tap it.
+    await tester.ensureVisible(toggle);
+    await tester.pumpAndSettle();
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(sent, [false]);

@@ -8,6 +8,7 @@ import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../security/amount_privacy.dart';
+import '../settings/app_settings.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
@@ -23,6 +24,9 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+/// The charts on Home that show a month you pick, each its own.
+enum _Chart { category, merchant, totals }
+
 class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   final _repo = FinanceRepo();
   bool _loading = true;
@@ -34,8 +38,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   List<({String? label, int fils, String? color})> _byCategory = [];
   List<({String? label, int fils})> _byMerchant = [];
   List<({DateTime month, int income, int expense})> _monthly = [];
-  // The month Monthly Income vs Spending shows; null follows the current one.
-  DateTime? _pickedMonth;
+  // The month each picker chart shows; one not in here follows the current month.
+  final _picked = <_Chart, DateTime>{};
   ({int income, int expense}) _pickedTotals = (income: 0, expense: 0);
   List<DateTime> _dataMonths = [];
   ({List<int> thisMonth, List<int> lastMonth}) _pace = (thisMonth: const [], lastMonth: const []);
@@ -50,6 +54,15 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   void initState() {
     super.initState();
     _load();
+    AppSettings.homeLayout.addListener(_onLayout);
+  }
+
+  void _onLayout() => setState(() {});
+
+  @override
+  void dispose() {
+    AppSettings.homeLayout.removeListener(_onLayout);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -61,21 +74,20 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       final now = DateTime.now();
       final monthStart = DateTime(now.year, now.month, 1);
       final yearStart = DateTime(now.year, 1, 1);
-      final thirtyDaysAgo = now.subtract(const Duration(days: 30));
 
       final results = await Future.wait([
         _repo.totals(monthStart, now),
         _repo.totals(yearStart, now),
         _repo.transactions(limit: 8),
-        _repo.spendingByCategory(thirtyDaysAgo, now),
+        _repo.spendingByCategory(_pickedFrom(_Chart.category, now), _pickedTo(_Chart.category, now)),
         _repo.dailySpending(end: now, days: 30),
-        _repo.spendingByMerchant(thirtyDaysAgo, now),
+        _repo.spendingByMerchant(_pickedFrom(_Chart.merchant, now), _pickedTo(_Chart.merchant, now)),
         _repo.monthlyTotals(now),
         _repo.monthPace(now),
         _repo.weekdayAverages(now),
         _repo.loans(),
         _repo.transactionMonths(),
-        _repo.totals(_pickedFrom(now), _pickedTo(now)),
+        _repo.totals(_pickedFrom(_Chart.totals, now), _pickedTo(_Chart.totals, now)),
       ]);
 
       if (!mounted) return;
@@ -103,31 +115,41 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     }
   }
 
-  // The picked month: all of a past one; the current one up to today.
-  DateTime _pickedFrom(DateTime now) => _pickedMonth ?? DateTime(now.year, now.month);
-  DateTime _pickedTo(DateTime now) {
-    final m = _pickedMonth;
+  // A chart's picked month: all of a past one; the current one up to today.
+  DateTime _pickedFrom(_Chart c, DateTime now) => _picked[c] ?? DateTime(now.year, now.month);
+  DateTime _pickedTo(_Chart c, DateTime now) {
+    final m = _picked[c];
     return m == null ? now : DateTime(m.year, m.month + 1, 0);
   }
 
-  // Reloads only this chart, so the rest of Home doesn't flash.
-  Future<void> _pickMonth(DateTime month) async {
+  // Reloads only that chart, so the rest of Home doesn't flash.
+  Future<void> _pickMonth(_Chart c, DateTime month) async {
     final now = DateTime.now();
-    setState(() => _pickedMonth = month.year == now.year && month.month == now.month ? null : month);
-    final totals = await _repo.totals(_pickedFrom(now), _pickedTo(now));
-    if (mounted) setState(() => _pickedTotals = totals);
+    setState(() => month.year == now.year && month.month == now.month ? _picked.remove(c) : _picked[c] = month);
+    final from = _pickedFrom(c, now), to = _pickedTo(c, now);
+    switch (c) {
+      case _Chart.category:
+        final v = await _repo.spendingByCategory(from, to);
+        if (mounted) setState(() => _byCategory = v);
+      case _Chart.merchant:
+        final v = await _repo.spendingByMerchant(from, to);
+        if (mounted) setState(() => _byMerchant = v);
+      case _Chart.totals:
+        final v = await _repo.totals(from, to);
+        if (mounted) setState(() => _pickedTotals = v);
+    }
   }
 
   // Which month the chart shows: a year column and a month column, each
   // with ▲ (later) and ▼ (earlier), kept between the oldest month with
   // entries and the current month (or a later one with entries). Tapping
   // either opens the list of all of them, newest first.
-  Widget _monthPicker(ThemeData theme) {
+  Widget _monthPicker(ThemeData theme, _Chart chart) {
     final l = context.l10n;
     final material = MaterialLocalizations.of(context);
     final now = DateTime.now();
     final current = DateTime(now.year, now.month);
-    final selected = _pickedMonth ?? current;
+    final selected = _picked[chart] ?? current;
     final months = {current, ..._dataMonths}.toList()..sort((a, b) => b.compareTo(a));
     final newest = months.first, oldest = months.last;
     // A year step can land outside the months there are: stop at the edge.
@@ -139,14 +161,14 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           iconSize: 20,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 40, height: 24),
-          onPressed: enabled ? () => _pickMonth(clamp(to)) : null,
+          onPressed: enabled ? () => _pickMonth(chart, clamp(to)) : null,
         );
     Widget column(String text, Widget up, Widget down) => Column(mainAxisSize: MainAxisSize.min, children: [
           up,
           PopupMenuButton<DateTime>(
             tooltip: l.pickMonth,
             initialValue: selected,
-            onSelected: _pickMonth,
+            onSelected: (m) => _pickMonth(chart, m),
             itemBuilder: (_) => [
               for (final m in months) CheckedPopupMenuItem(value: m, checked: m == selected, child: Text(DateFormat.yMMM().format(m))),
             ],
@@ -155,7 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           down,
         ]);
 
-    return Row(key: const Key('monthPicker'), mainAxisSize: MainAxisSize.min, children: [
+    return Row(key: Key('monthPicker-${chart.name}'), mainAxisSize: MainAxisSize.min, children: [
       column(
         DateFormat.y().format(selected),
         arrow(Icons.keyboard_arrow_up, l.nextYear, DateTime(selected.year + 1, selected.month), selected.year < newest.year),
@@ -188,75 +210,88 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
               child: ErrorView(message: _error.toString(), onRetry: _load),
             )
           else ...[
-            // Stat cards row
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final cols = desktop ? 4 : 2;
-                    return GridView.count(
-                      crossAxisCount: cols,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: desktop ? 2.4 : 1.8,
-                      children: [
-                        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
-                        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
-                        _statCard(theme, l.statNetMonth, formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
-                        _statCard(theme, l.statYearTotal, formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-            // Under the four cards, always: it's the way into Loans, where
-            // the first loan is made.
-            _gap,
-            _padded(_loansCard(theme)),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-            // Charts section
-            _padded(_chartCard(theme, l.chartDaily, _buildLineChart())),
-            _gap,
-            ..._pair(desktop, _chartCard(theme, l.chartByCategory, _buildPieChart(_categorySlices())),
-                _chartCard(theme, l.chartByMerchant, _buildPieChart(_merchantSlices()))),
-            _gap,
-            _padded(_chartCard(theme, l.chartMonthly, _buildMonthlyChart())),
-            _gap,
-            _padded(_chartCard(theme, l.chartMonthTotals, _buildMonthTotalsChart(), action: _monthPicker(theme))),
-            _gap,
-            ..._pair(desktop, _chartCard(theme, l.chartPace, _buildPaceChart()), _chartCard(theme, l.chartWeekday, _buildWeekdayChart())),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-            // Recent activity
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 0, PlatformUi.hPadding(context), 8),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(l.recentActivity, style: theme.textTheme.titleMedium),
-                ),
-              ),
-            ),
-            if (_recent.isEmpty)
-              SliverToBoxAdapter(child: EmptyView(icon: Icons.receipt_long, title: l.noTransactionsYet))
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (_, i) => _activityTile(theme, _recent[i]),
-                  childCount: _recent.length,
-                ),
-              ),
+            for (final (i, part) in _sections(theme, desktop).indexed) ...[if (i > 0) _gap, ...part],
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
           ],
         ),
       ),
     );
+  }
+
+  /// The sections in the order Settings → Home page gives, without hidden
+  /// ones, each as its slivers. On desktop, two half-width cards in a row
+  /// share it, side by side.
+  List<List<Widget>> _sections(ThemeData theme, bool desktop) {
+    final l = context.l10n;
+    final layout = AppSettings.homeLayout.value;
+    const halves = {HomeSection.category, HomeSection.merchant, HomeSection.pace, HomeSection.weekday};
+    Widget card(HomeSection s) => switch (s) {
+          HomeSection.daily => _chartCard(theme, l.chartDaily, _buildLineChart()),
+          HomeSection.category => _chartCard(theme, l.chartByCategory, _buildPieChart(_categorySlices()), action: _monthPicker(theme, _Chart.category)),
+          HomeSection.merchant => _chartCard(theme, l.chartByMerchant, _buildPieChart(_merchantSlices()), action: _monthPicker(theme, _Chart.merchant)),
+          HomeSection.monthTotals => _chartCard(theme, l.chartMonthTotals, _buildMonthTotalsChart(), action: _monthPicker(theme, _Chart.totals)),
+          HomeSection.monthly => _chartCard(theme, l.chartMonthly, _buildMonthlyChart()),
+          HomeSection.pace => _chartCard(theme, l.chartPace, _buildPaceChart()),
+          HomeSection.weekday => _chartCard(theme, l.chartWeekday, _buildWeekdayChart()),
+          HomeSection.totals => _totals(theme, desktop),
+          HomeSection.loans => _loansCard(theme),
+          HomeSection.recent => throw ArgumentError(s), // slivers, below
+        };
+    final shown = [for (final s in layout.order) if (!layout.hidden.contains(s)) s];
+    final out = <List<Widget>>[];
+    for (var i = 0; i < shown.length; i++) {
+      final s = shown[i];
+      if (desktop && halves.contains(s) && i + 1 < shown.length && halves.contains(shown[i + 1])) {
+        out.add(_pair(true, card(s), card(shown[++i])));
+      } else {
+        out.add(s == HomeSection.recent ? _recentActivity(theme) : [_padded(card(s))]);
+      }
+    }
+    return out;
+  }
+
+  // This month's income, spending and net, and spending so far this year.
+  Widget _totals(ThemeData theme, bool desktop) {
+    final l = context.l10n;
+    return GridView.count(
+      crossAxisCount: desktop ? 4 : 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: desktop ? 2.4 : 1.8,
+      children: [
+        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
+        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
+        _statCard(theme, l.statNetMonth, formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
+        _statCard(theme, l.statYearTotal, formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
+      ],
+    );
+  }
+
+  List<Widget> _recentActivity(ThemeData theme) {
+    final l = context.l10n;
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 4, PlatformUi.hPadding(context), 8),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(l.recentActivity, style: theme.textTheme.titleMedium),
+          ),
+        ),
+      ),
+      if (_recent.isEmpty)
+        SliverToBoxAdapter(child: EmptyView(icon: Icons.receipt_long, title: l.noTransactionsYet))
+      else
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (_, i) => _activityTile(theme, _recent[i]),
+            childCount: _recent.length,
+          ),
+        ),
+    ];
   }
 
   Widget _padded(Widget child) =>

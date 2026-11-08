@@ -533,13 +533,13 @@ abstract class AppLocalizations {
   /// No description provided for @chartByCategory.
   ///
   /// In en, this message translates to:
-  /// **'By Category (30d)'**
+  /// **'By Category'**
   String get chartByCategory;
 
   /// No description provided for @chartByMerchant.
   ///
   /// In en, this message translates to:
-  /// **'By Merchant (30d)'**
+  /// **'By Merchant'**
   String get chartByMerchant;
 
   /// No description provided for @noMerchant.
@@ -613,6 +613,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent Activity'**
   String get recentActivity;
+
+  /// No description provided for @homePage.
+  ///
+  /// In en, this message translates to:
+  /// **'Home page'**
+  String get homePage;
+
+  /// No description provided for @homePageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what Home shows, and in what order'**
+  String get homePageSubtitle;
+
+  /// No description provided for @homePageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a row by its handle to move it. Switch off what you don\'t need on Home.'**
+  String get homePageHint;
+
+  /// No description provided for @homeTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals (this month and year)'**
+  String get homeTotals;
+
+  /// No description provided for @homeLoansAlwaysShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown: it\'s the way into Loans'**
+  String get homeLoansAlwaysShown;
 
   /// No description provided for @noTransactionsYet.
   ///

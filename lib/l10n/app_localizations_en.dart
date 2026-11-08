@@ -240,10 +240,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartDaily => 'Daily Spending (30d)';
 
   @override
-  String get chartByCategory => 'By Category (30d)';
+  String get chartByCategory => 'By Category';
 
   @override
-  String get chartByMerchant => 'By Merchant (30d)';
+  String get chartByMerchant => 'By Merchant';
 
   @override
   String get noMerchant => 'No merchant';
@@ -280,6 +280,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recentActivity => 'Recent Activity';
+
+  @override
+  String get homePage => 'Home page';
+
+  @override
+  String get homePageSubtitle => 'Choose what Home shows, and in what order';
+
+  @override
+  String get homePageHint =>
+      'Drag a row by its handle to move it. Switch off what you don\'t need on Home.';
+
+  @override
+  String get homeTotals => 'Totals (this month and year)';
+
+  @override
+  String get homeLoansAlwaysShown => 'Always shown: it\'s the way into Loans';
 
   @override
   String get noTransactionsYet => 'No transactions yet';

@@ -240,10 +240,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chartDaily => 'الإنفاق اليومي (30 يومًا)';
 
   @override
-  String get chartByCategory => 'حسب الفئة (30 يومًا)';
+  String get chartByCategory => 'حسب الفئة';
 
   @override
-  String get chartByMerchant => 'حسب المتجر (30 يومًا)';
+  String get chartByMerchant => 'حسب المتجر';
 
   @override
   String get noMerchant => 'بدون متجر';
@@ -280,6 +280,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recentActivity => 'آخر الحركات';
+
+  @override
+  String get homePage => 'الصفحة الرئيسية';
+
+  @override
+  String get homePageSubtitle => 'اختر ما تعرضه الرئيسية وترتيبه';
+
+  @override
+  String get homePageHint =>
+      'اسحب الصف من مقبضه لنقله، وأوقف ما لا تحتاجه في الرئيسية.';
+
+  @override
+  String get homeTotals => 'الإجماليات (هذا الشهر والسنة)';
+
+  @override
+  String get homeLoansAlwaysShown => 'يظهر دائمًا: منه تدخل إلى الديون';
 
   @override
   String get noTransactionsYet => 'لا توجد معاملات بعد';

@@ -34,7 +34,7 @@ void main() {
       }
     });
     await pumpDashboard(tester);
-    await scrollTo(tester, 'By Merchant (30d)');
+    await scrollTo(tester, 'By Merchant');
 
     for (final m in ['A', 'B', 'C', 'D', 'E']) {
       expect(find.text(m), findsOneWidget);
@@ -86,11 +86,39 @@ void main() {
   });
 
   // What the month picker shows (month names are on the chart's axis too).
-  Finder inPicker(String text) => find.descendant(of: find.byKey(const Key('monthPicker')), matching: find.text(text));
+  Finder inPicker(String text, {String chart = 'totals'}) => find.descendant(of: find.byKey(Key('monthPicker-$chart')), matching: find.text(text));
   void expectPicked(DateTime m) {
     expect(inPicker(DateFormat.y().format(m)), findsOneWidget);
     expect(inPicker(DateFormat.MMM().format(m)), findsOneWidget);
   }
+
+  testWidgets('By Merchant shows the month picked on its own picker, and By Category keeps its own', (tester) async {
+    final now = DateTime.now();
+    final old = DateTime(now.year, now.month - 8, 15);
+    await tester.runAsync(() async {
+      await FinanceRepo().insertTransaction(amountFils: 4000, type: 'expense', date: old, description: 'x', merchant: 'Old Shop');
+      await FinanceRepo().insertTransaction(amountFils: 2000, type: 'expense', date: now, description: 'y', merchant: 'New Shop');
+    });
+    await pumpDashboard(tester);
+    await scrollTo(tester, 'By Merchant');
+    expect(find.text('New Shop'), findsOneWidget, reason: 'the current month by default');
+    expect(find.text('Old Shop'), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const Key('monthPicker-merchant')));
+    await tester.pumpAndSettle();
+    await tester.tap(inPicker(DateFormat.MMM().format(now), chart: 'merchant'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(DateFormat.yMMM().format(old)));
+    await settleWithDb(tester);
+
+    expect(find.text('Old Shop'), findsOneWidget);
+    expect(find.text('New Shop'), findsNothing);
+    // Just above By Merchant: still built, so bring it back into view.
+    await tester.ensureVisible(find.byKey(const Key('monthPicker-category'), skipOffstage: false));
+    await tester.pumpAndSettle();
+    expect(inPicker(DateFormat.y().format(now), chart: 'category'), findsOneWidget, reason: 'By Category still on the current month');
+    expect(inPicker(DateFormat.MMM().format(now), chart: 'category'), findsOneWidget);
+  });
 
   testWidgets('Monthly Income vs Spending shows a month picked from the list', (tester) async {
     final now = DateTime.now();
@@ -117,9 +145,11 @@ void main() {
   testWidgets('the arrows step Monthly Income vs Spending by month and by year, within the months there are', (tester) async {
     final now = DateTime.now();
     DateTime back(int months) => DateTime(now.year, now.month - months);
-    IconButton arrow(String tooltip) => tester.widget<IconButton>(find.ancestor(of: find.byTooltip(tooltip), matching: find.byType(IconButton)));
+    // By Category and By Merchant have pickers with the same tooltips.
+    Finder inTotals(String tooltip) => find.descendant(of: find.byKey(const Key('monthPicker-totals')), matching: find.byTooltip(tooltip));
+    IconButton arrow(String tooltip) => tester.widget<IconButton>(find.ancestor(of: inTotals(tooltip), matching: find.byType(IconButton)));
     Future<void> tap(String tooltip) async {
-      await tester.tap(find.byTooltip(tooltip));
+      await tester.tap(inTotals(tooltip));
       await settleWithDb(tester);
     }
 
@@ -130,6 +160,9 @@ void main() {
     });
     await pumpDashboard(tester);
     await scrollTo(tester, 'Monthly Income vs Spending');
+    // The title in view isn't enough: the arrows sit above and below it.
+    await tester.ensureVisible(find.byKey(const Key('monthPicker-totals')));
+    await tester.pumpAndSettle();
 
     expectPicked(back(0));
     expect(arrow('Next month').onPressed, isNull, reason: 'nothing after the current month');

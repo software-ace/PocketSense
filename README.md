@@ -50,7 +50,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 ## Features
 
 **Tracking money**
-- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other), income vs spending for the last 6 months, the income and spending of a month you pick, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries.
+- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other) and the income and spending of a month, each for a month you pick, income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries. **Settings → Home page** puts them in the order you want and hides what you don't need, except the Loans card, which is the way into Loans.
 - **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
