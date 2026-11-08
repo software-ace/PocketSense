@@ -28,6 +28,13 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Settings → Data has Import and Export Transactions', (tester) async {
+    await openSettings(tester);
+    await tester.scrollUntilVisible(find.widgetWithText(ListTile, 'Export Transactions'), 200);
+    expect(find.widgetWithText(ListTile, 'Import Transactions'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Export Transactions'), findsOneWidget);
+  });
+
   testWidgets('gear icon opens Settings, which lists Categories, Merchants and Language', (tester) async {
     await openSettings(tester);
     expect(find.widgetWithText(AppBar, 'Settings'), findsOneWidget);

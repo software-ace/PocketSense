@@ -1,4 +1,5 @@
 {
+  "@@locale": "en",
   "appTitle": "Pocket Sense",
   "cancel": "Cancel",
   "delete": "Delete",
@@ -434,6 +435,110 @@
   "exportDataSubtitle": "Save everything to an encrypted file",
   "importData": "Import Backup",
   "importDataSubtitle": "Replace everything with a backup file",
+  "importTransactions": "Import Transactions",
+  "importTransactionsSubtitle": "Add entries from a CSV file",
+  "exportTransactions": "Export Transactions",
+  "exportTransactionsSubtitle": "Save all entries as a CSV file for a spreadsheet",
+  "importCsv": "Import CSV",
+  "exportCsv": "Export CSV",
+  "csvSaved": "CSV file saved.",
+  "csvCantImportTitle": "Nothing was imported",
+  "csvMissingColumns": "The first row needs these columns: {columns}.",
+  "@csvMissingColumns": {
+    "placeholders": {
+      "columns": {
+        "type": "String"
+      }
+    }
+  },
+  "csvLayoutHint": "Export a file first to see the layout: columns {columns}, dates like 2026-11-08, type income or expense, amounts like 12.5.",
+  "@csvLayoutHint": {
+    "placeholders": {
+      "columns": {
+        "type": "String"
+      }
+    }
+  },
+  "csvNotUtf8": "This file isn't UTF-8 text. In Excel, save it as \"CSV UTF-8\".",
+  "csvRowsFound": "rows found",
+  "csvWillImport": "will import",
+  "csvDuplicate": "duplicate",
+  "csvRejected": "rejected",
+  "csvPreviewNote": "Nothing is saved until you import. Categories are matched by name; a category you don't have leaves the entry uncategorized. Tap a number to see just those rows.",
+  "csvColDate": "Date",
+  "csvColAmount": "Amount",
+  "csvColDetails": "Details",
+  "csvColStatus": "Status",
+  "csvNew": "New",
+  "csvDuplicateTag": "Duplicate",
+  "csvRejectedTag": "Rejected",
+  "csvProblemDate": "The date must look like 2026-11-08.",
+  "csvProblemType": "The type must be income or expense.",
+  "csvProblemNoAmount": "No amount in the amount column.",
+  "csvProblemAmount": "The amount must be a number above 0.",
+  "csvProblemDecimalComma": "Use a decimal point: 12.5, not 12,5.",
+  "csvLayoutTitle": "File layout",
+  "csvRuleDate": "date: year-month-day, like 2026-11-08.",
+  "csvRuleType": "type: income or expense.",
+  "csvRuleAmount": "amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.",
+  "csvRuleOptional": "category and merchant can be empty. Columns can be in any order, and others are ignored.",
+  "csvExample": "Example",
+  "csvNoRowsHere": "No rows here.",
+  "csvImportN": "{count, plural, =0{Nothing to import} =1{Import 1 transaction} other{Import {count} transactions}}",
+  "importCategories": "Import Categories",
+  "importMerchants": "Import Merchants",
+  "csvImportCategoriesN": "{count, plural, =0{Nothing to import} =1{Import 1 category} other{Import {count} categories}}",
+  "@csvImportCategoriesN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImportMerchantsN": "{count, plural, =0{Nothing to import} =1{Import 1 merchant} other{Import {count} merchants}}",
+  "@csvImportMerchantsN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvPreviewNoteNames": "Nothing is saved until you import. Names you already have, in any letter case, are skipped. Tap a number to see just those rows.",
+  "csvColName": "Name",
+  "csvColType": "Type",
+  "csvColColor": "Color",
+  "csvProblemName": "The name is empty.",
+  "csvProblemColor": "The color must look like #4f46e5.",
+  "csvRuleName": "name: the category, one per row.",
+  "csvRuleColor": "color: optional, like #4f46e5. Without one, the category is gray.",
+  "csvRuleMerchant": "name: the merchant, one per row. Names with spaces stay whole.",
+  "csvSumCategoriesAdded": "Categories added",
+  "csvSumMerchantsAdded": "Merchants added",
+  "csvSumAlreadyThere": "Already in your list",
+  "@csvImportN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImporting": "Importing…",
+  "csvImportingDetail": "{count, plural, =1{1 row. Duplicates and rejected rows are skipped.} other{{count} rows. Duplicates and rejected rows are skipped.}}",
+  "@csvImportingDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImportComplete": "Import complete",
+  "csvImportCompleteBody": "Your entries are saved and encrypted like everything else in Pocket Sense.",
+  "csvSumAdded": "Transactions added",
+  "csvSumDuplicates": "Skipped as duplicate",
+  "csvSumRejected": "Rejected rows",
+  "csvSumCategories": "Categories matched",
+  "csvSumMerchants": "New merchants saved",
+  "csvSumUncategorized": "Rows without a category",
   "exportDone": "Backup saved.",
   "exportFailed": "Export failed: {error}",
   "@exportFailed": {

@@ -1346,6 +1346,378 @@ abstract class AppLocalizations {
   /// **'Replace everything with a backup file'**
   String get importDataSubtitle;
 
+  /// No description provided for @importTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Transactions'**
+  String get importTransactions;
+
+  /// No description provided for @importTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entries from a CSV file'**
+  String get importTransactionsSubtitle;
+
+  /// No description provided for @exportTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Transactions'**
+  String get exportTransactions;
+
+  /// No description provided for @exportTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all entries as a CSV file for a spreadsheet'**
+  String get exportTransactionsSubtitle;
+
+  /// No description provided for @importCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Import CSV'**
+  String get importCsv;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get exportCsv;
+
+  /// No description provided for @csvSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV file saved.'**
+  String get csvSaved;
+
+  /// No description provided for @csvCantImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was imported'**
+  String get csvCantImportTitle;
+
+  /// No description provided for @csvMissingColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'The first row needs these columns: {columns}.'**
+  String csvMissingColumns(String columns);
+
+  /// No description provided for @csvLayoutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export a file first to see the layout: columns {columns}, dates like 2026-11-08, type income or expense, amounts like 12.5.'**
+  String csvLayoutHint(String columns);
+
+  /// No description provided for @csvNotUtf8.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t UTF-8 text. In Excel, save it as \"CSV UTF-8\".'**
+  String get csvNotUtf8;
+
+  /// No description provided for @csvRowsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'rows found'**
+  String get csvRowsFound;
+
+  /// No description provided for @csvWillImport.
+  ///
+  /// In en, this message translates to:
+  /// **'will import'**
+  String get csvWillImport;
+
+  /// No description provided for @csvDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'duplicate'**
+  String get csvDuplicate;
+
+  /// No description provided for @csvRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'rejected'**
+  String get csvRejected;
+
+  /// No description provided for @csvPreviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is saved until you import. Categories are matched by name; a category you don\'t have leaves the entry uncategorized. Tap a number to see just those rows.'**
+  String get csvPreviewNote;
+
+  /// No description provided for @csvColDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get csvColDate;
+
+  /// No description provided for @csvColAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get csvColAmount;
+
+  /// No description provided for @csvColDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get csvColDetails;
+
+  /// No description provided for @csvColStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get csvColStatus;
+
+  /// No description provided for @csvNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get csvNew;
+
+  /// No description provided for @csvDuplicateTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get csvDuplicateTag;
+
+  /// No description provided for @csvRejectedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get csvRejectedTag;
+
+  /// No description provided for @csvProblemDate.
+  ///
+  /// In en, this message translates to:
+  /// **'The date must look like 2026-11-08.'**
+  String get csvProblemDate;
+
+  /// No description provided for @csvProblemType.
+  ///
+  /// In en, this message translates to:
+  /// **'The type must be income or expense.'**
+  String get csvProblemType;
+
+  /// No description provided for @csvProblemNoAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'No amount in the amount column.'**
+  String get csvProblemNoAmount;
+
+  /// No description provided for @csvProblemAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount must be a number above 0.'**
+  String get csvProblemAmount;
+
+  /// No description provided for @csvProblemDecimalComma.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a decimal point: 12.5, not 12,5.'**
+  String get csvProblemDecimalComma;
+
+  /// No description provided for @csvLayoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'File layout'**
+  String get csvLayoutTitle;
+
+  /// No description provided for @csvRuleDate.
+  ///
+  /// In en, this message translates to:
+  /// **'date: year-month-day, like 2026-11-08.'**
+  String get csvRuleDate;
+
+  /// No description provided for @csvRuleType.
+  ///
+  /// In en, this message translates to:
+  /// **'type: income or expense.'**
+  String get csvRuleType;
+
+  /// No description provided for @csvRuleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.'**
+  String get csvRuleAmount;
+
+  /// No description provided for @csvRuleOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'category and merchant can be empty. Columns can be in any order, and others are ignored.'**
+  String get csvRuleOptional;
+
+  /// No description provided for @csvExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get csvExample;
+
+  /// No description provided for @csvNoRowsHere.
+  ///
+  /// In en, this message translates to:
+  /// **'No rows here.'**
+  String get csvNoRowsHere;
+
+  /// No description provided for @csvImportN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 transaction} other{Import {count} transactions}}'**
+  String csvImportN(int count);
+
+  /// No description provided for @importCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Categories'**
+  String get importCategories;
+
+  /// No description provided for @importMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Merchants'**
+  String get importMerchants;
+
+  /// No description provided for @csvImportCategoriesN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 category} other{Import {count} categories}}'**
+  String csvImportCategoriesN(int count);
+
+  /// No description provided for @csvImportMerchantsN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 merchant} other{Import {count} merchants}}'**
+  String csvImportMerchantsN(int count);
+
+  /// No description provided for @csvPreviewNoteNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is saved until you import. Names you already have, in any letter case, are skipped. Tap a number to see just those rows.'**
+  String get csvPreviewNoteNames;
+
+  /// No description provided for @csvColName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get csvColName;
+
+  /// No description provided for @csvColType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get csvColType;
+
+  /// No description provided for @csvColColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get csvColColor;
+
+  /// No description provided for @csvProblemName.
+  ///
+  /// In en, this message translates to:
+  /// **'The name is empty.'**
+  String get csvProblemName;
+
+  /// No description provided for @csvProblemColor.
+  ///
+  /// In en, this message translates to:
+  /// **'The color must look like #4f46e5.'**
+  String get csvProblemColor;
+
+  /// No description provided for @csvRuleName.
+  ///
+  /// In en, this message translates to:
+  /// **'name: the category, one per row.'**
+  String get csvRuleName;
+
+  /// No description provided for @csvRuleColor.
+  ///
+  /// In en, this message translates to:
+  /// **'color: optional, like #4f46e5. Without one, the category is gray.'**
+  String get csvRuleColor;
+
+  /// No description provided for @csvRuleMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'name: the merchant, one per row. Names with spaces stay whole.'**
+  String get csvRuleMerchant;
+
+  /// No description provided for @csvSumCategoriesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories added'**
+  String get csvSumCategoriesAdded;
+
+  /// No description provided for @csvSumMerchantsAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchants added'**
+  String get csvSumMerchantsAdded;
+
+  /// No description provided for @csvSumAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your list'**
+  String get csvSumAlreadyThere;
+
+  /// No description provided for @csvImporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing…'**
+  String get csvImporting;
+
+  /// No description provided for @csvImportingDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row. Duplicates and rejected rows are skipped.} other{{count} rows. Duplicates and rejected rows are skipped.}}'**
+  String csvImportingDetail(int count);
+
+  /// No description provided for @csvImportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Import complete'**
+  String get csvImportComplete;
+
+  /// No description provided for @csvImportCompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your entries are saved and encrypted like everything else in Pocket Sense.'**
+  String get csvImportCompleteBody;
+
+  /// No description provided for @csvSumAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions added'**
+  String get csvSumAdded;
+
+  /// No description provided for @csvSumDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped as duplicate'**
+  String get csvSumDuplicates;
+
+  /// No description provided for @csvSumRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected rows'**
+  String get csvSumRejected;
+
+  /// No description provided for @csvSumCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories matched'**
+  String get csvSumCategories;
+
+  /// No description provided for @csvSumMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'New merchants saved'**
+  String get csvSumMerchants;
+
+  /// No description provided for @csvSumUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows without a category'**
+  String get csvSumUncategorized;
+
   /// No description provided for @exportDone.
   ///
   /// In en, this message translates to:

@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import 'csv_actions.dart';
 
 class MerchantsScreen extends StatefulWidget {
   const MerchantsScreen({super.key});
@@ -86,7 +87,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.merchants)),
+      appBar: AppBar(title: Text(l.merchants), actions: [const CsvMenu(kind: CsvKind.merchants)]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),

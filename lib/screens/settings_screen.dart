@@ -15,6 +15,7 @@ import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
 import '../utils/format.dart';
 import 'backup_actions.dart';
+import 'csv_actions.dart';
 import 'categories_screen.dart';
 import 'merchants_screen.dart';
 import 'sync_screen.dart';
@@ -90,6 +91,18 @@ class SettingsScreen extends StatelessWidget {
             subtitle: Text(l.merchantsSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MerchantsScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.restore_page_outlined),
+            title: Text(l.importTransactions),
+            subtitle: Text(l.importTransactionsSubtitle),
+            onTap: () => importCsv(context, CsvKind.transactions),
+          ),
+          ListTile(
+            leading: const Icon(Icons.upload_file_outlined),
+            title: Text(l.exportTransactions),
+            subtitle: Text(l.exportTransactionsSubtitle),
+            onTap: () => exportCsv(context, CsvKind.transactions),
           ),
           header(l.syncSection),
           const SyncSection(),

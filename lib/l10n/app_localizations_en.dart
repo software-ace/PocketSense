@@ -828,6 +828,240 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importDataSubtitle => 'Replace everything with a backup file';
 
   @override
+  String get importTransactions => 'Import Transactions';
+
+  @override
+  String get importTransactionsSubtitle => 'Add entries from a CSV file';
+
+  @override
+  String get exportTransactions => 'Export Transactions';
+
+  @override
+  String get exportTransactionsSubtitle =>
+      'Save all entries as a CSV file for a spreadsheet';
+
+  @override
+  String get importCsv => 'Import CSV';
+
+  @override
+  String get exportCsv => 'Export CSV';
+
+  @override
+  String get csvSaved => 'CSV file saved.';
+
+  @override
+  String get csvCantImportTitle => 'Nothing was imported';
+
+  @override
+  String csvMissingColumns(String columns) {
+    return 'The first row needs these columns: $columns.';
+  }
+
+  @override
+  String csvLayoutHint(String columns) {
+    return 'Export a file first to see the layout: columns $columns, dates like 2026-11-08, type income or expense, amounts like 12.5.';
+  }
+
+  @override
+  String get csvNotUtf8 =>
+      'This file isn\'t UTF-8 text. In Excel, save it as \"CSV UTF-8\".';
+
+  @override
+  String get csvRowsFound => 'rows found';
+
+  @override
+  String get csvWillImport => 'will import';
+
+  @override
+  String get csvDuplicate => 'duplicate';
+
+  @override
+  String get csvRejected => 'rejected';
+
+  @override
+  String get csvPreviewNote =>
+      'Nothing is saved until you import. Categories are matched by name; a category you don\'t have leaves the entry uncategorized. Tap a number to see just those rows.';
+
+  @override
+  String get csvColDate => 'Date';
+
+  @override
+  String get csvColAmount => 'Amount';
+
+  @override
+  String get csvColDetails => 'Details';
+
+  @override
+  String get csvColStatus => 'Status';
+
+  @override
+  String get csvNew => 'New';
+
+  @override
+  String get csvDuplicateTag => 'Duplicate';
+
+  @override
+  String get csvRejectedTag => 'Rejected';
+
+  @override
+  String get csvProblemDate => 'The date must look like 2026-11-08.';
+
+  @override
+  String get csvProblemType => 'The type must be income or expense.';
+
+  @override
+  String get csvProblemNoAmount => 'No amount in the amount column.';
+
+  @override
+  String get csvProblemAmount => 'The amount must be a number above 0.';
+
+  @override
+  String get csvProblemDecimalComma => 'Use a decimal point: 12.5, not 12,5.';
+
+  @override
+  String get csvLayoutTitle => 'File layout';
+
+  @override
+  String get csvRuleDate => 'date: year-month-day, like 2026-11-08.';
+
+  @override
+  String get csvRuleType => 'type: income or expense.';
+
+  @override
+  String get csvRuleAmount =>
+      'amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.';
+
+  @override
+  String get csvRuleOptional =>
+      'category and merchant can be empty. Columns can be in any order, and others are ignored.';
+
+  @override
+  String get csvExample => 'Example';
+
+  @override
+  String get csvNoRowsHere => 'No rows here.';
+
+  @override
+  String csvImportN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count transactions',
+      one: 'Import 1 transaction',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importCategories => 'Import Categories';
+
+  @override
+  String get importMerchants => 'Import Merchants';
+
+  @override
+  String csvImportCategoriesN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count categories',
+      one: 'Import 1 category',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String csvImportMerchantsN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count merchants',
+      one: 'Import 1 merchant',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get csvPreviewNoteNames =>
+      'Nothing is saved until you import. Names you already have, in any letter case, are skipped. Tap a number to see just those rows.';
+
+  @override
+  String get csvColName => 'Name';
+
+  @override
+  String get csvColType => 'Type';
+
+  @override
+  String get csvColColor => 'Color';
+
+  @override
+  String get csvProblemName => 'The name is empty.';
+
+  @override
+  String get csvProblemColor => 'The color must look like #4f46e5.';
+
+  @override
+  String get csvRuleName => 'name: the category, one per row.';
+
+  @override
+  String get csvRuleColor =>
+      'color: optional, like #4f46e5. Without one, the category is gray.';
+
+  @override
+  String get csvRuleMerchant =>
+      'name: the merchant, one per row. Names with spaces stay whole.';
+
+  @override
+  String get csvSumCategoriesAdded => 'Categories added';
+
+  @override
+  String get csvSumMerchantsAdded => 'Merchants added';
+
+  @override
+  String get csvSumAlreadyThere => 'Already in your list';
+
+  @override
+  String get csvImporting => 'Importing…';
+
+  @override
+  String csvImportingDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows. Duplicates and rejected rows are skipped.',
+      one: '1 row. Duplicates and rejected rows are skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get csvImportComplete => 'Import complete';
+
+  @override
+  String get csvImportCompleteBody =>
+      'Your entries are saved and encrypted like everything else in Pocket Sense.';
+
+  @override
+  String get csvSumAdded => 'Transactions added';
+
+  @override
+  String get csvSumDuplicates => 'Skipped as duplicate';
+
+  @override
+  String get csvSumRejected => 'Rejected rows';
+
+  @override
+  String get csvSumCategories => 'Categories matched';
+
+  @override
+  String get csvSumMerchants => 'New merchants saved';
+
+  @override
+  String get csvSumUncategorized => 'Rows without a category';
+
+  @override
   String get exportDone => 'Backup saved.';
 
   @override

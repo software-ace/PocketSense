@@ -842,6 +842,252 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importDataSubtitle => 'استبدال كل البيانات بملف نسخة احتياطية';
 
   @override
+  String get importTransactions => 'استيراد الحركات';
+
+  @override
+  String get importTransactionsSubtitle => 'إضافة حركات من ملف CSV';
+
+  @override
+  String get exportTransactions => 'تصدير الحركات';
+
+  @override
+  String get exportTransactionsSubtitle =>
+      'حفظ كل الحركات في ملف CSV لجداول البيانات';
+
+  @override
+  String get importCsv => 'استيراد CSV';
+
+  @override
+  String get exportCsv => 'تصدير CSV';
+
+  @override
+  String get csvSaved => 'حُفظ ملف CSV.';
+
+  @override
+  String get csvCantImportTitle => 'لم يُستورد شيء';
+
+  @override
+  String csvMissingColumns(String columns) {
+    return 'يجب أن يحتوي الصف الأول على هذه الأعمدة: $columns.';
+  }
+
+  @override
+  String csvLayoutHint(String columns) {
+    return 'صدّر ملفًا أولًا لترى الشكل: الأعمدة $columns، والتاريخ مثل 2026-11-08، والنوع income أو expense، والمبلغ مثل 12.5.';
+  }
+
+  @override
+  String get csvNotUtf8 =>
+      'هذا الملف ليس نصًا بترميز UTF-8. في Excel احفظه بصيغة \"CSV UTF-8\".';
+
+  @override
+  String get csvRowsFound => 'صفوف';
+
+  @override
+  String get csvWillImport => 'ستُستورد';
+
+  @override
+  String get csvDuplicate => 'مكررة';
+
+  @override
+  String get csvRejected => 'مرفوضة';
+
+  @override
+  String get csvPreviewNote =>
+      'لا يُحفظ شيء قبل الاستيراد. تُطابق الفئات بالاسم، والحركة ذات الفئة غير الموجودة لديك تبقى بلا فئة. اضغط رقمًا لعرض تلك الصفوف فقط.';
+
+  @override
+  String get csvColDate => 'التاريخ';
+
+  @override
+  String get csvColAmount => 'المبلغ';
+
+  @override
+  String get csvColDetails => 'التفاصيل';
+
+  @override
+  String get csvColStatus => 'الحالة';
+
+  @override
+  String get csvNew => 'جديدة';
+
+  @override
+  String get csvDuplicateTag => 'مكررة';
+
+  @override
+  String get csvRejectedTag => 'مرفوضة';
+
+  @override
+  String get csvProblemDate => 'يجب أن يكون التاريخ مثل 2026-11-08.';
+
+  @override
+  String get csvProblemType => 'يجب أن يكون النوع income أو expense.';
+
+  @override
+  String get csvProblemNoAmount => 'لا مبلغ في عمود المبلغ.';
+
+  @override
+  String get csvProblemAmount => 'يجب أن يكون المبلغ رقمًا أكبر من 0.';
+
+  @override
+  String get csvProblemDecimalComma => 'استخدم النقطة العشرية: 12.5 وليس 12,5.';
+
+  @override
+  String get csvLayoutTitle => 'شكل الملف';
+
+  @override
+  String get csvRuleDate => 'date: السنة-الشهر-اليوم، مثل 2026-11-08.';
+
+  @override
+  String get csvRuleType => 'type: income أو expense.';
+
+  @override
+  String get csvRuleAmount =>
+      'amount: أكبر من 0، بنقطة عشرية (12.75). الفاصلة للآلاف فقط (1,250). بلا إشارة سالب: النوع يحدد إن كان إنفاقًا.';
+
+  @override
+  String get csvRuleOptional =>
+      'يمكن ترك category وmerchant فارغين. ترتيب الأعمدة حر، وتُتجاهل الأعمدة الأخرى.';
+
+  @override
+  String get csvExample => 'مثال';
+
+  @override
+  String get csvNoRowsHere => 'لا صفوف هنا.';
+
+  @override
+  String csvImportN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استيراد $count حركة',
+      many: 'استيراد $count حركة',
+      few: 'استيراد $count حركات',
+      two: 'استيراد حركتين',
+      one: 'استيراد حركة واحدة',
+      zero: 'لا شيء للاستيراد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importCategories => 'استيراد الفئات';
+
+  @override
+  String get importMerchants => 'استيراد المتاجر';
+
+  @override
+  String csvImportCategoriesN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استيراد $count فئة',
+      many: 'استيراد $count فئة',
+      few: 'استيراد $count فئات',
+      two: 'استيراد فئتين',
+      one: 'استيراد فئة واحدة',
+      zero: 'لا شيء للاستيراد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String csvImportMerchantsN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استيراد $count متجر',
+      many: 'استيراد $count متجرًا',
+      few: 'استيراد $count متاجر',
+      two: 'استيراد متجرين',
+      one: 'استيراد متجر واحد',
+      zero: 'لا شيء للاستيراد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get csvPreviewNoteNames =>
+      'لا يُحفظ شيء قبل الاستيراد. تُتخطّى الأسماء الموجودة لديك بأي حالة أحرف. اضغط رقمًا لعرض تلك الصفوف فقط.';
+
+  @override
+  String get csvColName => 'الاسم';
+
+  @override
+  String get csvColType => 'النوع';
+
+  @override
+  String get csvColColor => 'اللون';
+
+  @override
+  String get csvProblemName => 'الاسم فارغ.';
+
+  @override
+  String get csvProblemColor => 'يجب أن يكون اللون مثل #4f46e5.';
+
+  @override
+  String get csvRuleName => 'name: اسم الفئة، فئة في كل صف.';
+
+  @override
+  String get csvRuleColor =>
+      'color: اختياري، مثل #4f46e5. بدونه تكون الفئة رمادية.';
+
+  @override
+  String get csvRuleMerchant =>
+      'name: اسم المتجر، متجر في كل صف. الأسماء ذات المسافات تبقى كاملة.';
+
+  @override
+  String get csvSumCategoriesAdded => 'فئات أُضيفت';
+
+  @override
+  String get csvSumMerchantsAdded => 'متاجر أُضيفت';
+
+  @override
+  String get csvSumAlreadyThere => 'موجودة في قائمتك';
+
+  @override
+  String get csvImporting => 'جارٍ الاستيراد…';
+
+  @override
+  String csvImportingDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف. تُتخطّى المكررة والمرفوضة.',
+      many: '$count صفًا. تُتخطّى المكررة والمرفوضة.',
+      few: '$count صفوف. تُتخطّى المكررة والمرفوضة.',
+      two: 'صفان. تُتخطّى المكررة والمرفوضة.',
+      one: 'صف واحد. تُتخطّى المكررة والمرفوضة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get csvImportComplete => 'اكتمل الاستيراد';
+
+  @override
+  String get csvImportCompleteBody =>
+      'حُفظت حركاتك وشُفّرت مثل كل شيء آخر في Pocket Sense.';
+
+  @override
+  String get csvSumAdded => 'حركات أُضيفت';
+
+  @override
+  String get csvSumDuplicates => 'تُخطّيت لأنها مكررة';
+
+  @override
+  String get csvSumRejected => 'صفوف مرفوضة';
+
+  @override
+  String get csvSumCategories => 'فئات طُوبقت';
+
+  @override
+  String get csvSumMerchants => 'متاجر جديدة حُفظت';
+
+  @override
+  String get csvSumUncategorized => 'صفوف بلا فئة';
+
+  @override
   String get exportDone => 'حُفظت النسخة الاحتياطية.';
 
   @override
