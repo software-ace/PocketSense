@@ -7,7 +7,7 @@
 ![Platforms: Android, Linux](https://img.shields.io/badge/platforms-Android%20%7C%20Linux-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
-A private personal finance tracker for Android and Linux. It works fully offline, in English and Arabic, in Jordanian dinars or any of 68 other currencies.
+A private personal finance tracker for Android and Linux. It works fully offline, in English and Arabic, in any of 69 currencies.
 
 There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
@@ -62,11 +62,10 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **Loans:** money you lent or borrowed, per person. Lending, borrowing and each repayment are ordinary entries (*Payment for Ahmad*, *Payment from Ahmad*) in the **Loans Paid** and **Loans Received** categories, so your totals follow the cash. The **Loans** card on Home, under the four totals, shows what's owed to you and what you owe. Each loan shows what's left, with partial repayments, a due date that turns red when it's passed, and **Settle** to close it. Editing an entry in Activity updates its loan; deleting a loan deletes its entries.
 - **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 16 common ones (groceries, dining out, coffee, rent, salary, loans paid and received…). Deleting a category keeps its entries, uncategorized, and removes its budget.
 - **Merchants:** **Settings → Merchants** adds, renames and deletes the places you pay or get paid by. In the transaction and recurring forms, the merchant field searches them as you type and offers to create one it doesn't find. Renaming a merchant updates past entries too; deleting one leaves them as they are.
-
-**Made for Jordan, in two languages**
 - **CSV files:** **Settings → Data → Export Transactions** saves every entry as a spreadsheet file (date, type, amount, description, category, merchant), and **Import Transactions** adds entries from one in the same layout. Before anything is saved, a preview shows each row as new, duplicate (already there, so skipped) or rejected (with the reason), and the counts at the top filter the list. A **File layout** card explains the columns with an example; it opens by itself when rows were rejected. Amounts use a decimal point: `12,5` is rejected rather than read as 125. Categories and Merchants have **Import CSV** and **Export CSV** in their ⋮ menu, with the same preview: a name you already have, in any letter case, is a duplicate. Importing only ever adds; nothing is replaced.
-- **Currency:** Jordanian dinars by default, with three decimals: **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
-  - **Settings → General → Currency**, or the welcome screen, switches to one of 68 others, from SAR and AED to USD, EUR and INR, with a search by name or code, each with its usual decimals (2 for USD, 0 for JPY).
+
+**Your currency, in English or Arabic**
+- **Currency:** any of 69, picked on the welcome screen or in **Settings → General → Currency**, with a search by name or code: Arab currencies first (JOD, SAR, AED, EGP…), then USD, EUR, INR, MXN and more. Each keeps its usual decimals: **JOD 12.500**, **USD 12.50**, **JPY 1,250**. In Arabic the symbol follows the amount (**12.500 د.أ**), with Latin digits in both languages. Amount fields also accept Arabic-Indic digits.
   - It's one currency for all your data, with no exchange rates, so the app stays offline. Switching relabels amounts; it doesn't convert them.
   - Backups carry the currency, and importing one switches to it. Two devices sync only when they use the same currency.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.
