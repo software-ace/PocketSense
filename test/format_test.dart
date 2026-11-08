@@ -63,6 +63,17 @@ void main() {
       expect(parseAmount('-5'), isNull);
       expect(parseAmount('1.2.3'), isNull);
     });
+
+    test('a comma only separates thousands: a decimal comma is rejected, not read as more', () {
+      expect(parseAmount('12,5'), isNull, reason: 'would otherwise be 125');
+      expect(parseAmount('1,23'), isNull);
+      expect(parseAmount('1,2345'), isNull);
+      expect(parseAmount(',500'), isNull);
+      expect(parseAmount('1,000,'), isNull);
+      expect(parseAmount('١٬٢٥'), isNull);
+      expect(parseAmount('1,234'), 1234000);
+      expect(parseAmount('12,345,678.9'), 12345678900);
+    });
   });
 
   test('amountToInput round-trips through parseAmount', () {
