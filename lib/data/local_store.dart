@@ -279,8 +279,7 @@ class LocalStore {
     final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
     final seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
     final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
-    // Time 0: any real edit to Cash, on any device, outranks a starter Cash
-    // that a device paired later brings along.
+    // Time 0, as for starter categories (v2).
     await db.insert('accounts', {
       'name': cashName, 'kind': 'cash', 'uid': cashUid,
       'hlc': _formatHlc(0, 0, node), 'seq': seq + 1,
@@ -317,7 +316,9 @@ class LocalStore {
       final key = starterNames.entries.where((e) => !taken.contains(e.key) && e.value.contains(name)).firstOrNull?.key;
       if (key == null) continue;
       taken.add(key);
-      await db.update('categories', {'uid': 'default:$key'}, where: 'id = ?', whereArgs: [c['id']]);
+      // Time 0, like every starter row: each device makes its own, and a
+      // real rename or delete anywhere must outrank one made later.
+      await db.update('categories', {'uid': 'default:$key', 'hlc': _formatHlc(0, 0, node)}, where: 'id = ?', whereArgs: [c['id']]);
     }
     for (final t in _tablesBeforeV4) {
       await db.execute('CREATE UNIQUE INDEX idx_${t}_uid ON $t(uid)');
@@ -404,14 +405,12 @@ class LocalStore {
     final union = [for (final t in [..._tablesBeforeV7, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
     var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
     final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
-    final ms = DateTime.now().millisecondsSinceEpoch;
-    var counter = 0;
     for (final c in defaultCategories.where((c) => loanCategoryKeys.contains(c.key))) {
       // Ignored if one is there already, or the user has a category of
       // that name: loan entries are then uncategorized.
       await db.insert('categories', {
         'name': categoryNames[c.key] ?? c.name, 'type': c.type, 'color': c.color, 'uid': 'default:${c.key}',
-        'hlc': _formatHlc(ms, counter++, node), 'seq': ++seq,
+        'hlc': _formatHlc(0, 0, node), 'seq': ++seq, // time 0, as in v2
       }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
     }
   }

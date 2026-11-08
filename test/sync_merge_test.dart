@@ -98,6 +98,23 @@ void main() {
     expect(await snapshot(a), await snapshot(b));
   });
 
+  test("a device set up later doesn't undo a starter category renamed or deleted before", () async {
+    final a = await LocalStore.openInMemoryForTest(seed: true);
+    final coffee = (await a.db.query('categories', where: "uid = 'default:coffee'")).single['id'] as int;
+    final transport = (await a.db.query('categories', where: "uid = 'default:transport'")).single['id'] as int;
+    await a.updateRow('categories', coffee, {'name': 'Café'});
+    await a.deleteRow('categories', transport);
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    final b = await LocalStore.openInMemoryForTest(seed: true);
+
+    await Mesh().settle([a, b]);
+
+    for (final s in [a, b]) {
+      expect((await s.db.query('categories', where: "uid = 'default:coffee'")).single['name'], 'Café');
+      expect(await s.db.query('categories', where: "uid = 'default:transport'"), isEmpty);
+    }
+  });
+
   test('edits, deletes and cascades reach the other device', () async {
     final a = await LocalStore.openInMemoryForTest();
     final b = await LocalStore.openInMemoryForTest();
