@@ -132,8 +132,8 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Encryption backend for sqflite_common_ffi (Linux, and unit tests on a Linux
-# host): the sqlite3 package's own SQLCipher build, checksum-verified and
+# Encryption backend for sqflite_common_ffi (Linux, Windows, and unit tests
+# on a Linux host): the sqlite3 package's own SQLCipher build, checksum-verified and
 # bundled into the app. The system libsqlcipher can't be used: the GTK stack
 # already loads the system libsqlite3, and SQLCipher's internal sqlite3_*
 # calls bind to that copy (no -Bsymbolic) and crash. Android uses
@@ -145,4 +145,5 @@ hooks:
     sqlite3:
       source:
         linux: sqlcipher
+        windows: sqlcipher
         default: system

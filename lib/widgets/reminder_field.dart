@@ -100,7 +100,7 @@ class _ReminderFieldState extends State<ReminderField> {
             TextButton(onPressed: ReminderNotifications.openAppSettings, child: Text(l.reminderOpenSettings)),
           ]),
         )
-      else if (on && Platform.isLinux)
+      else if (on && (Platform.isLinux || Platform.isWindows))
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(l.reminderDesktopNote, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),

@@ -210,3 +210,8 @@ jobs:
         with:
           name: PocketSense-linux
           path: dist/*
+
+  # Defined in windows.yml, which also builds on its own for testing.
+  build-windows:
+    needs: build-apk
+    uses: ./.github/workflows/windows.yml

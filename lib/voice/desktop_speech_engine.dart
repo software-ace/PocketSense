@@ -17,7 +17,7 @@ import 'speech_engine.dart';
 /// microphone through `record` (which uses PulseAudio/PipeWire's parecord).
 class DesktopSpeechEngine implements SpeechEngine {
   DesktopSpeechEngine({String? modelDir, AppLocalizations? l10n})
-      : _modelDir = modelDir ?? p.join(linuxDataDir(), 'speech', SpeechModel.name),
+      : _modelDir = modelDir ?? p.join(desktopDataDir(), 'speech', SpeechModel.name),
         _l = l10n ?? lookupAppLocalizations(const Locale('en'));
 
   final String _modelDir;

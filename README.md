@@ -7,7 +7,7 @@
 ![Platforms: Android, Linux](https://img.shields.io/badge/platforms-Android%20%7C%20Linux-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
-A private personal finance tracker for Android and Linux. It works fully offline, in English and Arabic, in any of 69 currencies.
+A private personal finance tracker for Android, Linux and Windows. It works fully offline, in English and Arabic, in any of 69 currencies.
 
 There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
@@ -144,17 +144,27 @@ The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` comma
 - A running keyring (GNOME Keyring or KWallet). Without one, the app explains the problem instead of opening.
 - `parecord` for voice entry: `pulseaudio-utils` on Debian, Ubuntu and Fedora, `libpulse` on Arch.
 
-Each release also has `SHA256SUMS-linux.txt`. Check a download with `sha256sum -c --ignore-missing SHA256SUMS-linux.txt`.
+**Windows 10 or 11, x64:**
 
-Updating keeps your data: the database lives in `~/.local/share/pocket_sense/` on Linux, not inside the app.
+| File | Install |
+|---|---|
+| `PocketSense-<version>-windows-x64-setup.exe` | Run it. It installs just for you without admin rights, or for everyone if you choose, and adds Pocket Sense to the Start menu |
+| `PocketSense-<version>-windows-x64.msi` | Installs for everyone on the PC, for example when deploying it across an organization |
+| `PocketSense-<version>-windows-x64.zip` | Unpack it anywhere and run `pocket_sense.exe` |
+
+The installers aren't code-signed yet, so Windows SmartScreen may warn about an unknown publisher. Choose **More info → Run anyway**. Voice entry isn't on Windows yet.
+
+Each release also has `SHA256SUMS-linux.txt` and `SHA256SUMS-windows.txt`. Check a download with `sha256sum -c --ignore-missing SHA256SUMS-linux.txt`, or on Windows compare `Get-FileHash <file>` with the line for it.
+
+Updating keeps your data: the database lives in `~/.local/share/pocket_sense/` on Linux and `%LOCALAPPDATA%\pocket_sense\` on Windows, not inside the app. Uninstalling keeps it too.
 
 ## Building from source
 
-You need Flutter (stable, Dart `^3.13.4`), plus the Android SDK for Android, or for Linux the Flutter desktop toolchain and `libsecret-1-dev`.
+You need Flutter (stable, Dart `^3.13.4`), plus the Android SDK for Android, for Linux the Flutter desktop toolchain and `libsecret-1-dev`, or for Windows Visual Studio 2022 with **Desktop development with C++** (Windows builds only on Windows).
 
 ```sh
 flutter pub get
-flutter run        # pick an Android device or Linux
+flutter run        # pick an Android device, Linux or Windows
 flutter analyze
 flutter test
 ```
@@ -194,6 +204,7 @@ lib/
   utils/       money and date formatting, recurring dates, reminders, voice parsing, widget requests
   widgets/     shared widgets: amount field, empty/error states, voice sheet
 linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script, AUR PKGBUILD
+windows/packaging/  Inno Setup (setup.exe) and WiX (.msi) installer scripts
 fdroid/           F-Droid build recipe
 fastlane/         store listing: descriptions, changelogs, phone screenshots
 integration_test/ the screenshot run (see above)
@@ -226,6 +237,7 @@ The tag runs `.github/workflows/release.yml`, which:
 - builds and signs one APK per CPU type and checks each signature against the release key;
 - publishes the GitHub Release;
 - builds the Linux tarball, .deb, .rpm and AppImage on Ubuntu 22.04 and attaches them.
+- builds the Windows zip, setup.exe and .msi on Windows Server 2022 and attaches them, with the Visual C++ runtime next to the exe.
 
 Running the workflow by hand (Actions → Release → Run workflow) builds everything as downloadable artifacts without publishing a release.
 
@@ -238,12 +250,14 @@ Running the workflow by hand (Actions → Release → Run workflow) builds every
 ## Limitations
 
 - One currency at a time, with no conversion between currencies.
-- Android and Linux only, and biometric unlock is Android-only.
+- Android, Linux and Windows. Biometric unlock is Android-only, and voice entry isn't on Windows yet.
+- On Linux and Windows, reminders show only while the app is open, and any you missed when you open it.
 - Voice entry understands English sentences only.
 - The quick add widget and the app-icon shortcuts are Android-only, and their labels follow the phone's language, not the one chosen in the app.
 - Arabic month names are the standard ones (سبتمبر), not the Levantine ones (أيلول).
 - Sync works only on the same local network, and only while the app is open on both devices.
 - On Linux, a firewall that blocks incoming connections (ufw on some distros, firewalld on Fedora) stops sync until port 47823 is allowed: `sudo ufw allow 47823` or `sudo firewall-cmd --permanent --add-port=47823/tcp --add-port=47823/udp && sudo firewall-cmd --reload`.
+- On Windows, the first time sync starts, Windows Defender Firewall asks whether to allow Pocket Sense on private networks. Allow it, or sync can't reach your other devices.
 - Transfers between accounts show in each account's screen, not in Activity, and aren't in CSV exports.
 - Sync keeps the later of two changes to the same entry, even if they changed different fields.
 

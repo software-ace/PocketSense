@@ -1,0 +1,35 @@
+<!--
+  The MSI installer (WiX 5), for installing everywhere in an organization.
+  Built by the release workflow from the Flutter bundle:
+    wix build pocket-sense.wxs -arch x64 -pdbtype none -d Version=2.4.2 -d SourceDir=<bundle> -d IconFile=<app_icon.ico> -o <name>.msi
+  Uninstalling keeps your data in %LOCALAPPDATA%\pocket_sense.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <!-- UpgradeCode is fixed: a newer MSI replaces an older one by it. -->
+  <Package Name="Pocket Sense" Manufacturer="software-ace" Version="$(var.Version)"
+           UpgradeCode="feb20813-b0ee-412a-b6f3-1a238c2048ae" Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Pocket Sense is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Pocket Sense">
+        <Files Include="$(var.SourceDir)\**" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut">
+        <Shortcut Id="AppShortcut" Name="Pocket Sense" Target="[INSTALLFOLDER]pocket_sense.exe"
+                  WorkingDirectory="INSTALLFOLDER" Icon="AppIcon">
+          <!-- The same AppUserModelID the app gives Windows for its reminder notifications. -->
+          <ShortcutProperty Key="System.AppUserModel.ID" Value="ace.software.pocketsense" />
+        </Shortcut>
+        <RegistryValue Root="HKLM" Key="Software\software-ace\Pocket Sense" Name="installed"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+  </Package>
+</Wix>
