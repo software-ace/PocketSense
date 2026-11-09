@@ -4,12 +4,12 @@
 [![Latest release](https://img.shields.io/github/v/release/software-ace/PocketSense)](../../releases/latest)
 [![Release build](https://github.com/software-ace/PocketSense/actions/workflows/release.yml/badge.svg)](../../actions/workflows/release.yml)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-![Platforms: Android, Linux](https://img.shields.io/badge/platforms-Android%20%7C%20Linux-green)
+![Platforms: Android, Linux, Windows](https://img.shields.io/badge/platforms-Android%20%7C%20Linux%20%7C%20Windows-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
 A private personal finance tracker for Android, Linux and Windows. It works fully offline, in English and Arabic, in any of 69 currencies.
 
-There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
+There is no sign-up and no server. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
 ## Screenshots
 
@@ -91,7 +91,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 ## Privacy and security
 
-- **No internet:** no account, no servers, no analytics, no update checks. The app makes no network connections at all unless you turn on sync, which only talks to your own devices on the local network. On Linux it also downloads the voice model once, when you first use voice entry. Android requires the internet permission for any network use, even local, so the app requests it.
+- **No internet:** no sign-up, no servers, no analytics, no update checks. The app makes no network connections at all unless you turn on sync, which only talks to your own devices on the local network. On Linux it also downloads the voice model once, when you first use voice entry. Android requires the internet permission for any network use, even local, so the app requests it.
   - On Android, voice entry uses the phone's own speech recognizer. Depending on the phone, that recognizer may go online; that's the recognizer app's traffic, not Pocket Sense's.
 - **Sync:** only while it's on and the app is open does the app listen for other devices, on port 47823 (TCP and UDP). It talks only to private network addresses (192.168.x.x, 10.x.x.x and similar).
   - **Your data is end-to-end encrypted.** Each device has its own X25519 key in the Android Keystore or your keyring, and two paired devices derive a shared key from theirs (HKDF-SHA256). Every entry, category, budget, recurring item and loan they exchange is encrypted and authenticated with AES-256-GCM. Each message is bound to its sender, receiver and request, so it can't be replayed elsewhere.

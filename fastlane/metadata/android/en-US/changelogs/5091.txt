@@ -1,0 +1,5 @@
+• New: Accounts. Cash, bank, savings and card, each with its balance, and transfers between them that don't count as spending. Your entries start in Cash.
+• New: reminders for bills and loans, at a due time you pick.
+• New: CSV import and export, with a preview first.
+• New: Settings → Home page, to reorder and hide Home's sections.
+• Update all your paired devices: sync needs the same version on each.
