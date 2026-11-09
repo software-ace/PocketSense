@@ -195,7 +195,6 @@ jobs:
           VERSION="$version" nfpm package -f linux/packaging/nfpm.yaml -p deb -t "dist/${name}.deb"
           VERSION="$version" nfpm package -f linux/packaging/nfpm.yaml -p rpm -t "dist/${name}.rpm"
           linux/packaging/build-appimage.sh "$version" "dist/${name}.AppImage"
-          (cd dist && sha256sum * > SHA256SUMS-linux.txt)
           ls -lh dist
 
       - name: Attach to GitHub Release

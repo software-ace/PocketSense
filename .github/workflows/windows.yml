@@ -56,7 +56,6 @@ jobs:
           if ($LASTEXITCODE) { throw 'Inno Setup failed' }
           wix build windows\packaging\pocket-sense.wxs -arch x64 -pdbtype none -d "Version=$version" -d "SourceDir=$bundle" -d "IconFile=$PWD\windows\runner\resources\app_icon.ico" -o "dist\$name.msi"
           if ($LASTEXITCODE) { throw 'WiX failed' }
-          Get-ChildItem dist -File | Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content -Encoding ascii dist\SHA256SUMS-windows.txt
           Get-ChildItem dist
 
       - name: Attach to GitHub Release

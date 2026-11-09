@@ -30,3 +30,7 @@ chmod +x "$appdir"/AppRun
 ARCH=x86_64 VERSION="$version" APPIMAGE_EXTRACT_AND_RUN=1 appimagetool --no-appstream \
   -u "gh-releases-zsync|software-ace|PocketSense|latest|PocketSense-*-linux-x64.AppImage.zsync" \
   "$appdir" "$out"
+# zsyncmake (run by appimagetool without -o) writes the .zsync into the
+# current folder, not beside $out; move it there so the release uploads it.
+zsync=$(basename "$out").zsync
+if [ -f "$zsync" ] && [ "$(realpath "$zsync")" != "$(realpath -m "$out.zsync")" ]; then mv "$zsync" "$out.zsync"; fi

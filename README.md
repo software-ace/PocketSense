@@ -154,7 +154,7 @@ The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` comma
 
 The installers aren't code-signed yet, so Windows SmartScreen may warn about an unknown publisher. Choose **More info → Run anyway**. Voice entry isn't on Windows yet.
 
-Each release also has `SHA256SUMS-linux.txt` and `SHA256SUMS-windows.txt`. Check a download with `sha256sum -c --ignore-missing SHA256SUMS-linux.txt`, or on Windows compare `Get-FileHash <file>` with the line for it.
+To check a download, compare its SHA-256 with the one shown next to it on the release page: `sha256sum <file>` on Linux, `Get-FileHash <file>` in PowerShell on Windows.
 
 Updating keeps your data: the database lives in `~/.local/share/pocket_sense/` on Linux and `%LOCALAPPDATA%\pocket_sense\` on Windows, not inside the app. Uninstalling keeps it too.
 
