@@ -203,7 +203,7 @@ lib/
   screens/     Home, Activity, Budgets, Recurring, Loans, Categories, Settings, Sync
   utils/       money and date formatting, recurring dates, reminders, voice parsing, widget requests
   widgets/     shared widgets: amount field, empty/error states, voice sheet
-linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script, AUR PKGBUILD
+linux/packaging/  .desktop file, AppStream metainfo, nfpm config (.deb/.rpm), AppImage script, AUR PKGBUILD
 windows/packaging/  Inno Setup (setup.exe) and WiX (.msi) installer scripts
 fdroid/           F-Droid build recipe
 fastlane/         store listing: descriptions, changelogs, phone screenshots

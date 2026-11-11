@@ -27,6 +27,9 @@ contents:
     type: symlink
   - src: linux/packaging/ace.software.pocketsense.desktop
     dst: /usr/share/applications/ace.software.pocketsense.desktop
+  # Description and screenshots for GNOME Software and KDE Discover.
+  - src: linux/packaging/ace.software.pocketsense.metainfo.xml
+    dst: /usr/share/metainfo/ace.software.pocketsense.metainfo.xml
   # Same artwork as the store listing.
   - src: fastlane/metadata/android/en-US/images/icon.png
     dst: /usr/share/icons/hicolor/512x512/apps/ace.software.pocketsense.png
