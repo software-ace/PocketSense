@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
+import '../utils/platform.dart';
 import 'app_settings.dart';
 
 /// Settings → Home page: drag to reorder what Home shows, and switch parts
@@ -30,37 +31,45 @@ class HomeLayoutScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l.homePage)),
       body: ValueListenableBuilder(
         valueListenable: AppSettings.homeLayout,
-        builder: (context, layout, _) => ReorderableListView.builder(
-          // The handle drags on every platform; the default (long-press on
-          // phones, a handle at the end on desktop) would sit on the switch.
-          buildDefaultDragHandles: false,
-          header: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
-            child: Text(l.homePageHint, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
-          ),
-          itemCount: layout.order.length,
-          // [to] is already the final index, counted without the moved row.
-          onReorderItem: (from, to) {
-            final order = [...layout.order];
-            order.insert(to, order.removeAt(from));
-            AppSettings.setHomeLayout(order, layout.hidden);
-          },
-          itemBuilder: (context, i) {
-            final s = layout.order[i];
-            final loans = s == HomeSection.loans;
-            return SwitchListTile(
-              key: ValueKey(s),
-              secondary: ReorderableDragStartListener(index: i, child: const Icon(Icons.drag_handle)),
-              title: Text(name(l, s)),
-              subtitle: loans ? Text(l.homeLoansAlwaysShown) : null,
-              value: !layout.hidden.contains(s),
-              // Loans' card is the only way into Loans.
-              onChanged: loans
-                  ? null
-                  : (on) => AppSettings.setHomeLayout(layout.order, on ? ({...layout.hidden}..remove(s)) : {...layout.hidden, s}),
-            );
-          },
-        ),
+        builder: (context, layout, _) {
+          // On desktop the rail's tabs aren't on Home, so they aren't listed.
+          final desktop = PlatformUi.isDesktop(context);
+          final rows = [for (final s in layout.order) if (!desktop || !desktopTabSections.contains(s)) s];
+          return ReorderableListView.builder(
+            // The handle drags on every platform; the default (long-press on
+            // phones, a handle at the end on desktop) would sit on the switch.
+            buildDefaultDragHandles: false,
+            header: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
+              child: Text(l.homePageHint, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline)),
+            ),
+            itemCount: rows.length,
+            // [to] is already the final index, counted without the moved row.
+            onReorderItem: (from, to) {
+              final moved = [...rows];
+              moved.insert(to, moved.removeAt(from));
+              // Unlisted sections keep their places; the listed ones fill the rest in the new order.
+              final next = moved.iterator;
+              final order = [for (final s in layout.order) if (rows.contains(s)) (next..moveNext()).current else s];
+              AppSettings.setHomeLayout(order, layout.hidden);
+            },
+            itemBuilder: (context, i) {
+              final s = rows[i];
+              final loans = s == HomeSection.loans;
+              return SwitchListTile(
+                key: ValueKey(s),
+                secondary: ReorderableDragStartListener(index: i, child: const Icon(Icons.drag_handle)),
+                title: Text(name(l, s)),
+                subtitle: loans ? Text(l.homeLoansAlwaysShown) : null,
+                value: !layout.hidden.contains(s),
+                // Loans' card is the only way into Loans.
+                onChanged: loans
+                    ? null
+                    : (on) => AppSettings.setHomeLayout(layout.order, on ? ({...layout.hidden}..remove(s)) : {...layout.hidden, s}),
+              );
+            },
+          );
+        },
       ),
     );
   }

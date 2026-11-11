@@ -29,4 +29,27 @@ void main() {
     await settleWithDb(tester);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Loans and Accounts are rail tabs on the desktop only', (tester) async {
+    tester.view.physicalSize = const Size(2800, 1800); // 1400 × 900: the rail
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(localizedApp(const Shell()));
+    await settleWithDb(tester);
+    final rail = find.byType(NavigationRail);
+    for (final label in ['Loans', 'Accounts']) {
+      await tester.tap(find.descendant(of: rail, matching: find.text(label)));
+      await settleWithDb(tester);
+      expect(find.widgetWithText(AppBar, label), findsOneWidget);
+    }
+    expect(tester.takeException(), isNull);
+
+    // Narrowed to a phone while on Accounts: Home, and only the 4 phone tabs.
+    tester.view.physicalSize = const Size(1600, 2400);
+    await settleWithDb(tester);
+    expect(tester.takeException(), isNull);
+    final bar = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
+    expect(bar.items, hasLength(4));
+    expect(bar.currentIndex, 0);
+  });
 }

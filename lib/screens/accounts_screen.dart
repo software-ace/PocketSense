@@ -4,11 +4,14 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../settings/manage_accounts_screen.dart';
 import '../utils/format.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/data_aware.dart';
 import '../widgets/state_views.dart';
+import 'settings_screen.dart';
+import 'sync_screen.dart';
 import 'transactions_screen.dart';
 
 /// An account's icon and color by kind. Savings is a vault, never a piggy bank.
@@ -27,7 +30,11 @@ Widget accountAvatar(String kind, {double radius = 20}) {
 /// Home → Accounts: every open account with its balance. Transfer moves
 /// money between them; Manage (Settings → Accounts) adds and edits them.
 class AccountsScreen extends StatefulWidget {
-  const AccountsScreen({super.key});
+  const AccountsScreen({super.key, this.tab = false});
+
+  /// A desktop rail tab rather than a page pushed from Home: it gets the
+  /// other tabs' app bar buttons.
+  final bool tab;
 
   @override
   State<AccountsScreen> createState() => _AccountsScreenState();
@@ -58,7 +65,7 @@ class _AccountsScreenState extends State<AccountsScreen> with DataAware {
     final open = [for (final a in accounts ?? const <Account>[]) if (!a.closed) a];
     final total = (accounts ?? const <Account>[]).fold(0, (sum, a) => sum + a.balanceFils);
     return Scaffold(
-      appBar: AppBar(title: Text(l.accounts)),
+      appBar: AppBar(title: Text(l.accounts), actions: widget.tab ? const [AmountsButton(), SyncButton(), SettingsButton()] : null),
       body: accounts == null
           ? const LoadingView()
           : ListView(padding: const EdgeInsets.all(16), children: [

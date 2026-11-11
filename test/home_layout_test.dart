@@ -58,4 +58,51 @@ void main() {
     expect(loans.onChanged, isNull);
     expect(find.text("Always shown: it's the way into Loans"), findsOneWidget);
   });
+
+  group('desktop, where Loans and Accounts are rail tabs', () {
+    void desktop(WidgetTester tester) {
+      tester.view.physicalSize = const Size(2800, 1800); // 1400 × 900
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+    }
+
+    testWidgets('Home leaves their cards out', (tester) async {
+      desktop(tester);
+      // First, so they'd be on screen if shown.
+      AppSettings.homeLayout.value = (
+        order: [...desktopTabSections, ...HomeSection.values.where((s) => !desktopTabSections.contains(s))],
+        hidden: const {},
+      );
+      await tester.pumpWidget(localizedApp(const DashboardScreen()));
+      await settleWithDb(tester);
+      expect(find.text('Owed to you'), findsNothing);
+      expect(find.text('Accounts'), findsNothing);
+      expect(find.text('Income (mo)'), findsOneWidget, reason: 'the rest of Home is there');
+    });
+
+    testWidgets('Settings → Home page leaves them out, and a reorder keeps their places', (tester) async {
+      desktop(tester);
+      await tester.pumpWidget(localizedApp(const HomeLayoutScreen()));
+      await tester.pumpAndSettle();
+      expect(find.text('Loans'), findsNothing);
+      expect(find.text('Accounts'), findsNothing);
+
+      // Totals' handle dragged below Daily Spending, the next listed row.
+      final handle = find.descendant(
+          of: find.ancestor(of: find.text('Totals (this month and year)'), matching: find.byType(SwitchListTile)),
+          matching: find.byIcon(Icons.drag_handle));
+      final rowHeight = tester.getSize(find.byType(SwitchListTile).first).height;
+      final gesture = await tester.startGesture(tester.getCenter(handle));
+      await tester.pump();
+      for (var i = 0; i < 3; i++) {
+        await gesture.moveBy(Offset(0, rowHeight * 0.25));
+        await tester.pump();
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(AppSettings.homeLayout.value.order.take(4),
+          [HomeSection.daily, HomeSection.accounts, HomeSection.loans, HomeSection.totals]);
+    });
+  });
 }

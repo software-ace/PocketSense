@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'data/auto_backup.dart';
 import 'data/repo.dart';
 import 'sync/sync_service.dart';
+import 'screens/accounts_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
@@ -17,7 +18,8 @@ import 'utils/platform.dart';
 import 'widgets/whats_new.dart';
 
 /// Root scaffold that adapts navigation to the viewport:
-/// - Wide (≥ 900 px): left [NavigationRail] with labelled icons.
+/// - Wide (≥ 900 px): left [NavigationRail] with labelled icons, plus Loans
+///   and Accounts, which a phone reaches from Home's cards.
 /// - Narrow (< 900 px): bottom bar with 4 primary tabs.
 /// Categories moved to Settings (gear icon in each tab's app bar).
 class Shell extends StatefulWidget {
@@ -111,14 +113,25 @@ class _ShellState extends State<Shell> {
     RecurringScreen(),
   ];
 
+  // The rail has room for these; the phone's bottom bar doesn't.
+  static const _desktopPages = <Widget>[
+    ..._pages,
+    LoansScreen(tab: true),
+    AccountsScreen(tab: true),
+  ];
+
   // Single source of truth for all tabs (bottom bar + navigation rail).
-  List<_Dest> _dests(BuildContext context) {
+  List<_Dest> _dests(BuildContext context, {bool desktop = false}) {
     final l = context.l10n;
     return [
       _Dest(Icons.space_dashboard_rounded, l.navHome),
       _Dest(Icons.swap_vert_rounded, l.navActivity),
       _Dest(Icons.price_change_rounded, l.navBudgets),
       _Dest(Icons.repeat_rounded, l.navRecurring),
+      if (desktop) ...[
+        _Dest(Icons.handshake_outlined, l.loans),
+        _Dest(Icons.account_balance_wallet_outlined, l.accounts),
+      ],
     ];
   }
 
@@ -167,7 +180,7 @@ class _ShellState extends State<Shell> {
                 ),
               ),
             ),
-            destinations: _dests(context)
+            destinations: _dests(context, desktop: true)
                 .map((d) => NavigationRailDestination(
                       icon: Icon(d.icon),
                       selectedIcon: Icon(d.icon,
@@ -178,7 +191,7 @@ class _ShellState extends State<Shell> {
           ),
           const VerticalDivider(width: 1),
           Expanded(
-            child: IndexedStack(index: _index, children: _pages),
+            child: IndexedStack(index: _index, children: _desktopPages),
           ),
         ],
       ),
@@ -186,10 +199,12 @@ class _ShellState extends State<Shell> {
   }
 
   Widget _buildMobile(BuildContext context) {
+    // Narrowed while on a desktop-only tab: Home.
+    final index = _index < _pages.length ? _index : 0;
     return Scaffold(
-      body: IndexedStack(index: _index, children: _pages),
+      body: IndexedStack(index: index, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
+        currentIndex: index,
         onTap: (i) => setState(() => _index = i),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).colorScheme.primary,

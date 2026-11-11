@@ -222,6 +222,9 @@ class AppSettings {
   }
 }
 
-/// What Home can show, in its default order. Loans can't be hidden: its
-/// card is the only way into Loans.
+/// What Home can show, in its default order. Loans can't be hidden: on a
+/// phone its card is the only way into Loans.
 enum HomeSection { totals, accounts, loans, daily, category, merchant, monthTotals, monthly, pace, weekday, recent }
+
+/// Rail tabs on the desktop, so Home and its settings leave them out there.
+const desktopTabSections = {HomeSection.loans, HomeSection.accounts};

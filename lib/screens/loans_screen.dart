@@ -4,12 +4,15 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/data_aware.dart';
 import '../widgets/reminder_field.dart';
 import '../widgets/state_views.dart';
+import 'settings_screen.dart';
+import 'sync_screen.dart';
 
 /// The text of a loan's entries in Activity, in the UI language: money out
 /// is "Payment for Ahmad", money in "Payment from Ahmad".
@@ -60,7 +63,11 @@ Future<void> addLoan(BuildContext context, {String? person}) async {
 
 /// Everyone you lent to or borrowed from, with what's still owed.
 class LoansScreen extends StatefulWidget {
-  const LoansScreen({super.key});
+  const LoansScreen({super.key, this.tab = false});
+
+  /// A desktop rail tab rather than a page pushed from Home: it gets the
+  /// other tabs' app bar buttons.
+  final bool tab;
 
   @override
   State<LoansScreen> createState() => _LoansScreenState();
@@ -108,7 +115,7 @@ class _LoansScreenState extends State<LoansScreen> with DataAware {
     // Open: anyone with something still owed; Settled: everyone else.
     final people = [for (final p in loansByPerson(_loans)) if (p.loans.any((x) => x.open) != _settled) p];
     return Scaffold(
-      appBar: AppBar(title: Text(l.loans)),
+      appBar: AppBar(title: Text(l.loans), actions: widget.tab ? const [AmountsButton(), SyncButton(), SettingsButton()] : null),
       floatingActionButton: FloatingActionButton.extended(
           heroTag: null, onPressed: () => addLoan(context), icon: const Icon(Icons.add), label: Text(l.newLoan)),
       body: _loading

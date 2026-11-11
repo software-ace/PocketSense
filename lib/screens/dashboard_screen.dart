@@ -225,7 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   }
 
   /// The sections in the order Settings → Home page gives, without hidden
-  /// ones, each as its slivers. On desktop, two half-width cards in a row
+  /// ones (nor, on desktop, the rail's tabs), each as its slivers. On desktop, two half-width cards in a row
   /// share it, side by side.
   List<List<Widget>> _sections(ThemeData theme, bool desktop) {
     final l = context.l10n;
@@ -244,7 +244,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           HomeSection.accounts => _accountsCard(theme),
           HomeSection.recent => throw ArgumentError(s), // slivers, below
         };
-    final shown = [for (final s in layout.order) if (!layout.hidden.contains(s)) s];
+    final shown = [
+      for (final s in layout.order)
+        if (!layout.hidden.contains(s) && !(desktop && desktopTabSections.contains(s))) s
+    ];
     final out = <List<Widget>>[];
     for (var i = 0; i < shown.length; i++) {
       final s = shown[i];

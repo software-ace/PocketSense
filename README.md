@@ -51,7 +51,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 ## Features
 
 **Tracking money**
-- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other) and the income and spending of a month, each for a month you pick, income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries. **Settings → Home page** puts them in the order you want and hides what you don't need, except the Loans card, which is the way into Loans.
+- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other) and the income and spending of a month, each for a month you pick, income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries. **Settings → Home page** puts them in the order you want and hides what you don't need, except the Loans card, which is the way into Loans on a phone. On the desktop, Loans and Accounts are tabs in the side rail instead of cards on Home.
 - **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
@@ -73,7 +73,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.
 
 **Fits the device**
-- **Layout:** a bottom tab bar on phones, and a side rail with wider layouts, including tables, on windows 900 px or wider.
+- **Layout:** a bottom tab bar on phones, and a side rail, with Loans and Accounts as tabs too, and wider layouts, including tables, on windows 900 px or wider.
 - **Light, dark and black:** follows the system theme, or **Settings → General → Theme** picks Light, Dark or Black (AMOLED), whose pure-black background leaves those pixels off.
 - **First run:** a short welcome lets you start fresh or import a backup, then offers to set a PIN (and fingerprint or face on Android). Both can be changed later in Settings.
 - **What's new:** the first time the app opens after an update, a short list of what changed since the version you last used, grouped into new features, enhancements, changes and fixes.
