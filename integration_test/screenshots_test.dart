@@ -246,8 +246,11 @@ void main() {
       await scrollToTrends(tester);
       await shot(tester, '$dir/desktop-charts.png');
       await scrollToTop(tester);
-      await accountsShot(tester, '$dir/desktop-accounts.png');
-      await loansShot(tester, '$dir/desktop-loans.png');
+      // Rail tabs on the desktop, not Home cards.
+      await tab(tester, (l) => l.accounts);
+      await shot(tester, '$dir/desktop-accounts.png');
+      await tab(tester, (l) => l.loans);
+      await shot(tester, '$dir/desktop-loans.png');
       await tab(tester, (l) => l.navActivity);
       await shot(tester, '$dir/desktop-activity.png');
       await tab(tester, (l) => l.navBudgets);
