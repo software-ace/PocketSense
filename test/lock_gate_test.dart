@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/db_key.dart';
@@ -116,6 +118,26 @@ void main() {
     expect(appVisible(tester), isTrue);
   });
 
+  testWidgets('coming back after the timeout covers the app at once, before the keystore answers', (tester) async {
+    await tester.runAsync(() => AppLock.instance.setPin('2468'));
+    await pumpGate(tester, relockAfter: Duration.zero);
+    await typePin(tester, '2468');
+    expect(appVisible(tester), isTrue);
+
+    // A keystore that answers only when told, as Android's takes a moment.
+    final slow = _HeldReads(store);
+    AppLock.instance = AppLock(store: slow, iterations: 1000);
+    goAway(tester);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(); // the first frame back: the keystore hasn't answered yet
+    expect(appVisible(tester), isFalse);
+
+    slow.release();
+    await tester.pumpAndSettle();
+    expect(find.text('Enter your PIN'), findsOneWidget);
+  });
+
   // As in main.dart: above the app's Navigator, so there are two Navigators
   // under MaterialApp's one HeroController.
   testWidgets('after unlocking, the app can still push routes', (tester) async {
@@ -191,4 +213,22 @@ class _FlakyStore extends MemorySecretStore {
     if (failing) throw KeyStoreUnavailable('KeyStoreException');
     return super.read(key);
   }
+}
+
+/// Reads wait until [release], like a keystore that is slow to answer.
+class _HeldReads implements SecretStore {
+  _HeldReads(this.inner);
+  final SecretStore inner;
+  final _gate = Completer<void>();
+  void release() => _gate.complete();
+  @override
+  Future<String?> read(String key) async {
+    await _gate.future;
+    return inner.read(key);
+  }
+
+  @override
+  Future<void> write(String key, String value) => inner.write(key, value);
+  @override
+  Future<void> delete(String key) => inner.delete(key);
 }

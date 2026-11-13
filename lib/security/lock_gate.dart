@@ -83,6 +83,9 @@ class _LockGateState extends State<LockGate> {
     }
     // Shown amounts hide again with the lock, with or without a PIN.
     AmountPrivacy.revealed.value = false;
+    // Covered until the keystore says whether there's a PIN: the app mustn't
+    // show, or take taps, in the meantime.
+    setState(() => _locked = null);
     _check();
   }
 
