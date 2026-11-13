@@ -110,4 +110,12 @@ void main() {
         [DateTime(2026, 9, 27), DateTime(2026, 9, 28), DateTime(2026, 9, 29), DateTime(2026, 9, 30), DateTime(2026, 10, 1)]);
     expect(days.map((d) => d.fils), [0, 0, 350, 0, 40]);
   });
+
+  test('daily spending: 30 calendar days even across a clock change (TZ=Africa/Cairo)', () async {
+    final days = await repo.dailySpending(end: DateTime(2026, 5, 10, 0, 30), days: 30);
+    expect(days.length, 30);
+    expect((days.first.day, days.last.day), (DateTime(2026, 4, 11), DateTime(2026, 5, 10)));
+    // Apr 24 has no midnight in Cairo (00:00 jumps to 01:00), so compare dates.
+    expect({for (final d in days) (d.day.month, d.day.day)}.length, 30);
+  });
 }

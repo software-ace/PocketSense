@@ -887,7 +887,9 @@ class FinanceRepo {
   /// Daily expense fils for the last [days] days ending at [end].
   Future<List<({DateTime day, int fils})>> dailySpending(
       {required DateTime end, int days = 30}) async {
-    final start = end.subtract(Duration(days: days - 1));
+    // Calendar days, not 24-hour steps: across a clock change those land an
+    // hour off midnight, a day early, and the chart gets an extra bar.
+    final start = DateTime(end.year, end.month, end.day - (days - 1));
     final txs = await transactions(from: start, to: end, type: 'expense', limit: 2000);
     // Calendar days, so a DST change can't skip or repeat one.
     final byDay = {for (var i = 0; i < days; i++) DateTime(start.year, start.month, start.day + i): 0};
