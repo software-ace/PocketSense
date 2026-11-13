@@ -31,9 +31,14 @@ void main() {
       expect(next('monthly', d(2026, 1, 25), d(2026, 10, 1)), d(2026, 10, 25));
       expect(next('monthly', d(2026, 1, 5), d(2026, 10, 6)), d(2026, 11, 5));
     });
-    test('month-end overflow rolls forward', () {
-      // Jan 31, then "Feb 31" = Mar 3 in 2026.
-      expect(next('monthly', d(2026, 1, 31), d(2026, 2, 1)), d(2026, 3, 3));
+    test('a month-end item is due once every month, on its day or the month\'s last', () {
+      final dues = <DateTime>[];
+      for (var from = d(2026, 1, 1); dues.length < 7; from = d(from.year, from.month, from.day + 1)) {
+        final n = next('monthly', d(2026, 1, 31), from);
+        if (dues.isEmpty || dues.last != n) dues.add(n);
+      }
+      expect(dues, [d(2026, 1, 31), d(2026, 2, 28), d(2026, 3, 31), d(2026, 4, 30), d(2026, 5, 31), d(2026, 6, 30), d(2026, 7, 31)]);
+      expect(next('yearly', d(2024, 2, 29), d(2025, 1, 1)), d(2025, 2, 28), reason: 'Feb 29 in a year without one');
     });
   });
 

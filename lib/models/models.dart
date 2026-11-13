@@ -1,3 +1,5 @@
+import '../utils/recurring.dart' show addMonths;
+
 // Row models for the on-device database. fromMap takes a row (snake_case
 // keys), plus category_name / category_color where the repo joins them in.
 
@@ -262,7 +264,7 @@ class Circle {
     return switch (frequency) {
       'weekly' => DateTime(s.year, s.month, s.day + 7 * k),
       'biweekly' => DateTime(s.year, s.month, s.day + 14 * k),
-      _ => DateTime(s.year, s.month + k, s.day.clamp(1, DateTime(s.year, s.month + k + 1, 0).day)),
+      _ => addMonths(s, k),
     };
   }
 
