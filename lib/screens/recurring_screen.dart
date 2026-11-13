@@ -63,11 +63,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
   }
 
   Future<void> _edit(RecurringExpense? existing) async {
-    final saved = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (_) => _RecurringDialog(existing: existing, cats: _cats),
     );
-    if (saved == true && mounted) await _load();
   }
 
   Future<void> _post(RecurringExpense r) async {
@@ -76,7 +75,6 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
       await _repo.postRecurring(r, description: l.recurringSuffix(r.description));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.postedAsTransaction(r.description))));
-      await _load();
     } catch (e, st) {
       debugPrint('postRecurring error: $e\n$st');
       if (!mounted) return;
@@ -99,7 +97,6 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
     if (ok != true) return;
     try {
       await _repo.deleteRecurring(r.id);
-      if (mounted) await _load();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }

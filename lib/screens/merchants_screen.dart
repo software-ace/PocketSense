@@ -51,10 +51,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
   }
 
   Future<void> _edit(Merchant? existing) async {
-    final saved = await showDialog<bool>(
+    await showDialog<bool>(
         context: context,
         builder: (_) => _MerchantDialog(existing: existing, taken: _merchants.map((m) => m.name).toSet()));
-    if (saved == true) await _load();
   }
 
   Future<bool> _confirmDelete(Merchant m) async {
@@ -77,7 +76,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
     if (!confirmed && !await _confirmDelete(m)) return;
     try {
       await _repo.deleteMerchant(m.id);
-      await _load();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));

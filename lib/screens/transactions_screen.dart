@@ -138,7 +138,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         categoryId: draft.categoryId,
         accountId: draft.accountId,
       );
-      await _load();
     } catch (e) {
       if (mounted) _toast(context.l10n.addFailed('$e'));
     }
@@ -158,7 +157,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         categoryId: draft.categoryId,
         accountId: draft.accountId,
       );
-      await _load();
     } catch (e) {
       if (mounted) _toast(context.l10n.updateFailed('$e'));
     }
@@ -184,7 +182,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     if (!confirmed && !await _confirmDelete(t)) return;
     try {
       await _repo.deleteTransaction(t.id);
-      await _load();
     } catch (e) {
       if (!mounted) return;
       _toast(context.l10n.deleteFailed('$e'));

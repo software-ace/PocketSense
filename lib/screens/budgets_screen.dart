@@ -63,11 +63,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
   }
 
   Future<void> _edit(Budget? existing) async {
-    final saved = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (_) => _BudgetDialog(existing: existing, cats: _cats),
     );
-    if (saved == true && mounted) await _load();
   }
 
   Future<void> _delete(Budget b) async {
@@ -85,7 +84,6 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     if (ok != true) return;
     try {
       await _repo.deleteBudget(b.id);
-      if (mounted) await _load();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }

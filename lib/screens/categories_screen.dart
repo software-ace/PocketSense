@@ -76,8 +76,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
   }
 
   Future<void> _edit(Category? existing) async {
-    final saved = await showDialog<bool>(context: context, builder: (_) => _CategoryDialog(existing: existing));
-    if (saved == true) await _load();
+    await showDialog<bool>(context: context, builder: (_) => _CategoryDialog(existing: existing));
   }
 
   Future<bool> _confirmDelete(Category c) async {
@@ -100,7 +99,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     if (!confirmed && !await _confirmDelete(c)) return;
     try {
       await _repo.deleteCategory(c.id);
-      await _load();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
