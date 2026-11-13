@@ -70,6 +70,12 @@ class AppLock {
   static const freeTries = 5;
   static const firstWait = Duration(seconds: 30);
 
+  /// The PIN's hash, salt, iterations and length as one JSON value, so
+  /// changing the PIN is one write: it lands whole or not at all.
+  static const _kPin = 'lock.pin';
+  // Before 2.6 those were four keys, which an interrupted change of PIN could
+  // leave half written (a new salt beside the old hash: no PIN worked).
+  // Still read until the PIN is next set.
   static const _kHash = 'lock.pin.hash';
   static const _kSalt = 'lock.pin.salt';
   static const _kIter = 'lock.pin.iterations';
@@ -78,10 +84,31 @@ class AppLock {
   static const _kLockedUntil = 'lock.locked_until';
   static const _kBiometric = 'lock.biometric';
 
-  Future<bool> get enabled async => await _store.read(_kHash) != null;
+  Future<({List<int> hash, List<int> salt, int iterations, int? length})?> _pin() async {
+    final one = await _store.read(_kPin);
+    if (one != null) {
+      final m = jsonDecode(one) as Map;
+      return (
+        hash: base64.decode(m['hash'] as String),
+        salt: base64.decode(m['salt'] as String),
+        iterations: m['iterations'] as int,
+        length: m['length'] as int?,
+      );
+    }
+    final hash = await _store.read(_kHash), salt = await _store.read(_kSalt);
+    if (hash == null || salt == null) return null;
+    return (
+      hash: base64.decode(hash),
+      salt: base64.decode(salt),
+      iterations: int.tryParse(await _store.read(_kIter) ?? '') ?? iterations,
+      length: int.tryParse(await _store.read(_kLength) ?? ''),
+    );
+  }
+
+  Future<bool> get enabled async => await _pin() != null;
 
   /// Digits in the PIN, so the keypad can submit as soon as it's complete.
-  Future<int?> get pinLength async => int.tryParse(await _store.read(_kLength) ?? '');
+  Future<int?> get pinLength async => (await _pin())?.length;
 
   static bool isValidPin(String pin) =>
       pin.length >= minLength && pin.length <= maxLength && RegExp(r'^\d+$').hasMatch(pin);
@@ -92,16 +119,17 @@ class AppLock {
     final rng = Random.secure();
     final salt = List.generate(16, (_) => rng.nextInt(256));
     final hash = await _hash(pin, salt, iterations);
-    await _store.write(_kSalt, base64.encode(salt));
-    await _store.write(_kIter, '$iterations');
-    await _store.write(_kLength, '${pin.length}');
-    await _store.write(_kHash, base64.encode(hash));
+    await _store.write(_kPin, jsonEncode({'hash': base64.encode(hash), 'salt': base64.encode(salt), 'iterations': iterations, 'length': pin.length}));
+    // Only once the new one is in: the old keys are ignored from now on anyway.
+    for (final k in [_kHash, _kSalt, _kIter, _kLength]) {
+      await _store.delete(k);
+    }
     await _clearFailures();
   }
 
   /// Turns the lock (and biometric unlock) off.
   Future<void> disable() async {
-    for (final k in [_kHash, _kSalt, _kIter, _kLength, _kFailures, _kLockedUntil, _kBiometric]) {
+    for (final k in [_kPin, _kHash, _kSalt, _kIter, _kLength, _kFailures, _kLockedUntil, _kBiometric]) {
       await _store.delete(k);
     }
   }
@@ -117,11 +145,9 @@ class AppLock {
   Future<PinResult> verify(String pin) async {
     final wait = await waitRemaining();
     if (wait != null) return PinLockedOut(wait);
-    final hash = await _store.read(_kHash);
-    final salt = await _store.read(_kSalt);
-    if (hash == null || salt == null) return PinAccepted(); // lock is off
-    final iter = int.tryParse(await _store.read(_kIter) ?? '') ?? iterations;
-    final ok = constantTimeEquals(await _hash(pin, base64.decode(salt), iter), base64.decode(hash));
+    final stored = await _pin();
+    if (stored == null) return PinAccepted(); // lock is off
+    final ok = constantTimeEquals(await _hash(pin, stored.salt, stored.iterations), stored.hash);
     if (ok) {
       await _clearFailures();
       return PinAccepted();
