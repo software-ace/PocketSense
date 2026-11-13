@@ -171,24 +171,16 @@ class FinanceRepo {
       args.add(accountId);
     }
     final w = where.isEmpty ? null : where.join(' AND ');
-    final rows = await store.selectRows('transactions', where: w, whereArgs: args);
-    final cats = await categories();
-    final catById = {for (final c in cats) c.id: c};
-    final txs = rows.map((m) {
-      final c = catById[m['category_id']];
-      return Transaction.fromMap({...m, 'category_name': c?.name, 'category_color': c?.color});
-    }).toList()
-      ..sort(_newestFirst);
-    return txs.take(limit).toList();
-  }
-
-  // Same-day entries fall back to entry time; rows without one sort last.
-  static int _newestFirst(Transaction a, Transaction b) {
-    final byDate = b.date.compareTo(a.date);
-    if (byDate != 0) return byDate;
-    final ca = a.createdAt, cb = b.createdAt;
-    if (ca == null || cb == null) return (ca == null ? 1 : 0) - (cb == null ? 1 : 0);
-    return cb.compareTo(ca);
+    // Newest first, sorted and cut by SQLite: Home wants 8 and Activity 200
+    // of maybe 20,000. Same-day entries by entry time (stored as UTC ISO
+    // text, so it sorts as text); rows without one last.
+    final rows = await store.selectRows('transactions',
+        where: w, whereArgs: args, orderBy: 'date DESC, created_at IS NULL, created_at DESC, id DESC', limit: limit);
+    final catById = {for (final c in await categories()) c.id: c};
+    return [
+      for (final m in rows)
+        Transaction.fromMap({...m, 'category_name': catById[m['category_id']]?.name, 'category_color': catById[m['category_id']]?.color}),
+    ];
   }
 
   Future<int> insertTransaction({

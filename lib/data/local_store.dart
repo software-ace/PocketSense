@@ -526,8 +526,8 @@ class LocalStore {
 
   // ── Row access ────────────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> selectRows(String table, {String? where, List<Object?>? whereArgs}) =>
-      db.query(table, where: where, whereArgs: whereArgs);
+  Future<List<Map<String, dynamic>>> selectRows(String table, {String? where, List<Object?>? whereArgs, String? orderBy, int? limit}) =>
+      db.query(table, where: where, whereArgs: whereArgs, orderBy: orderBy, limit: limit);
 
   /// Writes that land together or not at all, made with the *In methods
   /// below. Listeners hear about them once, after.
