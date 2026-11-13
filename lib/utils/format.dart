@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:intl/intl.dart';
 import 'package:intl/number_symbols_data.dart' show currencyFractionDigits;
 
@@ -142,3 +144,8 @@ DateTime todayDate() {
   final n = DateTime.now();
   return DateTime(n.year, n.month, n.day);
 }
+
+/// A stored '#rrggbb' colour, opaque; null for anything else (a category can
+/// come from a peer, a backup or a CSV file).
+Color? parseHex(String? css) =>
+    css != null && RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(css) ? Color(int.parse(css.substring(1), radix: 16) | 0xFF000000) : null;

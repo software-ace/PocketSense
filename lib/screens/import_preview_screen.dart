@@ -258,7 +258,7 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
       CsvKind.categories => () {
           final type = r['type'].toLowerCase();
           final hex = r['color'];
-          final color = RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(hex) ? Color(int.parse('ff${hex.substring(1)}', radix: 16)) : null;
+          final color = parseHex(hex);
           return <Widget>[
             Text(r['name'].isEmpty ? '—' : r['name'], style: bold),
             Text(type == 'income' ? l.income : (type == 'expense' ? l.expense : (r['type'].isEmpty ? '—' : r['type']))),

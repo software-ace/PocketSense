@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../utils/format.dart';
 import 'csv_actions.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -72,11 +73,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
         _loading = false;
       });
     }
-  }
-
-  Color hex(String h) {
-    final s = h.startsWith('#') ? h.substring(1) : h;
-    return Color(int.parse('FF$s', radix: 16));
   }
 
   Future<void> _edit(Category? existing) async {
@@ -173,7 +169,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
       itemCount: _filtered.length,
       itemBuilder: (_, i) {
         final c = _filtered[i];
-        final color = hex(c.color);
+        final color = parseHex(c.color) ?? Theme.of(context).colorScheme.primary;
         return Card(
           margin: EdgeInsets.zero,
           child: InkWell(
@@ -216,7 +212,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
       itemCount: _filtered.length,
       itemBuilder: (_, i) {
         final c = _filtered[i];
-        final color = hex(c.color);
+        final color = parseHex(c.color) ?? Theme.of(context).colorScheme.primary;
         return Dismissible(
           key: ValueKey(c.id),
           direction: DismissDirection.endToStart,
@@ -326,7 +322,7 @@ class _CategoryDialogState extends State<_CategoryDialog> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Color(int.parse(sw.substring(1), radix: 16) | 0xFF000000),
+                    color: parseHex(sw),
                     shape: BoxShape.circle,
                     border: Border.all(color: _color == sw ? theme.colorScheme.onSurface : Colors.transparent, width: 2.5),
                   ),

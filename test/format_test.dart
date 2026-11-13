@@ -157,4 +157,11 @@ void main() {
       expect(formatDate(DateTime(2026, 10, 1)), '1 أكتوبر 2026');
     });
   });
+
+  test('parseHex reads #rrggbb as an opaque colour, and nothing else', () {
+    expect(parseHex('#22c55e'), const Color(0xFF22C55E));
+    for (final bad in [null, '', 'red', '22c55e', '#22c55', '#22c55e00', '#zzzzzz']) {
+      expect(parseHex(bad), isNull, reason: '$bad');
+    }
+  });
 }

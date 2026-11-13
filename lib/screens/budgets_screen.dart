@@ -125,7 +125,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                               itemBuilder: (_, i) {
                                 final p = _budgets[i];
                                 final b = p.budget;
-                                final color = _hex(b.categoryColor, theme.colorScheme.primary);
+                                final color = parseHex(b.categoryColor) ?? theme.colorScheme.primary;
                                 final spent = p.spentFils;
                                 final ratio = b.limitFils > 0 ? (spent / b.limitFils).clamp(0.0, 1.5) : 0.0;
                                 final over = spent > b.limitFils;
@@ -183,12 +183,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     );
   }
 
-  Color _hex(String? css, Color fallback) {
-    if (css != null && css.startsWith('#') && css.length >= 7) {
-      return Color(int.parse(css.substring(1, 7), radix: 16) | 0xFF000000);
-    }
-    return fallback;
-  }
+
 }
 
 // ── Dialog ────────────────────────────────────────────────────────────────

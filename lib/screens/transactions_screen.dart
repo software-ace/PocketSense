@@ -384,12 +384,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     );
   }
 
-  Color _catColor(Transaction t) {
-    if (t.categoryColor != null && t.categoryColor!.startsWith('#') && t.categoryColor!.length >= 7) {
-      return Color(int.parse('FF${t.categoryColor!.substring(1, 7)}', radix: 16));
-    }
-    return Theme.of(context).colorScheme.primary;
-  }
+  Color _catColor(Transaction t) => parseHex(t.categoryColor) ?? Theme.of(context).colorScheme.primary;
 
   Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing, {String? type}) async {
     final result = await showModalBottomSheet<_TxDraft>(

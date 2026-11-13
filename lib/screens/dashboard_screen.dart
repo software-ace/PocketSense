@@ -801,12 +801,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     );
   }
 
-  Color _hex(String? css) {
-    if (css != null && css.startsWith('#') && css.length >= 7) {
-      return Color(int.parse(css.substring(1, 7), radix: 16) | 0xFF000000);
-    }
-    return const Color(0xFF9CA3AF);
-  }
+  Color _hex(String? css) => parseHex(css) ?? const Color(0xFF9CA3AF);
 
   // `date` carries no time of day (formatting it always showed 00:00). Show the
   // entry time only when it was recorded on that same day; a back-dated entry's
