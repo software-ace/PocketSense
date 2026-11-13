@@ -2370,4 +2370,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String nextReminderIn(String time) {
     return 'تذكيرك القادم بعد: $time';
   }
+
+  @override
+  String get deleteTransferTitle => 'حذف هذا التحويل؟';
 }

@@ -2302,4 +2302,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String nextReminderIn(String time) {
     return 'Your next reminder in: $time';
   }
+
+  @override
+  String get deleteTransferTitle => 'Delete this transfer?';
 }

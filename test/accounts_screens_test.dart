@@ -95,4 +95,31 @@ void main() {
     expect(balances, {'Cash': 30000, 'Savings': 20000});
     expect((await tester.runAsync(() => repo.totals(DateTime(2000), DateTime(2100))))!.income, 50000);
   });
+
+  testWidgets('deleting a transfer asks first: Cancel keeps it', (tester) async {
+    final cash = await cashId(tester);
+    final transfer = (await tester.runAsync(() async {
+      final savings = await repo.insertAccount(name: 'Savings', kind: 'savings');
+      final id = await repo.insertTransfer(fromId: cash, toId: savings, amountFils: 20000, date: day);
+      return (await repo.transfers()).firstWhere((t) => t.id == id);
+    }))!;
+    await pumpScreenWithDb(tester, Scaffold(body: Builder(builder: (c) => TextButton(onPressed: () => showTransferSheet(c, existing: transfer), child: const Text('open')))));
+    Future<int> count() async => (await tester.runAsync(() => repo.transfers()))!.length;
+
+    await tester.tap(find.text('open'));
+    await settleWithDb(tester);
+    await tester.tap(find.text('Delete transfer'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete this transfer?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await settleWithDb(tester);
+    expect(await count(), 1);
+
+    await tester.tap(find.text('Delete transfer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await settleWithDb(tester);
+    expect(await count(), 0);
+    expect(find.text('Delete transfer'), findsNothing, reason: 'the sheet closed');
+  });
 }

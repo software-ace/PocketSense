@@ -577,5 +577,6 @@
   "countdownMinutes": "{count, plural, =1{دقيقة واحدة} =2{دقيقتان} few{{count} دقائق} many{{count} دقيقة} other{{count} دقيقة}}",
   "countdownSeconds": "{count, plural, =1{ثانية واحدة} =2{ثانيتان} few{{count} ثوانٍ} many{{count} ثانية} other{{count} ثانية}}",
   "countdownSeparator": "، ",
-  "nextReminderIn": "تذكيرك القادم بعد: {time}"
+  "nextReminderIn": "تذكيرك القادم بعد: {time}",
+  "deleteTransferTitle": "حذف هذا التحويل؟"
 }

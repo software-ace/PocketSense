@@ -3565,6 +3565,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your next reminder in: {time}'**
   String nextReminderIn(String time);
+
+  /// No description provided for @deleteTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this transfer?'**
+  String get deleteTransferTitle;
 }
 
 class _AppLocalizationsDelegate

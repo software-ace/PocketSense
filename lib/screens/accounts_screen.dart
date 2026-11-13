@@ -319,6 +319,31 @@ class _TransferSheetState extends State<_TransferSheet> {
 
   Account? _account(int? id) => widget.accounts.where((a) => a.id == id).firstOrNull;
 
+  /// Asks first, like every other delete; a failure says why.
+  Future<void> _delete(Transfer t) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(c.l10n.deleteTransferTitle),
+        content: Text(formatMoney(t.amountFils)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(c.l10n.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(c.l10n.delete)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _saving = true);
+    try {
+      await FinanceRepo().deleteTransfer(t.id);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
+    }
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     if (!_formKey.currentState!.validate() || _from == null || _to == null || _from == _to) {
@@ -432,10 +457,7 @@ class _TransferSheetState extends State<_TransferSheet> {
               FilledButton(onPressed: _saving ? null : _save, child: Text(l.save)),
               if (old != null)
                 TextButton(
-                  onPressed: () async {
-                    await FinanceRepo().deleteTransfer(old.id);
-                    if (context.mounted) Navigator.pop(context);
-                  },
+                  onPressed: _saving ? null : () => _delete(old),
                   style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
                   child: Text(l.deleteTransfer),
                 ),
