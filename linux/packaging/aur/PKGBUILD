@@ -2,7 +2,7 @@
 # Repackages the release .deb, so the files and paths match the .deb/.rpm
 # (linux/packaging/nfpm.yaml). Bump pkgver and sha256sums each release.
 pkgname=pocket-sense-bin
-pkgver=2.5.0
+pkgver=2.6.0
 pkgrel=1
 pkgdesc='Offline, encrypted personal finance tracker, in English and Arabic'
 arch=('x86_64')
@@ -16,7 +16,7 @@ conflicts=('pocket-sense')
 # Prebuilt Flutter engine and Dart AOT snapshot: stripping can break them.
 options=('!strip' '!debug')
 source=("$url/releases/download/v$pkgver/PocketSense-v$pkgver-linux-x64.deb")
-sha256sums=('dff637c2d4905b2cdf0563299bc2f36571ae1da4b580c17061d7f8f9fbd3dc95')
+sha256sums=('c90452732268dad9a01f6499a51bfb2a4fe008d2dd7698336d4b2a2c71213458')
 
 package() {
   bsdtar -xf data.tar.gz -C "$pkgdir"
