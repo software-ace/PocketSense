@@ -79,7 +79,8 @@ abstract final class CsvFiles {
   static String _iso(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  static DateTime? _date(String s) {
+  /// [s] as a date if it's exactly yyyy-MM-dd and a real day, else null.
+  static DateTime? parseDate(String s) {
     if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(s)) return null;
     final d = DateTime.tryParse(s);
     // DateTime.parse rolls 2026-02-30 over into March; that's a typo, not a date.
@@ -153,7 +154,7 @@ abstract final class CsvFiles {
         () {
           final type = r['type']!.toLowerCase();
           final fils = parseAmount(r['amount']!);
-          final problem = _date(r['date']!) == null
+          final problem = parseDate(r['date']!) == null
               ? 'date'
               : !_types.contains(type)
                   ? 'type'

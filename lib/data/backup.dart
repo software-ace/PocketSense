@@ -7,6 +7,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart' show ConflictAlgorithm;
 
 import '../security/pbkdf2.dart';
 import '../utils/format.dart';
+import 'csv_files.dart';
 import 'db_key.dart';
 import 'local_store.dart';
 
@@ -133,6 +134,14 @@ class Backup {
     }
     for (final c in _intColumns) {
       if (r[c] != null && r[c] is! int) throw BackupException(BackupProblem.badData, '$table: $c is not a whole number');
+    }
+    // As the app writes them. A hand-edited "1/9/2026" would import, then
+    // make every list of entries fail to load.
+    for (final c in const ['date', 'anchor_date', 'due_date', 'start_date']) {
+      final v = r[c];
+      if (v != null && (v is! String || CsvFiles.parseDate(v) == null)) {
+        throw BackupException(BackupProblem.badData, '$table: $c $v is not a yyyy-MM-dd date');
+      }
     }
     final type = r['type'];
     if (type != null && type != 'income' && type != 'expense') throw BackupException(BackupProblem.badData, '$table: type $type');

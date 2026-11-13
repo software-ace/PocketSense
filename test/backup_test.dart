@@ -206,6 +206,18 @@ void main() {
     expect(await uids(), isNot(contains('default:circlePayouts')), reason: 'deleted here before the restore');
   });
 
+  test('refuses dates the app never writes, before touching anything', () async {
+    await seed();
+    final before = await Backup.export(store, now: DateTime.utc(2026));
+    for (final date in ['1/9/2026', '2026-09-01T10:00', '2026-02-30', 20260901]) {
+      final doc = decode(before);
+      ((doc['tables'] as Map)['transactions'] as List).first['date'] = date;
+      await expectLater(Backup.import(store, jsonEncode(doc)),
+          throwsA(isA<BackupException>().having((e) => e.problem, 'problem', BackupProblem.badData)), reason: '$date');
+    }
+    expect(await Backup.export(store, now: DateTime.utc(2026)), before, reason: 'the data is untouched');
+  });
+
   group('encrypted', () {
     // Few iterations keep the test fast; the format records the count.
     Future<String> encrypt(String json, String password) => Backup.encrypt(json, password, iterations: 1000);
