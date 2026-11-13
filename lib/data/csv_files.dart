@@ -153,7 +153,9 @@ abstract final class CsvFiles {
       for (final (i, r) in rows.indexed)
         () {
           final type = r['type']!.toLowerCase();
-          final fils = parseAmount(r['amount']!);
+          // Export writes what's stored, up to 3 decimals whatever the currency
+          // (12.345 typed in JOD, then switched to USD): it must read back.
+          final fils = parseAmount(r['amount']!, decimals: 3);
           final problem = parseDate(r['date']!) == null
               ? 'date'
               : !_types.contains(type)

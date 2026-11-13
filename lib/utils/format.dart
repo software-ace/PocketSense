@@ -113,12 +113,13 @@ String latinDigits(String input) {
 /// or Arabic-Indic digits, `.` or `٫` as the decimal point, and thousands
 /// separators. Returns null for anything else, including more decimals than
 /// the currency has, and a comma that isn't between thousands: `12,5` is a
-/// decimal comma, which would otherwise read as 125.
-int? parseAmount(String input) {
+/// decimal comma, which would otherwise read as 125. [decimals] overrides
+/// the currency's (a file can hold what was typed in another currency).
+int? parseAmount(String input, {int? decimals}) {
   final b = latinDigits(input);
   // A thousands separator follows a digit and comes before exactly three.
   if (b.contains(RegExp(r'(?<!\d),|,(?!\d{3}(?:[,.]|$))'))) return null;
-  final m = RegExp('^(\\d*)(?:\\.(\\d{0,${appCurrency.decimals}}))?\$').firstMatch(b.replaceAll(',', ''));
+  final m = RegExp('^(\\d*)(?:\\.(\\d{0,${decimals ?? appCurrency.decimals}}))?\$').firstMatch(b.replaceAll(',', ''));
   if (m == null || (m.group(1)!.isEmpty && (m.group(2) ?? '').isEmpty)) return null;
   final whole = m.group(1)!.isEmpty ? 0 : int.parse(m.group(1)!);
   final frac = int.parse((m.group(2) ?? '').padRight(3, '0'));

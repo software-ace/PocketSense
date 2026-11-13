@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/csv_files.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
+import 'package:pocket_sense/utils/format.dart';
 import 'package:pocket_sense/screens/categories_screen.dart';
 import 'package:pocket_sense/screens/import_preview_screen.dart';
 import 'package:pocket_sense/screens/merchants_screen.dart';
@@ -65,6 +66,17 @@ void main() {
       final lunch = (await repo.transactions()).firstWhere((t) => t.type == 'expense');
       expect([lunch.description, lunch.merchant, lunch.categoryName, lunch.amountFils], ['Lunch, with "Sam"', 'Reem', food.name, 3500]);
       expect((await repo.merchants()).map((m) => m.name), ['Reem'], reason: 'a new merchant is saved to the list');
+    });
+
+    test('an amount typed in one currency reads back after switching to one with fewer decimals', () async {
+      await repo.insertTransaction(amountFils: 12345, type: 'expense', date: DateTime(2026, 11, 2), description: 'Fuel'); // 12.345 in JOD
+      final csv = await CsvFiles.export(CsvKind.transactions);
+      final was = appCurrency;
+      appCurrency = Currency.byCode('USD')!; // 2 decimals
+      addTearDown(() => appCurrency = was);
+      LocalStore.overrideInstanceForTest(await LocalStore.openInMemoryForTest(seed: true));
+      expect((await importText(csv)).rejected, 0);
+      expect((await repo.transactions()).single.amountFils, 12345);
     });
 
     test('the preview writes nothing; importing twice adds nothing, and two identical entries in one file both stay', () async {
