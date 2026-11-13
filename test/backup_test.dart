@@ -64,14 +64,20 @@ void main() {
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 15, merchants: 37, loans: 4, circles: 0, transactions: 690, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    expect(summary, (categories: 17, merchants: 37, loans: 4, circles: 2, transactions: 699, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
     // Ahmad 70 and Lina 40 owe you; you owe Omar 125; Sara is settled.
     expect(loanTotals(await repo.loans()), (owedToYou: 110000, youOwe: 125000));
+    // Family circle: 6 rounds paid, payout of 1,000 taken in round 3, so you
+    // owe it 400. Office circle: 2 paid, turn 10 in June, so it owes you 100.
+    final circles = {for (final c in await repo.circles()) c.name: c};
+    expect((circles['Family circle']!.positionFils, circles['Office circle']!.positionFils), (400000, -100000));
+    expect(circleTotals(circles.values), (owedToYou: 100000, youOwe: 400000));
     // Cash topped up at the ATM, the card paid off on the 25th (so it owes
-    // since Oct 25), and JOD 200 saved each payday.
+    // since Oct 25), and JOD 200 saved each payday. The circles go through
+    // Arab Bank: 1,000 in, 700 out.
     expect([for (final a in await repo.accounts()) (a.name, a.balanceFils)], [
       ('Cash', 109600),
-      ('Arab Bank', 965090),
+      ('Arab Bank', 1265090),
       ('Savings', 5600000),
       ('Visa card', -113490),
     ]);

@@ -19,9 +19,9 @@ There is no sign-up and no server. Your data stays in an encrypted database on y
 
 ![Further down Home: income vs spending over 6 months, this month against last, and spending by weekday](docs/screenshots/desktop-charts.png)
 
-| Home | Accounts | Charts | Loans | Activity | New entry | Budgets | Recurring |
-|---|---|---|---|---|---|---|---|
-| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Accounts: cash, bank, savings and a card, with the total](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_accounts.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Loans: what's owed to you and what you owe, per person](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_loans.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
+| Home | Accounts | Charts | Loans | Savings circles | Activity | New entry | Budgets | Recurring |
+|---|---|---|---|---|---|---|---|---|
+| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Accounts: cash, bank, savings and a card, with the total](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_accounts.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Loans: what's owed to you and what you owe, per person](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_loans.png) | ![A savings circle: the payout, where you stand, the countdown to its reminder and the schedule](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_circle.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
 
 <details>
 <summary>More: sync, the quick add widget, Arabic, and the desktop layout</summary>
@@ -34,13 +34,15 @@ There is no sign-up and no server. Your data stays in an encrypted database on y
 |---|---|
 | ![The quick add widget on the home screen: Expense, Income and voice buttons](fastlane/metadata/android/en-US/images/phoneScreenshots/9_widget.png) | ![The app icon's shortcuts: add expense, add income, add by voice](fastlane/metadata/android/en-US/images/phoneScreenshots/9_widget_shortcuts.png) |
 
-| الرئيسية | المخططات | الديون | الحركات | الميزانيات | الإعدادات |
-|---|---|---|---|---|---|
-| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Loans in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_loans.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
+| الرئيسية | المخططات | الديون | الجمعيات | الحركات | الميزانيات | الإعدادات |
+|---|---|---|---|---|---|---|
+| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Loans in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_loans.png) | ![Savings circles in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_circles.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
 
 ![Home on the desktop, in Arabic](docs/screenshots/desktop-home-ar.png)
 ![Accounts on the desktop](docs/screenshots/desktop-accounts.png)
 ![Loans on the desktop](docs/screenshots/desktop-loans.png)
+![Savings circles on the desktop](docs/screenshots/desktop-circles.png)
+![A savings circle on the desktop](docs/screenshots/desktop-circle.png)
 ![Activity on the desktop](docs/screenshots/desktop-activity.png)
 ![Budgets on the desktop](docs/screenshots/desktop-budgets.png)
 ![Recurring on the desktop](docs/screenshots/desktop-recurring.png)

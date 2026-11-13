@@ -1,6 +1,6 @@
 {
   "format": "pocketsense-backup",
-  "version": 3,
+  "version": 4,
   "exported_at": "2026-11-08T18:00:00.000Z",
   "currency": "JOD",
   "tables": {
@@ -109,6 +109,20 @@
         "type": "income",
         "color": "#65a30d",
         "uid": "default:loansReceived"
+      },
+      {
+        "id": 16,
+        "name": "Circle Payments",
+        "type": "expense",
+        "color": "#2563eb",
+        "uid": "default:circlePayments"
+      },
+      {
+        "id": 17,
+        "name": "Circle Payouts",
+        "type": "income",
+        "color": "#059669",
+        "uid": "default:circlePayouts"
       }
     ],
     "merchants": [
@@ -338,6 +352,34 @@
         "uid": "f54d1452064d868e199a0c9911dd3381",
         "due_time": null,
         "reminder_days": null
+      }
+    ],
+    "circles": [
+      {
+        "id": 1,
+        "name": "Family circle",
+        "contribution_fils": 100000,
+        "rounds": 10,
+        "frequency": "monthly",
+        "start_date": "2026-06-01",
+        "payout_round": 3,
+        "note": null,
+        "due_time": 1080,
+        "reminder_days": 1,
+        "uid": "82ff462697cbe221079c9fac53727fa1"
+      },
+      {
+        "id": 2,
+        "name": "Office circle",
+        "contribution_fils": 50000,
+        "rounds": 12,
+        "frequency": "monthly",
+        "start_date": "2026-09-15",
+        "payout_round": 10,
+        "note": "Payout in June, before the summer trip",
+        "due_time": 540,
+        "reminder_days": 1,
+        "uid": "1bc7ab83f72192c54f5ec72b68286b50"
       }
     ],
     "transactions": [
@@ -8627,6 +8669,123 @@
         "created_at": "2026-11-07T18:30:00Z",
         "uid": "2d6e13567dd399819e6a0afdc20793cb",
         "id": 690,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 100000,
+        "type": "expense",
+        "date": "2026-06-01",
+        "description": "Payment to Family circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-06-01T10:15:00Z",
+        "uid": "f0573d5eb3c19b51c633ddcb5f2d027b",
+        "id": 691,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 100000,
+        "type": "expense",
+        "date": "2026-07-01",
+        "description": "Payment to Family circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-07-01T10:15:00Z",
+        "uid": "cb4f6fe9885ccf59075ac0cb98c6053d",
+        "id": 692,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 100000,
+        "type": "expense",
+        "date": "2026-08-01",
+        "description": "Payment to Family circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-08-01T10:15:00Z",
+        "uid": "ef82bb542864acf4f05606689a0e31fc",
+        "id": 693,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 100000,
+        "type": "expense",
+        "date": "2026-09-01",
+        "description": "Payment to Family circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-09-01T10:15:00Z",
+        "uid": "d924bb818a98a33b1cba6400444e7634",
+        "id": 694,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 100000,
+        "type": "expense",
+        "date": "2026-10-01",
+        "description": "Payment to Family circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-10-01T10:15:00Z",
+        "uid": "b0f6bab64fa4327450920e179580ed64",
+        "id": 695,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 100000,
+        "type": "expense",
+        "date": "2026-11-01",
+        "description": "Payment to Family circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-11-01T10:15:00Z",
+        "uid": "13fcfd277687ee7d75dd59d4359d3e9a",
+        "id": 696,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 1000000,
+        "type": "income",
+        "date": "2026-08-01",
+        "description": "Payout from Family circle",
+        "merchant": null,
+        "category_id": 17,
+        "created_at": "2026-08-01T16:40:00Z",
+        "uid": "2f04bc1afec2bfff0cf20877dee6518c",
+        "id": 697,
+        "circle_id": 1,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 50000,
+        "type": "expense",
+        "date": "2026-09-15",
+        "description": "Payment to Office circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-09-15T10:15:00Z",
+        "uid": "e47de0654a45bc8b9b257e01b62dbca7",
+        "id": 698,
+        "circle_id": 2,
+        "account_id": 2
+      },
+      {
+        "amount_fils": 50000,
+        "type": "expense",
+        "date": "2026-10-15",
+        "description": "Payment to Office circle",
+        "merchant": null,
+        "category_id": 16,
+        "created_at": "2026-10-15T10:15:00Z",
+        "uid": "883c2456445dcf15cc8ec51844a7ffff",
+        "id": 699,
+        "circle_id": 2,
         "account_id": 2
       }
     ],

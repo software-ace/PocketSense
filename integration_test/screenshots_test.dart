@@ -17,6 +17,7 @@ import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/l10n/l10n.dart';
 import 'package:pocket_sense/main.dart' show appTheme;
 import 'package:pocket_sense/screens/accounts_screen.dart';
+import 'package:pocket_sense/screens/circles_screen.dart';
 import 'package:pocket_sense/screens/dashboard_screen.dart';
 import 'package:pocket_sense/screens/loans_screen.dart';
 import 'package:pocket_sense/screens/settings_screen.dart';
@@ -109,6 +110,28 @@ void main() {
     await tester.tap(card);
     await shot(tester, path);
     Navigator.of(tester.element(find.byType(LoansScreen))).pop();
+    await tester.pumpAndSettle();
+    await scrollToTop(tester);
+  }
+
+  // A savings circle's page, opened from the list: where you stand, the
+  // countdown to its reminder and its schedule.
+  Future<void> circleShot(WidgetTester tester, String path) async {
+    await tester.tap(find.text('Family circle'));
+    await shot(tester, path);
+    Navigator.of(tester.element(find.byType(CircleScreen))).pop();
+    await tester.pumpAndSettle();
+  }
+
+  // Savings circles, opened from its card on Home (under Loans), then one
+  // circle.
+  Future<void> circlesShots(WidgetTester tester, String listPath, String circlePath) async {
+    final card = find.descendant(of: find.byType(DashboardScreen), matching: find.byIcon(Icons.groups_outlined));
+    await scrollHomeTo(tester, card);
+    await tester.tap(card);
+    await shot(tester, listPath);
+    await circleShot(tester, circlePath);
+    Navigator.of(tester.element(find.byType(CirclesScreen))).pop();
     await tester.pumpAndSettle();
     await scrollToTop(tester);
   }
@@ -223,6 +246,7 @@ void main() {
         await scrollToTop(tester);
         await accountsShot(tester, '$dir/1_home_accounts.png');
         await loansShot(tester, '$dir/1_home_loans.png');
+        await circlesShots(tester, '$dir/1_home_circles.png', '$dir/1_home_circle.png');
         await tab(tester, (l) => l.navActivity);
         await shot(tester, '$dir/2_activity.png');
         await tester.tap(find.descendant(of: find.byType(TransactionsScreen), matching: find.byIcon(Icons.add)).first);
@@ -251,6 +275,9 @@ void main() {
       await shot(tester, '$dir/desktop-accounts.png');
       await tab(tester, (l) => l.loans);
       await shot(tester, '$dir/desktop-loans.png');
+      await tab(tester, (l) => l.circles);
+      await shot(tester, '$dir/desktop-circles.png');
+      await circleShot(tester, '$dir/desktop-circle.png');
       await tab(tester, (l) => l.navActivity);
       await shot(tester, '$dir/desktop-activity.png');
       await tab(tester, (l) => l.navBudgets);
