@@ -189,6 +189,22 @@ class Backup {
       final columns = {for (final c in await store.db.rawQuery('PRAGMA table_info($t)')) c['name'] as String};
       rows[t] = [for (final r in list) _row(t, r, columns)];
     }
+    // Starter categories newer than the file (loans: v2, circles: v4) are
+    // missing from it because it predates them, not because they were
+    // deleted: they stay, as on upgrade. One deleted here stays deleted.
+    final newer = [if (v < 2) ...LocalStore.loanCategoryKeys, if (v < 4) ...LocalStore.circleCategoryKeys];
+    if (newer.isNotEmpty) {
+      final cats = rows['categories']!;
+      final uids = {for (final c in cats) c['uid']};
+      final names = {for (final c in cats) (c['name'] as String).toLowerCase()};
+      var id = cats.fold<int>(0, (m, c) => max(m, c['id'] as int));
+      for (final c in await store.db.query('categories',
+          where: 'uid IN (${List.filled(newer.length, '?').join(', ')})', whereArgs: [for (final k in newer) 'default:$k'])) {
+        // Skipped like on upgrade if the file has a category of that name.
+        if (uids.contains(c['uid']) || names.contains((c['name'] as String).toLowerCase())) continue;
+        cats.add({'id': ++id, 'name': c['name'], 'type': c['type'], 'color': c['color'], 'uid': c['uid']});
+      }
+    }
     // Before accounts: everything goes into one Cash account (keeping the
     // name it has here), as on upgrade.
     if (rows['accounts']!.isEmpty) {

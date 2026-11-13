@@ -175,6 +175,37 @@ void main() {
     expect((await repo.categories()).single.name, 'Food');
   });
 
+  test('an older backup keeps the starter categories newer than it, unless they were deleted here', () async {
+    var seeded = await LocalStore.openInMemoryForTest(seed: true);
+    String file(int version) => jsonEncode({
+          'format': 'pocketsense-backup',
+          'version': version,
+          'currency': 'JOD',
+          'tables': {
+            'categories': [
+              {'id': 1, 'name': 'Food', 'type': 'expense', 'color': '#000000', 'uid': 'food'},
+              if (version >= 2) {'id': 2, 'name': 'Loans Paid', 'type': 'expense', 'color': '#d946ef', 'uid': 'default:loansPaid'},
+            ],
+          },
+        });
+    Future<Set<Object?>> uids() async => {for (final c in await seeded.db.query('categories')) c['uid']};
+
+    await Backup.import(seeded, file(3));
+    expect(await uids(), {'food', 'default:loansPaid', 'default:circlePayments', 'default:circlePayouts'});
+    final tombstoned = {for (final t in await seeded.db.query('tombstones')) t['uid']};
+    expect(tombstoned.intersection({'default:circlePayments', 'default:circlePayouts'}), isEmpty, reason: 'peers keep them too');
+
+    seeded = await LocalStore.openInMemoryForTest(seed: true);
+    await Backup.import(seeded, file(1));
+    expect(await uids(), containsAll(['default:loansPaid', 'default:loansReceived', 'default:circlePayouts']), reason: 'v1 predates loans too');
+
+    seeded = await LocalStore.openInMemoryForTest(seed: true);
+    final id = (await seeded.db.query('categories', where: 'uid = ?', whereArgs: ['default:circlePayouts'])).single['id'] as int;
+    await seeded.deleteRow('categories', id);
+    await Backup.import(seeded, file(3));
+    expect(await uids(), isNot(contains('default:circlePayouts')), reason: 'deleted here before the restore');
+  });
+
   group('encrypted', () {
     // Few iterations keep the test fast; the format records the count.
     Future<String> encrypt(String json, String password) => Backup.encrypt(json, password, iterations: 1000);
