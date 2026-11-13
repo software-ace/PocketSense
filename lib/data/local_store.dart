@@ -350,7 +350,11 @@ class LocalStore {
   static Future<void> _upgradeToV2(sq.Database db, Map<String, Set<String>> starterNames) async {
     final node = randomHex(8);
     final hlc = _formatHlc(DateTime.now().millisecondsSinceEpoch, 0, node);
-    for (final t in _tablesBeforeV4) {
+    // A v1 database has no merchants yet: v3 creates that table, with these
+    // columns already.
+    final have = {for (final r in await db.rawQuery("SELECT name FROM sqlite_master WHERE type = 'table'")) r['name']};
+    final tables = _tablesBeforeV4.where(have.contains).toList();
+    for (final t in tables) {
       await db.execute('ALTER TABLE $t ADD COLUMN uid TEXT');
       await db.execute('ALTER TABLE $t ADD COLUMN hlc TEXT');
       await db.execute('ALTER TABLE $t ADD COLUMN seq INTEGER');
@@ -366,7 +370,7 @@ class LocalStore {
       // real rename or delete anywhere must outrank one made later.
       await db.update('categories', {'uid': 'default:$key', 'hlc': _formatHlc(0, 0, node)}, where: 'id = ?', whereArgs: [c['id']]);
     }
-    for (final t in _tablesBeforeV4) {
+    for (final t in tables) {
       await db.execute('CREATE UNIQUE INDEX idx_${t}_uid ON $t(uid)');
       await db.execute('CREATE INDEX idx_${t}_seq ON $t(seq)');
     }
