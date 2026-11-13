@@ -151,7 +151,8 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
         child: DataTable(
           headingRowHeight: 44,
           dataRowMinHeight: 52,
-          dataRowMaxHeight: 60,
+          // Room for a countdown that wraps under the description.
+          dataRowMaxHeight: 76,
           columns: [
             DataColumn(label: Text(l.description)),
             DataColumn(label: Text(l.frequency)),
@@ -168,7 +169,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             return DataRow(cells: [
               DataCell(Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                ReminderCountdown(item: r, compact: true),
+                ReminderCountdown(item: r, inTable: true),
               ])),
               DataCell(Text(formatFrequency(l, r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
