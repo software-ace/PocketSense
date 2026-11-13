@@ -21,11 +21,6 @@ import 'sync_screen.dart';
 String Function(String type, String name) circleDescriber(AppLocalizations l) =>
     (type, name) => type == 'expense' ? l.circlePaymentTo(name) : l.circlePayoutFrom(name);
 
-DateTime _today() {
-  final n = DateTime.now();
-  return DateTime(n.year, n.month, n.day);
-}
-
 /// Shows the new-circle sheet and saves what it returns.
 Future<void> addCircle(BuildContext context) async {
   final d = await showModalBottomSheet<_CircleDraft>(context: context, isScrollControlled: true, builder: (_) => const _CircleFormSheet());
@@ -142,7 +137,7 @@ class _CirclesScreenState extends State<CirclesScreen> with DataAware {
     final l = context.l10n;
     final theme = Theme.of(context);
     final next = c.nextRound;
-    final overdue = c.overdue(_today());
+    final overdue = c.overdue(todayDate());
     return ListTile(
       contentPadding: EdgeInsets.zero,
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleScreen(circleId: c.id))),
@@ -294,7 +289,7 @@ class _CircleScreenState extends State<CircleScreen> with DataAware {
       );
     }
     final pad = PlatformUi.hPadding(context);
-    final today = _today();
+    final today = todayDate();
     final next = c.nextRound;
     final overdue = c.overdue(today);
     final muted = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline);
@@ -423,7 +418,7 @@ class _CircleFormSheetState extends State<_CircleFormSheet> {
   late final _turnCtrl = TextEditingController(text: '${_c?.payoutRound ?? 1}');
   late final _noteCtrl = TextEditingController(text: _c?.note ?? '');
   late String _frequency = _c?.frequency ?? 'monthly';
-  late DateTime _start = _c?.startDate ?? _today();
+  late DateTime _start = _c?.startDate ?? todayDate();
   late int? _reminderDays = _c?.reminderDays;
   late int _dueMinutes = _c?.dueMinutes ?? defaultReminderMinutes;
   final _formKey = GlobalKey<FormState>();

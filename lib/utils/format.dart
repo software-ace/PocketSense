@@ -136,3 +136,9 @@ String amountToInput(int fils) {
 // A skeleton, not a fixed pattern: day/month order and punctuation follow
 // the locale (Arabic reads "1 أكتوبر 2026", not "أكتوبر 1, 2026").
 String formatDate(DateTime d) => DateFormat.yMMMd().format(d);
+
+/// Today at midnight, local time.
+DateTime todayDate() {
+  final n = DateTime.now();
+  return DateTime(n.year, n.month, n.day);
+}

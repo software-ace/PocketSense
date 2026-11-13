@@ -16,6 +16,7 @@ import '../widgets/data_aware.dart';
 import '../widgets/merchant_field.dart';
 import '../utils/voice_parser.dart';
 import '../widgets/voice_entry_sheet.dart';
+import 'loans_screen.dart' show DateField;
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -502,35 +503,11 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late String _type = widget.existing?.type ?? widget.voice?.type ?? widget.type ?? 'expense';
   late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
   late int? _accountId = widget.existing?.accountId ?? widget.accountId;
-  late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
+  late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? todayDate();
   List<dynamic> _cats = [];
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
   var _autovalidate = AutovalidateMode.disabled;
-
-  static DateTime _today() {
-    final n = DateTime.now();
-    return DateTime(n.year, n.month, n.day);
-  }
-
-  Future<void> _pickDate() async {
-    final today = _today();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2000),
-      // A little ahead, for bills you already know are coming.
-      lastDate: DateTime(today.year + 1, today.month, today.day),
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  String _dateLabel() {
-    final diff = _date.difference(_today()).inDays;
-    final day = DateFormat.yMMMEd().format(_date);
-    final l = context.l10n;
-    return switch (diff) { 0 => l.dateToday(day), -1 => l.dateYesterday(day), _ => day };
-  }
 
   @override
   void initState() {
@@ -586,13 +563,15 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 16),
           AmountField(controller: _amtCtrl, label: l.amount),
           const SizedBox(height: 12),
-          InkWell(
-            onTap: _pickDate,
-            borderRadius: BorderRadius.circular(4),
-            child: InputDecorator(
-              decoration: InputDecoration(labelText: l.date, suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18)),
-              child: Text(_dateLabel()),
-            ),
+          DateField(
+            label: l.date,
+            value: _date,
+            onPicked: (d) => setState(() => _date = d),
+            // A little ahead, for bills you already know are coming.
+            lastDate: () {
+              final t = todayDate();
+              return DateTime(t.year + 1, t.month, t.day);
+            }(),
           ),
           const SizedBox(height: 12),
           TextField(controller: _descCtrl, decoration: InputDecoration(labelText: l.descriptionOptional)),

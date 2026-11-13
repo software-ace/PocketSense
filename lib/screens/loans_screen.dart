@@ -34,11 +34,6 @@ List<({String name, List<Loan> loans, int net})> loansByPerson(List<Loan> loans)
   ];
 }
 
-DateTime _today() {
-  final n = DateTime.now();
-  return DateTime(n.year, n.month, n.day);
-}
-
 /// Shows the new-loan sheet and saves what it returns.
 Future<void> addLoan(BuildContext context, {String? person}) async {
   final draft = await showModalBottomSheet<_LoanDraft>(
@@ -158,7 +153,7 @@ class _LoansScreenState extends State<LoansScreen> with DataAware {
   Widget _personTile(BuildContext context, ({String name, List<Loan> loans, int net}) p) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final today = _today();
+    final today = todayDate();
     // The soonest due date among open loans; an overdue one shows first.
     final due = p.loans.where((x) => x.open && x.dueDate != null).map((x) => x.dueDate!).fold<DateTime?>(
         null, (a, b) => a == null || b.isBefore(a) ? b : a);
@@ -308,7 +303,7 @@ class _LoanCard extends StatelessWidget {
     final l = context.l10n;
     final theme = Theme.of(context);
     final quiet = loan.open ? null : theme.colorScheme.outline;
-    final overdue = loan.overdue(_today());
+    final overdue = loan.overdue(todayDate());
     final date = loan.date;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -459,7 +454,7 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
     );
     if (ok != true || !mounted) return;
     try {
-      await _repo.recordRepayment(loan.id, date: _today(), description: loanDescriber(l)(loan.repaymentType, loan.person));
+      await _repo.recordRepayment(loan.id, date: todayDate(), description: loanDescriber(l)(loan.repaymentType, loan.person));
     } catch (e) {
       if (mounted) _toast(l.addFailed('$e'));
     }
@@ -523,7 +518,7 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
     }
     final pad = PlatformUi.hPadding(context);
     final repayments = _entries.where((t) => t.type == loan.repaymentType).toList();
-    final overdue = loan.overdue(_today());
+    final overdue = loan.overdue(todayDate());
     final dates = [
       if (loan.date != null) DateFormat.yMMMd().format(loan.date!),
       if (loan.dueDate != null) l.dueOn(formatDate(loan.dueDate!)),
@@ -587,16 +582,19 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
 
 /// A date field: shows [value] and opens a date picker when tapped.
 class DateField extends StatelessWidget {
-  const DateField({super.key, required this.label, required this.value, required this.onPicked, this.onCleared});
+  const DateField({super.key, required this.label, required this.value, required this.onPicked, this.onCleared, this.lastDate});
   final String label;
   final DateTime? value;
   final ValueChanged<DateTime> onPicked;
   final VoidCallback? onCleared;
 
+  /// The latest date offered; 10 years ahead when not given.
+  final DateTime? lastDate;
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final today = _today();
+    final today = todayDate();
     final v = value;
     String text() {
       final day = DateFormat.yMMMEd().format(v!);
@@ -606,8 +604,14 @@ class DateField extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(4),
       onTap: () async {
+        // Widened to take in the date shown: an imported one from 1999 would
+        // otherwise trip the picker's own range check.
+        final initial = v ?? today, first = DateTime(2000), last = lastDate ?? DateTime(today.year + 10, 12, 31);
         final picked = await showDatePicker(
-            context: context, initialDate: v ?? today, firstDate: DateTime(2000), lastDate: DateTime(today.year + 10, 12, 31));
+            context: context,
+            initialDate: initial,
+            firstDate: initial.isBefore(first) ? initial : first,
+            lastDate: initial.isAfter(last) ? initial : last);
         if (picked != null) onPicked(picked);
       },
       child: InputDecorator(
@@ -651,7 +655,7 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
   late final _personCtrl = TextEditingController(text: widget.existing?.person ?? widget.person ?? '');
   late final _amountCtrl = TextEditingController(text: widget.existing == null ? '' : amountToInput(widget.existing!.amountFils));
   late final _noteCtrl = TextEditingController(text: widget.existing?.note ?? '');
-  late DateTime _date = widget.existing?.date ?? _today();
+  late DateTime _date = widget.existing?.date ?? todayDate();
   late DateTime? _due = widget.existing?.dueDate;
   late int? _reminderDays = widget.existing?.reminderDays;
   // Its reminder rings at this time on its day.
@@ -789,7 +793,7 @@ class _AmountDateSheetState extends State<AmountDateSheet> {
   // Selected, so typing another amount replaces it.
   late final _amountCtrl = TextEditingController(text: amountToInput(widget.initialFils))
     ..selection = TextSelection(baseOffset: 0, extentOffset: amountToInput(widget.initialFils).length);
-  DateTime _date = _today();
+  DateTime _date = todayDate();
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
 
