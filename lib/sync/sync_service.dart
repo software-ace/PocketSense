@@ -277,6 +277,10 @@ class SyncService {
     ];
     if (targets.isEmpty) return _setState(peer.id, PeerState.unreachable);
     _setState(peer.id, PeerState.syncing);
+    // What went wrong where, if every address fails. Not paired or failed
+    // at the address discovery gave can be someone on the Wi-Fi posing as
+    // the peer: the last known address is still tried.
+    PeerState? problem;
     for (final (address, port) in targets) {
       try {
         final n = await node.syncWith(peer, address, port);
@@ -292,15 +296,17 @@ class SyncService {
           case SyncProblem.otherCurrency:
             return _setState(peer.id, PeerState.otherCurrency);
           case SyncProblem.notPaired:
-            return _setState(peer.id, PeerState.notPaired);
+            problem ??= PeerState.notPaired;
+            continue;
           default:
-            return _setState(peer.id, PeerState.failed);
+            problem ??= PeerState.failed;
+            continue;
         }
       } catch (e) {
         debugPrint('sync with ${peer.name}: $e');
         return _setState(peer.id, PeerState.failed);
       }
     }
-    _setState(peer.id, PeerState.unreachable);
+    _setState(peer.id, problem ?? PeerState.unreachable);
   }
 }
