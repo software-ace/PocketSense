@@ -212,4 +212,27 @@ void main() {
     expect(await tester.runAsync(() => repo.transactions()), isEmpty);
     await settleWithDb(tester); // the reload after the delete
   });
+
+  testWidgets('search: clearing it shows everything again, and a change while searching keeps the search', (tester) async {
+    final repo = FinanceRepo();
+    await tester.runAsync(() async {
+      await repo.insertTransaction(amountFils: 1500, type: 'expense', date: DateTime.now(), description: 'Coffee');
+      await repo.insertTransaction(amountFils: 2500, type: 'expense', date: DateTime.now(), description: 'Lunch');
+    });
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    final search = find.byType(TextField).first;
+
+    await tester.enterText(search, 'coff');
+    await settleWithDb(tester);
+    expect((find.text('Coffee').evaluate().length, find.text('Lunch').evaluate().length), (1, 0));
+
+    // A new entry (or a sync) reloads the list: the search still applies.
+    await tester.runAsync(() => repo.insertTransaction(amountFils: 900, type: 'expense', date: DateTime.now(), description: 'Taxi'));
+    await settleWithDb(tester);
+    expect((find.text('Coffee').evaluate().length, find.text('Taxi').evaluate().length), (1, 0));
+
+    await tester.enterText(search, '');
+    await settleWithDb(tester);
+    expect(['Coffee', 'Lunch', 'Taxi'].every((d) => find.text(d).evaluate().isNotEmpty), isTrue);
+  });
 }

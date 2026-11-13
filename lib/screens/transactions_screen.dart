@@ -70,20 +70,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     }
   }
 
+  // Bumped by every load: an older search that answers late is dropped.
+  int _loads = 0;
+
+  /// Loads with the type filter and whatever is typed in search.
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    final load = ++_loads;
+    // No spinner here: it shows only before the first load, not per keystroke.
+    if (_error != null) setState(() => _error = null);
     try {
-      final items = await _repo.transactions(type: _typeFilter);
-      if (!mounted) return;
+      final items = await _repo.transactions(type: _typeFilter, q: _searchCtrl.text.trim());
+      if (!mounted || load != _loads) return;
       setState(() {
         _items = items;
         _loading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || load != _loads) return;
       setState(() {
         _error = e;
         _loading = false;
@@ -213,7 +216,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(hintText: l.searchTransactions, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), isDense: true, prefixIcon: const Icon(Icons.search)),
-                onChanged: (_) => _applyFilters(),
+                onChanged: (_) => _load(),
               ),
             ),
             const SizedBox(width: 12),
@@ -250,7 +253,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
           child: TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(hintText: l.search, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, prefixIcon: const Icon(Icons.search)),
-            onChanged: (_) => _applyFilters(),
+            onChanged: (_) => _load(),
           ),
         ),
         Padding(
@@ -364,19 +367,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       return Color(int.parse('FF${t.categoryColor!.substring(1, 7)}', radix: 16));
     }
     return Theme.of(context).colorScheme.primary;
-  }
-
-  void _applyFilters() {
-    // Client-side search filter over already-loaded rows for responsiveness.
-    final q = _searchCtrl.text.trim().toLowerCase();
-    if (q.isEmpty) {
-      setState(() {});
-      return;
-    }
-    // Re-query server for accuracy when searching.
-    _repo.transactions(type: _typeFilter, q: q).then((items) {
-      if (mounted) setState(() => _items = items);
-    }).catchError((_) {});
   }
 
   Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing, {String? type}) async {
