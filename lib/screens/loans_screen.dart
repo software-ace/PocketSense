@@ -9,6 +9,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/data_aware.dart';
+import '../widgets/reminder_countdown.dart';
 import '../widgets/reminder_field.dart';
 import '../widgets/state_views.dart';
 import 'settings_screen.dart';
@@ -129,9 +130,9 @@ class _LoansScreenState extends State<LoansScreen> with DataAware {
                       padding: EdgeInsets.fromLTRB(pad, 8, pad, 88),
                       children: [
                         Row(children: [
-                          Expanded(child: _TotalTile(label: l.owedToYou, fils: totals.owedToYou, good: true)),
+                          Expanded(child: TotalTile(label: l.owedToYou, fils: totals.owedToYou, good: true)),
                           const SizedBox(width: 12),
-                          Expanded(child: _TotalTile(label: l.youOwe, fils: totals.youOwe)),
+                          Expanded(child: TotalTile(label: l.youOwe, fils: totals.youOwe)),
                         ]),
                         const SizedBox(height: 16),
                         Center(
@@ -173,22 +174,24 @@ class _LoansScreenState extends State<LoansScreen> with DataAware {
               style: overdue ? TextStyle(color: theme.colorScheme.error) : null),
       trailing: _settled
           ? Text(l.loansSettled, style: TextStyle(color: theme.colorScheme.outline))
-          : _NetLabel(net: p.net),
+          : NetLabel(net: p.net, toYou: l.owesYou, byYou: l.youOwe),
     );
   }
 }
 
-/// "Owes you" or "You owe" over the amount, or "Even".
-class _NetLabel extends StatelessWidget {
-  const _NetLabel({required this.net, this.large = false});
+/// What's owed over the amount: [toYou] when [net] is above 0 (in green),
+/// [byYou] below it, or "Even".
+class NetLabel extends StatelessWidget {
+  const NetLabel({super.key, required this.net, required this.toYou, required this.byYou, this.large = false});
   final int net;
+  final String toYou;
+  final String byYou;
   final bool large;
 
   @override
   Widget build(BuildContext context) {
-    final l = context.l10n;
     final theme = Theme.of(context);
-    final label = net > 0 ? l.owesYou : (net < 0 ? l.youOwe : l.loanEven);
+    final label = net > 0 ? toYou : (net < 0 ? byYou : context.l10n.loanEven);
     final style = (large ? theme.textTheme.headlineSmall : theme.textTheme.bodyLarge)
         ?.copyWith(fontWeight: FontWeight.w600, color: net > 0 ? Colors.green : null);
     return Column(
@@ -202,8 +205,8 @@ class _NetLabel extends StatelessWidget {
   }
 }
 
-class _TotalTile extends StatelessWidget {
-  const _TotalTile({required this.label, required this.fils, this.good = false});
+class TotalTile extends StatelessWidget {
+  const TotalTile({super.key, required this.label, required this.fils, this.good = false});
   final String label;
   final int fils;
   final bool good;
@@ -288,7 +291,7 @@ class _PersonLoansScreenState extends State<PersonLoansScreen> with DataAware {
               : _loans.isEmpty
                   ? EmptyView(icon: Icons.handshake_outlined, title: l.noLoansYet)
                   : ListView(padding: EdgeInsets.fromLTRB(pad, 8, pad, 88), children: [
-                      _NetLabel(net: net, large: true),
+                      NetLabel(net: net, toYou: l.owesYou, byYou: l.youOwe, large: true),
                       if (open.isNotEmpty) ...[header(l.loansUnsettled), for (final x in open) _LoanCard(loan: x)],
                       if (settled.isNotEmpty) ...[header(l.loansSettled), for (final x in settled) _LoanCard(loan: x)],
                     ]),
@@ -420,10 +423,18 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
   void _toast(String msg) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
 
   Future<void> _repay(Loan loan) async {
-    final draft = await showModalBottomSheet<({int amountFils, DateTime date})>(
-        context: context, isScrollControlled: true, builder: (_) => _RepaymentSheet(loan: loan));
-    if (draft == null || !mounted) return;
     final l = context.l10n;
+    final left = formatMoney(loan.remainingFils, showHidden: true);
+    final draft = await showModalBottomSheet<({int amountFils, DateTime date})>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => AmountDateSheet(
+              title: l.recordRepayment,
+              subtitle: '${loan.lent ? l.youLentPerson(loan.person) : l.youBorrowedFrom(loan.person)} · ${l.amountLeft(left)}',
+              initialFils: loan.remainingFils,
+              maxFils: loan.remainingFils,
+            ));
+    if (draft == null || !mounted) return;
     try {
       await _repo.recordRepayment(loan.id,
           amountFils: draft.amountFils, date: draft.date, description: loanDescriber(l)(loan.repaymentType, loan.person));
@@ -541,6 +552,7 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
               style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: loan.open && loan.lent ? Colors.green : null)),
         ]),
         const SizedBox(height: 24),
+        ReminderCountdown(loan: loan),
         Text(l.repayments, style: theme.textTheme.titleMedium),
         if (repayments.isEmpty)
           Padding(
@@ -574,8 +586,8 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
 }
 
 /// A date field: shows [value] and opens a date picker when tapped.
-class _DateField extends StatelessWidget {
-  const _DateField({required this.label, required this.value, required this.onPicked, this.onCleared});
+class DateField extends StatelessWidget {
+  const DateField({super.key, required this.label, required this.value, required this.onPicked, this.onCleared});
   final String label;
   final DateTime? value;
   final ValueChanged<DateTime> onPicked;
@@ -734,9 +746,9 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
                 check: (fils) => existing != null && fils < existing.repaidFils ? l.amountAtLeastRepaid(formatMoney(existing.repaidFils, showHidden: true)) : null,
               ),
               const SizedBox(height: 12),
-              _DateField(label: l.date, value: _date, onPicked: (d) => setState(() => _date = d)),
+              DateField(label: l.date, value: _date, onPicked: (d) => setState(() => _date = d)),
               const SizedBox(height: 12),
-              _DateField(
+              DateField(
                   label: l.dueDateOptional,
                   value: _due,
                   onPicked: (d) => setState(() => _due = d),
@@ -760,19 +772,23 @@ class _LoanFormSheetState extends State<_LoanFormSheet> {
   }
 }
 
-/// Record repayment: the amount starts at what's left and can't go above it.
-class _RepaymentSheet extends StatefulWidget {
-  const _RepaymentSheet({required this.loan});
-  final Loan loan;
+/// An amount and a date, e.g. Record repayment: the amount starts at
+/// [initialFils] and, with [maxFils], can't go above it.
+class AmountDateSheet extends StatefulWidget {
+  const AmountDateSheet({super.key, required this.title, required this.subtitle, required this.initialFils, this.maxFils});
+  final String title;
+  final String subtitle;
+  final int initialFils;
+  final int? maxFils;
 
   @override
-  State<_RepaymentSheet> createState() => _RepaymentSheetState();
+  State<AmountDateSheet> createState() => _AmountDateSheetState();
 }
 
-class _RepaymentSheetState extends State<_RepaymentSheet> {
-  // Selected, so typing a partial amount replaces it.
-  late final _amountCtrl = TextEditingController(text: amountToInput(widget.loan.remainingFils))
-    ..selection = TextSelection(baseOffset: 0, extentOffset: amountToInput(widget.loan.remainingFils).length);
+class _AmountDateSheetState extends State<AmountDateSheet> {
+  // Selected, so typing another amount replaces it.
+  late final _amountCtrl = TextEditingController(text: amountToInput(widget.initialFils))
+    ..selection = TextSelection(baseOffset: 0, extentOffset: amountToInput(widget.initialFils).length);
   DateTime _date = _today();
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
@@ -786,9 +802,9 @@ class _RepaymentSheetState extends State<_RepaymentSheet> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final loan = widget.loan;
+    final max = widget.maxFils;
     // A form: the limit you type against shows even under Hide amounts.
-    final left = formatMoney(loan.remainingFils, showHidden: true);
+    final limit = max == null ? null : formatMoney(max, showHidden: true);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
@@ -798,20 +814,19 @@ class _RepaymentSheetState extends State<_RepaymentSheet> {
             key: _formKey,
             autovalidateMode: _autovalidate,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(l.recordRepayment, style: Theme.of(context).textTheme.titleLarge),
+              Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 4),
-              Text('${loan.lent ? l.youLentPerson(loan.person) : l.youBorrowedFrom(loan.person)} · ${l.amountLeft(left)}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.outline)),
+              Text(widget.subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.outline)),
               const SizedBox(height: 16),
               AmountField(
                 controller: _amountCtrl,
                 label: l.amount,
                 autofocus: true,
-                helperText: l.repayUpTo(left),
-                check: (fils) => fils > loan.remainingFils ? l.amountAtMost(left) : null,
+                helperText: limit == null ? null : l.repayUpTo(limit),
+                check: (fils) => max != null && fils > max ? l.amountAtMost(limit!) : null,
               ),
               const SizedBox(height: 12),
-              _DateField(label: l.date, value: _date, onPicked: (d) => setState(() => _date = d)),
+              DateField(label: l.date, value: _date, onPicked: (d) => setState(() => _date = d)),
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () {

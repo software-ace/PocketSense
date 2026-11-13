@@ -26,6 +26,8 @@ Map<String, String> starterCategoryNames(AppLocalizations l) => {
       'otherIncome': l.catOtherIncome,
       'loansPaid': l.catLoansPaid,
       'loansReceived': l.catLoansReceived,
+      'circlePayments': l.catCirclePayments,
+      'circlePayouts': l.catCirclePayouts,
     };
 
 /// Every default name each starter category has had, in every language

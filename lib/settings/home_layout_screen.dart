@@ -12,6 +12,7 @@ class HomeLayoutScreen extends StatelessWidget {
   static String name(AppLocalizations l, HomeSection s) => switch (s) {
         HomeSection.totals => l.homeTotals,
         HomeSection.loans => l.loans,
+        HomeSection.circles => l.circles,
         HomeSection.accounts => l.accounts,
         HomeSection.daily => l.chartDaily,
         HomeSection.category => l.chartByCategory,
@@ -55,15 +56,14 @@ class HomeLayoutScreen extends StatelessWidget {
             },
             itemBuilder: (context, i) {
               final s = rows[i];
-              final loans = s == HomeSection.loans;
+              final fixed = alwaysShownSections.contains(s);
               return SwitchListTile(
                 key: ValueKey(s),
                 secondary: ReorderableDragStartListener(index: i, child: const Icon(Icons.drag_handle)),
                 title: Text(name(l, s)),
-                subtitle: loans ? Text(l.homeLoansAlwaysShown) : null,
+                subtitle: fixed ? Text(s == HomeSection.loans ? l.homeLoansAlwaysShown : l.homeCirclesAlwaysShown) : null,
                 value: !layout.hidden.contains(s),
-                // Loans' card is the only way into Loans.
-                onChanged: loans
+                onChanged: fixed
                     ? null
                     : (on) => AppSettings.setHomeLayout(layout.order, on ? ({...layout.hidden}..remove(s)) : {...layout.hidden, s}),
               );

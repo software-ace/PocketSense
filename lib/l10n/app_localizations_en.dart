@@ -2063,4 +2063,243 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get csvSumUnknownAccounts =>
       'Rows put in your default account (account not found)';
+
+  @override
+  String get catCirclePayments => 'Circle Payments';
+
+  @override
+  String get catCirclePayouts => 'Circle Payouts';
+
+  @override
+  String get circles => 'Savings circles';
+
+  @override
+  String get circleTitle => 'Savings circle';
+
+  @override
+  String get newCircle => 'New circle';
+
+  @override
+  String get editCircle => 'Edit circle';
+
+  @override
+  String get circleName => 'Name';
+
+  @override
+  String get enterCircleName => 'Enter a name';
+
+  @override
+  String get circleContribution => 'Payment each round';
+
+  @override
+  String get circleRounds => 'Number of participants';
+
+  @override
+  String get circleYourTurn => 'Your turn (round)';
+
+  @override
+  String get circleFirstPayment => 'First payment';
+
+  @override
+  String circleRoundsRange(int max) {
+    return 'From 2 to $max';
+  }
+
+  @override
+  String circleTurnRange(int rounds) {
+    return 'From 1 to $rounds';
+  }
+
+  @override
+  String get noCirclesYet => 'No savings circles yet';
+
+  @override
+  String get noCirclesHint =>
+      'Track the circles you\'re in: what you pay each round, when your turn comes, and where you stand.';
+
+  @override
+  String get noActiveCircles => 'No circles in progress';
+
+  @override
+  String get noFinishedCircles => 'No finished circles';
+
+  @override
+  String get circlesActive => 'In progress';
+
+  @override
+  String get circlesFinished => 'Finished';
+
+  @override
+  String get circlesOweYou => 'Circles owe you';
+
+  @override
+  String get youOweCircles => 'You owe circles';
+
+  @override
+  String get circleOwesYou => 'The circle owes you';
+
+  @override
+  String get youOweCircle => 'You owe the circle';
+
+  @override
+  String circleRoundOf(int round, int rounds) {
+    return 'Round $round of $rounds';
+  }
+
+  @override
+  String circleTerms(String amount, int rounds, String frequency) {
+    return '$amount × $rounds · $frequency';
+  }
+
+  @override
+  String circleTurnOn(String date) {
+    return 'Your turn: $date';
+  }
+
+  @override
+  String circlePayoutOf(String amount) {
+    return 'Payout of $amount';
+  }
+
+  @override
+  String get circleUpToTurn => 'You pay up to your turn';
+
+  @override
+  String get circleAfterTurn => 'You pay after your turn';
+
+  @override
+  String circlePaid(String amount) {
+    return '$amount paid';
+  }
+
+  @override
+  String get circleSchedule => 'Schedule';
+
+  @override
+  String get recordCirclePayment => 'Record payment';
+
+  @override
+  String get recordCirclePayout => 'Record payout';
+
+  @override
+  String circlePayoutReceived(String amount) {
+    return 'Payout received: $amount';
+  }
+
+  @override
+  String get deleteCircleTitle => 'Delete this circle?';
+
+  @override
+  String circlePaymentTo(String name) {
+    return 'Payment to $name';
+  }
+
+  @override
+  String circlePayoutFrom(String name) {
+    return 'Payout from $name';
+  }
+
+  @override
+  String reminderCircle(String name, String when) {
+    return 'Your $name payment is $when.';
+  }
+
+  @override
+  String reminderCircleAmount(String name, String amount, String when) {
+    return 'Your $name payment of $amount is $when.';
+  }
+
+  @override
+  String get homeCirclesAlwaysShown =>
+      'Always shown: it\'s the way into Savings circles';
+
+  @override
+  String get vaultCreateTitle => 'Set a passphrase';
+
+  @override
+  String get vaultCreateBody =>
+      'No system keyring (such as GNOME Keyring or KWallet) is running, so Pocket Sense keeps its encryption keys in a file locked with this passphrase. You\'ll type it each time you open the app. If you forget it, your data can\'t be recovered.';
+
+  @override
+  String get vaultUnlockTitle => 'Enter your passphrase';
+
+  @override
+  String get vaultUnlockBody =>
+      'Pocket Sense keeps its encryption keys in a file locked with your passphrase, because no system keyring was running when you set it up.';
+
+  @override
+  String get vaultPassphrase => 'Passphrase';
+
+  @override
+  String get vaultRepeat => 'Repeat passphrase';
+
+  @override
+  String get vaultMismatch => 'The passphrases don\'t match';
+
+  @override
+  String get vaultWrong => 'Wrong passphrase';
+
+  @override
+  String get vaultForgot => 'Forgot passphrase?';
+
+  @override
+  String get vaultForgotBody =>
+      'Without the passphrase your data can\'t be opened. Erase it and start over with a new passphrase? You can still import a backup afterwards.';
+
+  @override
+  String circleNextReminder(String time) {
+    return 'Your next payment reminder in: $time';
+  }
+
+  @override
+  String countdownDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get countdownSeparator => ', ';
+
+  @override
+  String nextReminderIn(String time) {
+    return 'Your next reminder in: $time';
+  }
 }

@@ -13,7 +13,7 @@ class SyncDataException implements Exception {
 
 /// What sync sends between devices, and how it's merged in. Rows travel
 /// with their uid instead of the local integer id, and with the uids of the
-/// rows they point at (category_uid, loan_uid, account_uid and a transfer's
+/// rows they point at (category_uid, loan_uid, circle_uid, account_uid and a transfer's
 /// from_ and to_account_uid) instead of local ids. Each row is
 /// last-writer-wins by its hlc.
 ///
@@ -32,6 +32,7 @@ class Merge {
   static Future<Map<String, Object?>> changesSince(LocalStore store, int since) => store.db.transaction((txn) async {
         final catUid = {for (final r in await txn.query('categories', columns: ['id', 'uid'])) r['id']: r['uid']};
         final loanUid = {for (final r in await txn.query('loans', columns: ['id', 'uid'])) r['id']: r['uid']};
+        final circleUid = {for (final r in await txn.query('circles', columns: ['id', 'uid'])) r['id']: r['uid']};
         final accountUid = {for (final r in await txn.query('accounts', columns: ['id', 'uid'])) r['id']: r['uid']};
         final tables = <String, Object>{};
         for (final t in LocalStore.syncedTables) {
@@ -42,6 +43,7 @@ class Merge {
                   if (!_localColumns.contains(e.key)) e.key: e.value,
                 if (r.containsKey('category_id')) 'category_uid': catUid[r['category_id']],
                 if (r.containsKey('loan_id')) 'loan_uid': loanUid[r['loan_id']],
+                if (r.containsKey('circle_id')) 'circle_uid': circleUid[r['circle_id']],
                 for (final c in _accountColumns)
                   if (r.containsKey(c)) '${c.substring(0, c.length - 3)}_uid': accountUid[r[c]],
               },
@@ -54,25 +56,29 @@ class Merge {
       });
 
   // Meaningful on this device only; the uid columns above stand in for them.
-  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id', ..._accountColumns};
+  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id', 'circle_id', ..._accountColumns};
 
   // Columns that point at an account, sent as <name>_uid (account_uid…).
   static const _accountColumns = {'account_id', 'from_account_id', 'to_account_id'};
-  static const _uidColumns = {'category_uid', 'loan_uid', 'account_uid', 'from_account_uid', 'to_account_uid'};
+  static const _uidColumns = {'category_uid', 'loan_uid', 'circle_uid', 'account_uid', 'from_account_uid', 'to_account_uid'};
 
   // Columns that must be present (and not null) in every row from a peer.
   static const _required = {
     'categories': ['name', 'type', 'color'],
     'merchants': ['name'],
     'loans': ['direction', 'person'],
+    'circles': ['name', 'contribution_fils', 'rounds', 'frequency', 'start_date', 'payout_round'],
     'transactions': ['amount_fils', 'type', 'date', 'description'],
     'budgets': ['category_uid', 'limit_fils'],
     'recurring_expenses': ['description', 'amount_fils', 'frequency', 'anchor_date'],
     'accounts': ['name', 'kind'],
     'transfers': ['amount_fils', 'date', 'from_account_uid', 'to_account_uid'],
   };
-  static const _intColumns = {'amount_fils', 'limit_fils', 'active', 'due_time', 'reminder_days', 'opening_fils', 'closed'};
-  static const _dateColumns = {'date', 'anchor_date', 'due_date'};
+  static const _intColumns = {
+    'amount_fils', 'limit_fils', 'active', 'due_time', 'reminder_days', 'opening_fils', 'closed', //
+    'contribution_fils', 'rounds', 'payout_round',
+  };
+  static const _dateColumns = {'date', 'anchor_date', 'due_date', 'start_date'};
 
   static bool _isUid(Object? v) => v is String && v.isNotEmpty && v.length <= 64;
   static bool _isHlc(Object? v) => v is String && LocalStore.hlcPattern.hasMatch(v);
@@ -251,15 +257,16 @@ class Merge {
             // overrides the copy the sender is about to uncategorize.
             if (alias.containsKey(catUid)) values.addAll(store.stamp());
           }
-          if (r.containsKey('loan_uid')) {
-            final loanUid = r['loan_uid'] as String?;
-            final lid = loanUid == null
+          // Its loan or circle was deleted here: the entry keeps its money
+          // and loses the link, as a fresh change so every device agrees.
+          for (final (parent, column) in const [('loans', 'loan'), ('circles', 'circle')]) {
+            if (!r.containsKey('${column}_uid')) continue;
+            final pUid = r['${column}_uid'] as String?;
+            final pid = pUid == null
                 ? null
-                : (await txn.query('loans', columns: ['id'], where: 'uid = ?', whereArgs: [loanUid])).firstOrNull?['id'] as int?;
-            // Its loan was deleted here: the entry keeps its money and
-            // loses the link, as a fresh change so every device agrees.
-            if (lid == null && loanUid != null) values.addAll(store.stamp());
-            values['loan_id'] = lid;
+                : (await txn.query(parent, columns: ['id'], where: 'uid = ?', whereArgs: [pUid])).firstOrNull?['id'] as int?;
+            if (pid == null && pUid != null) values.addAll(store.stamp());
+            values['${column}_id'] = pid;
           }
           final local = (await txn.query(t, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
           await txn.delete('tombstones', where: 'tbl = ? AND uid = ?', whereArgs: [t, uid]);

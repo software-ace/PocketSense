@@ -24,7 +24,7 @@ class BackupException implements Exception {
 }
 
 /// [currency]: the backup's, which the imported amounts are in.
-typedef ImportSummary = ({int categories, int merchants, int loans, int transactions, int budgets, int recurring, Currency currency});
+typedef ImportSummary = ({int categories, int merchants, int loans, int circles, int transactions, int budgets, int recurring, Currency currency});
 
 /// JSON backup of everything in the database. [export] gives the plain JSON;
 /// [encrypt] wraps it for writing to a file, and [import] reads either.
@@ -97,19 +97,21 @@ class Backup {
   static Future<List<int>> _key(String password, List<int> salt, int iterations) =>
       Isolate.run(() => pbkdf2Sha256(utf8.encode(password), salt, iterations, 32));
 
-  /// 2 added loans, 3 accounts and transfers. An older file still imports
-  /// (its entries go into one Cash account, as on upgrade); an older app
-  /// refuses a newer file rather than drop what it can't hold.
-  static const version = 3;
+  /// 2 added loans, 3 accounts and transfers, 4 savings circles. An older
+  /// file still imports (its entries go into one Cash account, as on
+  /// upgrade); an older app refuses a newer file rather than drop what it
+  /// can't hold.
+  static const version = 4;
 
   // Parents first: this is the insert order, and reversed the delete order.
-  static const _tables = ['categories', 'merchants', 'loans', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
+  static const _tables = ['categories', 'merchants', 'loans', 'circles', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
 
   // Columns that must be present (and not null) in every row.
   static const _required = {
     'categories': ['id', 'name', 'type', 'color'],
     'merchants': ['id', 'name'],
     'loans': ['id', 'direction', 'person'],
+    'circles': ['id', 'name', 'contribution_fils', 'rounds', 'frequency', 'start_date', 'payout_round'],
     'transactions': ['id', 'amount_fils', 'type', 'date', 'description'],
     'budgets': ['id', 'category_id', 'limit_fils'],
     'recurring_expenses': ['id', 'description', 'amount_fils', 'frequency', 'anchor_date'],
@@ -120,7 +122,8 @@ class Backup {
   // SQLite would store "abc" in an INTEGER column, so check types up front.
   static const _intColumns = {
     'id', 'amount_fils', 'limit_fils', 'category_id', 'loan_id', 'active', 'due_time', 'reminder_days', //
-    'account_id', 'from_account_id', 'to_account_id', 'opening_fils', 'closed',
+    'account_id', 'from_account_id', 'to_account_id', 'opening_fils', 'closed', //
+    'circle_id', 'contribution_fils', 'rounds', 'payout_round',
   };
 
   static Map<String, Object?> _row(String table, Object? r, Set<String> columns) {
@@ -229,6 +232,7 @@ class Backup {
       categories: rows['categories']!.length,
       merchants: rows['merchants']!.length,
       loans: rows['loans']!.length,
+      circles: rows['circles']!.length,
       transactions: rows['transactions']!.length,
       budgets: rows['budgets']!.length,
       recurring: rows['recurring_expenses']!.length,

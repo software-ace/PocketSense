@@ -8,6 +8,9 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <launchable type="desktop-id">ace.software.pocketsense.desktop</launchable>
+  <developer id="io.github.software-ace">
+    <name>software-ace</name>
+  </developer>
 
   <description>
     <p>
@@ -19,17 +22,14 @@
     </p>
     <ul>
       <li>No sign-in, no servers, no ads, no analytics</li>
-      <li>Encrypted with SQLCipher, with the key kept in your desktop keyring</li>
+      <li>Encrypted with SQLCipher, with the key kept in your desktop keyring, or behind a passphrase if there is none</li>
       <li>Home: monthly totals, a 30-day spending chart, and spending by category, merchant and weekday</li>
-      <li>Accounts, transfers, budgets, recurring bills with reminders, and loans</li>
+      <li>Accounts, transfers, budgets, recurring bills with reminders, loans and savings circles</li>
       <li>Offline voice entry in English</li>
       <li>Encrypted backups, and CSV import and export</li>
       <li>Sync with your phone or another computer over your local network</li>
       <li>Full Arabic interface, right to left</li>
     </ul>
-    <p>
-      Needs a Secret Service keyring, such as GNOME Keyring or KWallet, running and unlocked.
-    </p>
   </description>
 
   <screenshots>
@@ -57,6 +57,7 @@
 
   <url type="homepage">https://github.com/software-ace/PocketSense</url>
   <url type="bugtracker">https://github.com/software-ace/PocketSense/issues</url>
+  <url type="donation">https://github.com/sponsors/software-ace</url>
   <categories>
     <category>Office</category>
     <category>Finance</category>

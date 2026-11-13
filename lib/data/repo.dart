@@ -135,6 +135,7 @@ class FinanceRepo {
     DateTime? to,
     String? q,
     int? loanId,
+    int? circleId,
     int? accountId,
     int limit = 200,
   }) async {
@@ -160,6 +161,10 @@ class FinanceRepo {
     if (loanId != null) {
       where.add('loan_id = ?');
       args.add(loanId);
+    }
+    if (circleId != null) {
+      where.add('circle_id = ?');
+      args.add(circleId);
     }
     if (accountId != null) {
       where.add('account_id = ?');
@@ -551,10 +556,10 @@ class FinanceRepo {
   Future<Loan?> loan(int id) async => (await loans()).where((l) => l.id == id).firstOrNull;
 
   /// The starter category loan entries of [type] go in; null if deleted.
-  Future<int?> _loanCategoryId(String type) async {
-    final key = LocalStore.loanCategoryKeys[type == 'expense' ? 0 : 1];
-    return (await (await _db).selectRows('categories', where: 'uid = ?', whereArgs: ['default:$key'])).firstOrNull?['id'] as int?;
-  }
+  Future<int?> _loanCategoryId(String type) => _starterCategoryId(LocalStore.loanCategoryKeys[type == 'expense' ? 0 : 1]);
+
+  Future<int?> _starterCategoryId(String key) async =>
+      (await (await _db).selectRows('categories', where: 'uid = ?', whereArgs: ['default:$key'])).firstOrNull?['id'] as int?;
 
   Map<String, Object?> _loanEntry(int loanId, String type, int amountFils, DateTime date, String description, int? categoryId, int accountId) => {
         'amount_fils': amountFils,
@@ -667,6 +672,116 @@ class FinanceRepo {
         await store.deleteIn(txn, 'transactions', e['id'] as int);
       }
       await store.deleteIn(txn, 'loans', id);
+      return entries.length;
+    });
+  }
+
+  // ── Savings circles ──────────────────────────────────────────────────
+
+  /// Every circle, with what's been paid in and received summed from its
+  /// entries, latest start first.
+  Future<List<Circle>> circles() async {
+    final rows = await (await _db).db.rawQuery('''
+      SELECT c.*,
+        coalesce(sum(CASE WHEN t.type = 'expense' THEN t.amount_fils END), 0) AS paid_fils,
+        coalesce(sum(CASE WHEN t.type = 'income' THEN t.amount_fils END), 0) AS received_fils
+      FROM circles c LEFT JOIN transactions t ON t.circle_id = c.id
+      GROUP BY c.id
+      ORDER BY c.start_date DESC, c.id DESC
+    ''');
+    return rows.map(Circle.fromMap).toList();
+  }
+
+  Future<Circle?> circle(int id) async => (await circles()).where((c) => c.id == id).firstOrNull;
+
+  Map<String, Object?> _circleRow(String name, int contributionFils, int rounds, String frequency, DateTime startDate, int payoutRound,
+      String? note, int? reminderDays, int dueMinutes) {
+    if (contributionFils <= 0 || rounds < 2 || rounds > Circle.maxRounds || payoutRound < 1 || payoutRound > rounds) {
+      throw ArgumentError('A circle needs a contribution, 2 to ${Circle.maxRounds} rounds and a turn among them');
+    }
+    if (!Circle.frequencies.contains(frequency)) throw ArgumentError('Unknown frequency $frequency');
+    return {
+      'name': name.trim(),
+      'contribution_fils': contributionFils,
+      'rounds': rounds,
+      'frequency': frequency,
+      'start_date': _isoDate(startDate),
+      'payout_round': payoutRound,
+      'note': note,
+      'reminder_days': reminderDays,
+      'due_time': dueMinutes,
+    };
+  }
+
+  Future<int> insertCircle({
+    required String name,
+    required int contributionFils,
+    required int rounds,
+    required String frequency,
+    required DateTime startDate,
+    required int payoutRound,
+    String? note,
+    int? reminderDays,
+    int dueMinutes = defaultReminderMinutes,
+  }) async =>
+      (await _db).insertRow('circles', _circleRow(name, contributionFils, rounds, frequency, startDate, payoutRound, note, reminderDays, dueMinutes));
+
+  /// Edits a circle's terms; its entries stay. Entries still described as
+  /// [describe] made them follow a new name, as for [updateLoan].
+  Future<void> updateCircle(
+    int id, {
+    required String name,
+    required int contributionFils,
+    required int rounds,
+    required String frequency,
+    required DateTime startDate,
+    required int payoutRound,
+    String? note,
+    int? reminderDays,
+    int dueMinutes = defaultReminderMinutes,
+    required String Function(String type, String name) describe,
+  }) async {
+    final store = await _db;
+    final old = await circle(id) ?? (throw StateError('No circle $id'));
+    final row = _circleRow(name, contributionFils, rounds, frequency, startDate, payoutRound, note, reminderDays, dueMinutes);
+    final renamed = row['name'] != old.name;
+    final entries = renamed ? await transactions(circleId: id, limit: 1 << 30) : const <Transaction>[];
+    await store.write((txn) async {
+      await store.updateIn(txn, 'circles', id, row);
+      for (final t in entries) {
+        if (t.description == describe(t.type, old.name)) {
+          await store.updateIn(txn, 'transactions', t.id, {'description': describe(t.type, row['name'] as String)});
+        }
+      }
+    });
+  }
+
+  /// Records money paid into a circle ([type] expense) or its payout to you
+  /// (income), in the default account. [description] comes from the UI.
+  Future<void> recordCircleEntry(int circleId, {required String type, required int amountFils, required DateTime date, required String description}) async {
+    if (amountFils <= 0) throw ArgumentError('An amount must be more than 0');
+    final key = LocalStore.circleCategoryKeys[type == 'expense' ? 0 : 1];
+    await (await _db).insertRow('transactions', {
+      'amount_fils': amountFils,
+      'type': type,
+      'date': _isoDate(date),
+      'description': description,
+      'category_id': await _starterCategoryId(key),
+      'circle_id': circleId,
+      'account_id': await defaultAccountId(),
+      'created_at': LocalStore.nowIso(),
+    });
+  }
+
+  /// Deletes a circle and every entry it made. Returns how many entries went.
+  Future<int> deleteCircle(int id) async {
+    final store = await _db;
+    return store.write((txn) async {
+      final entries = await txn.query('transactions', columns: ['id'], where: 'circle_id = ?', whereArgs: [id]);
+      for (final e in entries) {
+        await store.deleteIn(txn, 'transactions', e['id'] as int);
+      }
+      await store.deleteIn(txn, 'circles', id);
       return entries.length;
     });
   }

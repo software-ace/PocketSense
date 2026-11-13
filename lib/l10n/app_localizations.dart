@@ -3217,6 +3217,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rows put in your default account (account not found)'**
   String get csvSumUnknownAccounts;
+
+  /// No description provided for @catCirclePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle Payments'**
+  String get catCirclePayments;
+
+  /// No description provided for @catCirclePayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle Payouts'**
+  String get catCirclePayouts;
+
+  /// No description provided for @circles.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings circles'**
+  String get circles;
+
+  /// No description provided for @circleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings circle'**
+  String get circleTitle;
+
+  /// No description provided for @newCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'New circle'**
+  String get newCircle;
+
+  /// No description provided for @editCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit circle'**
+  String get editCircle;
+
+  /// No description provided for @circleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get circleName;
+
+  /// No description provided for @enterCircleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get enterCircleName;
+
+  /// No description provided for @circleContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment each round'**
+  String get circleContribution;
+
+  /// No description provided for @circleRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of participants'**
+  String get circleRounds;
+
+  /// No description provided for @circleYourTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn (round)'**
+  String get circleYourTurn;
+
+  /// No description provided for @circleFirstPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'First payment'**
+  String get circleFirstPayment;
+
+  /// No description provided for @circleRoundsRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From 2 to {max}'**
+  String circleRoundsRange(int max);
+
+  /// No description provided for @circleTurnRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From 1 to {rounds}'**
+  String circleTurnRange(int rounds);
+
+  /// No description provided for @noCirclesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No savings circles yet'**
+  String get noCirclesYet;
+
+  /// No description provided for @noCirclesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Track the circles you\'re in: what you pay each round, when your turn comes, and where you stand.'**
+  String get noCirclesHint;
+
+  /// No description provided for @noActiveCircles.
+  ///
+  /// In en, this message translates to:
+  /// **'No circles in progress'**
+  String get noActiveCircles;
+
+  /// No description provided for @noFinishedCircles.
+  ///
+  /// In en, this message translates to:
+  /// **'No finished circles'**
+  String get noFinishedCircles;
+
+  /// No description provided for @circlesActive.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get circlesActive;
+
+  /// No description provided for @circlesFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get circlesFinished;
+
+  /// No description provided for @circlesOweYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Circles owe you'**
+  String get circlesOweYou;
+
+  /// No description provided for @youOweCircles.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe circles'**
+  String get youOweCircles;
+
+  /// No description provided for @circleOwesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'The circle owes you'**
+  String get circleOwesYou;
+
+  /// No description provided for @youOweCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe the circle'**
+  String get youOweCircle;
+
+  /// No description provided for @circleRoundOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round} of {rounds}'**
+  String circleRoundOf(int round, int rounds);
+
+  /// No description provided for @circleTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} × {rounds} · {frequency}'**
+  String circleTerms(String amount, int rounds, String frequency);
+
+  /// No description provided for @circleTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn: {date}'**
+  String circleTurnOn(String date);
+
+  /// No description provided for @circlePayoutOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout of {amount}'**
+  String circlePayoutOf(String amount);
+
+  /// No description provided for @circleUpToTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'You pay up to your turn'**
+  String get circleUpToTurn;
+
+  /// No description provided for @circleAfterTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'You pay after your turn'**
+  String get circleAfterTurn;
+
+  /// No description provided for @circlePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} paid'**
+  String circlePaid(String amount);
+
+  /// No description provided for @circleSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get circleSchedule;
+
+  /// No description provided for @recordCirclePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get recordCirclePayment;
+
+  /// No description provided for @recordCirclePayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payout'**
+  String get recordCirclePayout;
+
+  /// No description provided for @circlePayoutReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout received: {amount}'**
+  String circlePayoutReceived(String amount);
+
+  /// No description provided for @deleteCircleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this circle?'**
+  String get deleteCircleTitle;
+
+  /// No description provided for @circlePaymentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment to {name}'**
+  String circlePaymentTo(String name);
+
+  /// No description provided for @circlePayoutFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout from {name}'**
+  String circlePayoutFrom(String name);
+
+  /// No description provided for @reminderCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} payment is {when}.'**
+  String reminderCircle(String name, String when);
+
+  /// No description provided for @reminderCircleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} payment of {amount} is {when}.'**
+  String reminderCircleAmount(String name, String amount, String when);
+
+  /// No description provided for @homeCirclesAlwaysShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown: it\'s the way into Savings circles'**
+  String get homeCirclesAlwaysShown;
+
+  /// No description provided for @vaultCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a passphrase'**
+  String get vaultCreateTitle;
+
+  /// No description provided for @vaultCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No system keyring (such as GNOME Keyring or KWallet) is running, so Pocket Sense keeps its encryption keys in a file locked with this passphrase. You\'ll type it each time you open the app. If you forget it, your data can\'t be recovered.'**
+  String get vaultCreateBody;
+
+  /// No description provided for @vaultUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your passphrase'**
+  String get vaultUnlockTitle;
+
+  /// No description provided for @vaultUnlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pocket Sense keeps its encryption keys in a file locked with your passphrase, because no system keyring was running when you set it up.'**
+  String get vaultUnlockBody;
+
+  /// No description provided for @vaultPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get vaultPassphrase;
+
+  /// No description provided for @vaultRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat passphrase'**
+  String get vaultRepeat;
+
+  /// No description provided for @vaultMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The passphrases don\'t match'**
+  String get vaultMismatch;
+
+  /// No description provided for @vaultWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong passphrase'**
+  String get vaultWrong;
+
+  /// No description provided for @vaultForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot passphrase?'**
+  String get vaultForgot;
+
+  /// No description provided for @vaultForgotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Without the passphrase your data can\'t be opened. Erase it and start over with a new passphrase? You can still import a backup afterwards.'**
+  String get vaultForgotBody;
+
+  /// No description provided for @circleNextReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next payment reminder in: {time}'**
+  String circleNextReminder(String time);
+
+  /// No description provided for @countdownDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String countdownDays(int count);
+
+  /// No description provided for @countdownHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String countdownHours(int count);
+
+  /// No description provided for @countdownMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String countdownMinutes(int count);
+
+  /// No description provided for @countdownSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 second} other{{count} seconds}}'**
+  String countdownSeconds(int count);
+
+  /// No description provided for @countdownSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get countdownSeparator;
+
+  /// No description provided for @nextReminderIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next reminder in: {time}'**
+  String nextReminderIn(String time);
 }
 
 class _AppLocalizationsDelegate

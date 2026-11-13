@@ -13,6 +13,7 @@ import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import '../widgets/account_field.dart';
 import '../widgets/merchant_field.dart';
+import '../widgets/reminder_countdown.dart';
 import '../widgets/reminder_field.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -168,7 +169,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             final days = daysUntil(next);
             final overdue = days < 0;
             return DataRow(cells: [
-              DataCell(Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+              DataCell(Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                ReminderCountdown(item: r, compact: true),
+              ])),
               DataCell(Text(formatFrequency(l, r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
               DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
@@ -223,7 +227,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
               Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4)), child: Text(l.inactive, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10))),
             ],
           ]),
-          subtitle: Text([formatFrequency(l, r.frequency), ?r.categoryName].join(' · ')),
+          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text([formatFrequency(l, r.frequency), ?r.categoryName].join(' · ')),
+            ReminderCountdown(item: r, compact: true),
+          ]),
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
             if (r.active)

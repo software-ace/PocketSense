@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/models/default_categories.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/l10n/l10n.dart';
@@ -20,14 +21,14 @@ void main() {
 
   test('knows every default name in every language', () {
     expect(defaults['groceries'], containsAll(['groceries', 'بقالة']));
-    expect(defaults.keys, hasLength(16));
+    expect(defaults.keys, hasLength(defaultCategories.length));
   });
 
   test('switching language renames the starter categories, both ways', () async {
-    expect(await repo.localizeStarterCategories(ar, defaults), 16);
+    expect(await repo.localizeStarterCategories(ar, defaults), defaultCategories.length);
     expect(await names(), {...ar.values});
 
-    expect(await repo.localizeStarterCategories(en, defaults), 16);
+    expect(await repo.localizeStarterCategories(en, defaults), defaultCategories.length);
     expect(await names(), {...en.values});
   });
 

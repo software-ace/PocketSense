@@ -2120,4 +2120,254 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get csvSumUnknownAccounts =>
       'صفوف وُضعت في حسابك الافتراضي (الحساب غير موجود)';
+
+  @override
+  String get catCirclePayments => 'دفعات الجمعيات';
+
+  @override
+  String get catCirclePayouts => 'قبض الجمعيات';
+
+  @override
+  String get circles => 'الجمعيات';
+
+  @override
+  String get circleTitle => 'جمعية';
+
+  @override
+  String get newCircle => 'جمعية جديدة';
+
+  @override
+  String get editCircle => 'تعديل الجمعية';
+
+  @override
+  String get circleName => 'الاسم';
+
+  @override
+  String get enterCircleName => 'أدخل اسمًا';
+
+  @override
+  String get circleContribution => 'الدفعة في كل دورة';
+
+  @override
+  String get circleRounds => 'عدد المشاركين';
+
+  @override
+  String get circleYourTurn => 'دورك (رقم الدورة)';
+
+  @override
+  String get circleFirstPayment => 'أول دفعة';
+
+  @override
+  String circleRoundsRange(int max) {
+    return 'من 2 إلى $max';
+  }
+
+  @override
+  String circleTurnRange(int rounds) {
+    return 'من 1 إلى $rounds';
+  }
+
+  @override
+  String get noCirclesYet => 'لا جمعيات بعد';
+
+  @override
+  String get noCirclesHint =>
+      'تابع الجمعيات التي تشارك فيها: ما تدفعه في كل دورة، ومتى يأتي دورك، وما لك وما عليك.';
+
+  @override
+  String get noActiveCircles => 'لا جمعيات جارية';
+
+  @override
+  String get noFinishedCircles => 'لا جمعيات منتهية';
+
+  @override
+  String get circlesActive => 'جارية';
+
+  @override
+  String get circlesFinished => 'منتهية';
+
+  @override
+  String get circlesOweYou => 'لك عند الجمعيات';
+
+  @override
+  String get youOweCircles => 'عليك للجمعيات';
+
+  @override
+  String get circleOwesYou => 'لك عند الجمعية';
+
+  @override
+  String get youOweCircle => 'عليك للجمعية';
+
+  @override
+  String circleRoundOf(int round, int rounds) {
+    return 'الدورة $round من $rounds';
+  }
+
+  @override
+  String circleTerms(String amount, int rounds, String frequency) {
+    return '$amount × $rounds · $frequency';
+  }
+
+  @override
+  String circleTurnOn(String date) {
+    return 'دورك: $date';
+  }
+
+  @override
+  String circlePayoutOf(String amount) {
+    return 'قبض $amount';
+  }
+
+  @override
+  String get circleUpToTurn => 'تدفع حتى دورك';
+
+  @override
+  String get circleAfterTurn => 'تدفع بعد دورك';
+
+  @override
+  String circlePaid(String amount) {
+    return 'دُفع $amount';
+  }
+
+  @override
+  String get circleSchedule => 'الجدول';
+
+  @override
+  String get recordCirclePayment => 'تسجيل دفعة';
+
+  @override
+  String get recordCirclePayout => 'تسجيل القبض';
+
+  @override
+  String circlePayoutReceived(String amount) {
+    return 'تم القبض: $amount';
+  }
+
+  @override
+  String get deleteCircleTitle => 'حذف هذه الجمعية؟';
+
+  @override
+  String circlePaymentTo(String name) {
+    return 'دفعة جمعية $name';
+  }
+
+  @override
+  String circlePayoutFrom(String name) {
+    return 'قبض جمعية $name';
+  }
+
+  @override
+  String reminderCircle(String name, String when) {
+    return 'دفعة جمعية $name $when.';
+  }
+
+  @override
+  String reminderCircleAmount(String name, String amount, String when) {
+    return 'دفعة جمعية $name بقيمة $amount $when.';
+  }
+
+  @override
+  String get homeCirclesAlwaysShown => 'يظهر دائمًا: منه تدخل إلى الجمعيات';
+
+  @override
+  String get vaultCreateTitle => 'عيّن عبارة مرور';
+
+  @override
+  String get vaultCreateBody =>
+      'لا تعمل أي حلقة مفاتيح للنظام (مثل GNOME Keyring أو KWallet)، لذلك يحفظ Pocket Sense مفاتيح التشفير في ملف مقفل بعبارة المرور هذه. ستكتبها في كل مرة تفتح فيها التطبيق. إن نسيتها فلا يمكن استرجاع بياناتك.';
+
+  @override
+  String get vaultUnlockTitle => 'أدخل عبارة المرور';
+
+  @override
+  String get vaultUnlockBody =>
+      'يحفظ Pocket Sense مفاتيح التشفير في ملف مقفل بعبارة المرور، لأنه لم تكن هناك حلقة مفاتيح للنظام عند إعداده.';
+
+  @override
+  String get vaultPassphrase => 'عبارة المرور';
+
+  @override
+  String get vaultRepeat => 'أعد كتابة عبارة المرور';
+
+  @override
+  String get vaultMismatch => 'عبارتا المرور غير متطابقتين';
+
+  @override
+  String get vaultWrong => 'عبارة المرور غير صحيحة';
+
+  @override
+  String get vaultForgot => 'نسيت عبارة المرور؟';
+
+  @override
+  String get vaultForgotBody =>
+      'لا يمكن فتح بياناتك دون عبارة المرور. هل تريد مسحها والبدء من جديد بعبارة مرور جديدة؟ يمكنك استيراد نسخة احتياطية بعد ذلك.';
+
+  @override
+  String circleNextReminder(String time) {
+    return 'تذكير دفعتك القادمة بعد: $time';
+  }
+
+  @override
+  String countdownDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساعة',
+      many: '$count ساعة',
+      few: '$count ساعات',
+      two: 'ساعتان',
+      one: 'ساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتان',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ثانية',
+      many: '$count ثانية',
+      few: '$count ثوانٍ',
+      two: 'ثانيتان',
+      one: 'ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get countdownSeparator => '، ';
+
+  @override
+  String nextReminderIn(String time) {
+    return 'تذكيرك القادم بعد: $time';
+  }
 }

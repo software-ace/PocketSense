@@ -26,8 +26,8 @@ abstract final class ReminderNotifications {
   // Desktop: reminders up to this time have been shown.
   static const _shownKey = 'reminders.shownUntil';
 
-  /// What a tapped notification asked for: its payload (`recurring:<id>` or
-  /// `loan:<id>`), prefixed `create:` from Create Transaction. Whoever acts
+  /// What a tapped notification asked for: its payload (`recurring:<id>`,
+  /// `loan:<id>` or `circle:<id>`), prefixed `create:` from Create Transaction. Whoever acts
   /// on it sets it back to null.
   static final pending = ValueNotifier<String?>(null);
 
@@ -117,6 +117,7 @@ abstract final class ReminderNotifications {
     final repo = FinanceRepo();
     final items = await repo.recurring();
     final loans = await repo.loans();
+    final circles = await repo.circles();
     final now = DateTime.now();
     final locale = resolveAppLocale(AppSettings.locale.value, PlatformDispatcher.instance.locale);
     final l = lookupAppLocalizations(locale);
@@ -146,7 +147,7 @@ abstract final class ReminderNotifications {
     if (Platform.isAndroid) {
       // shortcut: schedules 90 days ahead (and under Android's 500-alarm cap);
       // each app open moves the window, so only a phone left unopened longer misses some.
-      final list = remindersBetween(items, loans, now, now.add(const Duration(days: 90))).take(400).toList();
+      final list = remindersBetween(items, loans, now, now.add(const Duration(days: 90)), circles).take(400).toList();
       // Nothing to schedule or cancel: leave the plugin unstarted.
       if (list.isEmpty && !(await _prefs.getBool(_scheduledKey) ?? false)) return;
       await _init(l);
@@ -169,16 +170,19 @@ abstract final class ReminderNotifications {
     }
 
     final shownUntil = DateTime.tryParse(await _prefs.getString(_shownKey) ?? '');
-    await _prefs.setString(_shownKey, now.toIso8601String());
     // First run: start from now rather than replaying every past reminder.
-    if (shownUntil == null) return;
-    // One per item, its latest: a week closed shouldn't bring seven of the same.
-    final latest = {for (final r in remindersBetween(items, loans, shownUntil, now)) r.payload: r};
-    if (latest.isEmpty) return;
-    await _init(l);
-    for (final r in latest.values) {
-      await _plugin.show(id: r.id, title: l.reminderTitle, body: text(r, now), notificationDetails: details, payload: r.payload);
+    if (shownUntil != null) {
+      // One per item, its latest: a week closed shouldn't bring seven of the same.
+      final latest = {for (final r in remindersBetween(items, loans, shownUntil, now, circles)) r.payload: r};
+      if (latest.isNotEmpty) await _init(l);
+      for (final r in latest.values) {
+        await _plugin.show(id: r.id, title: l.reminderTitle, body: text(r, now), notificationDetails: details, payload: r.payload);
+      }
     }
+    // Only once they're shown: if showing fails (no notification server yet),
+    // they stay due and the next run, a minute later, tries them again. One
+    // shown twice replaces itself, as its id is the same.
+    await _prefs.setString(_shownKey, now.toIso8601String());
   }
 
   static Future<void> _init(AppLocalizations l) async {

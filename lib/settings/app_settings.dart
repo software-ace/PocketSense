@@ -173,7 +173,7 @@ class AppSettings {
     }
     return (
       order: saved,
-      hidden: {for (final n in hidden ?? const <String>[]) ?byName[n]}..remove(HomeSection.loans),
+      hidden: {for (final n in hidden ?? const <String>[]) ?byName[n]}..removeAll(alwaysShownSections),
     );
   }
 
@@ -222,9 +222,11 @@ class AppSettings {
   }
 }
 
-/// What Home can show, in its default order. Loans can't be hidden: on a
-/// phone its card is the only way into Loans.
-enum HomeSection { totals, accounts, loans, daily, category, merchant, monthTotals, monthly, pace, weekday, recent }
+/// What Home can show, in its default order.
+enum HomeSection { totals, accounts, loans, circles, daily, category, merchant, monthTotals, monthly, pace, weekday, recent }
 
 /// Rail tabs on the desktop, so Home and its settings leave them out there.
-const desktopTabSections = {HomeSection.loans, HomeSection.accounts};
+const desktopTabSections = {HomeSection.loans, HomeSection.circles, HomeSection.accounts};
+
+/// Can't be hidden: on a phone their cards are the only way in.
+const alwaysShownSections = {HomeSection.loans, HomeSection.circles};

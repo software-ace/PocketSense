@@ -37,10 +37,13 @@ class LocalStore {
   void notifyChanged() => changes.value++;
 
   static const fileName = 'pocketsense.db';
-  static const schemaVersion = 7;
+  static const schemaVersion = 8;
 
   /// Tables whose rows sync between paired devices, parents first.
-  static const syncedTables = ['categories', 'merchants', 'loans', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
+  static const syncedTables = ['categories', 'merchants', 'loans', 'circles', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
+
+  // The synced tables before v8, for the upgrades that run before it.
+  static const _tablesBeforeV8 = ['categories', 'merchants', 'loans', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
 
   // The synced tables before v7, for the upgrades that run before it.
   static const _tablesBeforeV7 = ['categories', 'merchants', 'loans', 'transactions', 'budgets', 'recurring_expenses'];
@@ -212,6 +215,7 @@ class LocalStore {
     await _upgradeToV4(db, categoryNames, addCategories: false);
     await _upgradeToV6(db);
     await _upgradeToV7(db, categoryNames[cashNameKey] ?? 'Cash');
+    await _upgradeToV8(db, categoryNames, addCategories: false);
   }
 
   /// [categoryNames]: as for [open]; names the categories v4 adds.
@@ -222,7 +226,46 @@ class LocalStore {
     if (from < 4) await _upgradeToV4(db, categoryNames);
     if (from < 6) await _upgradeToV6(db);
     if (from < 7) await _upgradeToV7(db, categoryNames[cashNameKey] ?? 'Cash');
+    if (from < 8) await _upgradeToV8(db, categoryNames);
   }
+
+  /// v8 adds savings circles, built like loans (v4): a circle holds its
+  /// terms, and its money is ordinary transactions that point at it, in two
+  /// starter categories with fixed uids. Safe to run twice.
+  static Future<void> _upgradeToV8(sq.Database db, Map<String, String> categoryNames, {bool addCategories = true}) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS circles (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL, contribution_fils INTEGER NOT NULL,
+        rounds INTEGER NOT NULL, frequency TEXT NOT NULL, start_date TEXT NOT NULL,
+        payout_round INTEGER NOT NULL, note TEXT, due_time INTEGER, reminder_days INTEGER,
+        uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_circles_uid ON circles(uid)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_circles_seq ON circles(seq)');
+    final txColumns = {for (final c in await db.rawQuery('PRAGMA table_info(transactions)')) c['name']};
+    if (!txColumns.contains('circle_id')) {
+      // SET NULL is the fallback only: deleting a circle deletes its entries
+      // first, as stamped changes.
+      await db.execute('ALTER TABLE transactions ADD COLUMN circle_id INTEGER REFERENCES circles(id) ON DELETE SET NULL');
+    }
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_circle ON transactions(circle_id)');
+    if (!addCategories) return;
+    // Above every seq already sent to a peer, as in v3.
+    final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    for (final c in defaultCategories.where((c) => circleCategoryKeys.contains(c.key))) {
+      // As in v4: skipped if the user has a category of that name.
+      await db.insert('categories', {
+        'name': categoryNames[c.key] ?? c.name, 'type': c.type, 'color': c.color, 'uid': 'default:${c.key}',
+        'hlc': _formatHlc(0, 0, node), 'seq': ++seq,
+      }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    }
+  }
+
+  /// The starter categories circle entries go in: payments, payouts.
+  static const circleCategoryKeys = ['circlePayments', 'circlePayouts'];
 
   /// v6 adds due times and reminders, part of the item so they sync with
   /// it: due_time in minutes after midnight (null is 9:00), reminder_days
@@ -279,7 +322,7 @@ class LocalStore {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_account ON transactions(account_id)');
 
     // Above every seq already sent to a peer, as in v3.
-    final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    final union = [for (final t in [..._tablesBeforeV8, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
     final seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
     final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
     // Time 0, as for starter categories (v2).

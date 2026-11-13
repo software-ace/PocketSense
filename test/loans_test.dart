@@ -120,6 +120,9 @@ void main() {
     expect([for (final c in cats) (c['uid'], c['name'], c['type'])], [
       ('default:loansPaid', 'ديون مدفوعة', 'expense'),
       ('default:loansReceived', 'Loans Received', 'income'),
+      // v8's, from the same upgrade.
+      ('default:circlePayments', 'Circle Payments', 'expense'),
+      ('default:circlePayouts', 'Circle Payouts', 'income'),
     ]);
     for (final c in cats) {
       expect(c['seq'] as int, greaterThan(sent));

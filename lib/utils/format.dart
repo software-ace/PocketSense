@@ -88,12 +88,9 @@ String compactAmount(double dinars) {
 const _easternDigits = '٠١٢٣٤٥٦٧٨٩';
 const _persianDigits = '۰۱۲۳۴۵۶۷۸۹';
 
-/// Parses what someone typed into an amount field into fils. Accepts Latin
-/// or Arabic-Indic digits, `.` or `٫` as the decimal point, and thousands
-/// separators. Returns null for anything else, including more decimals than
-/// the currency has, and a comma that isn't between thousands: `12,5` is a
-/// decimal comma, which would otherwise read as 125.
-int? parseAmount(String input) {
+/// [input] with Arabic-Indic and Persian digits, and the Arabic decimal and
+/// thousands separators, as their Latin forms; blanks dropped.
+String latinDigits(String input) {
   final b = StringBuffer();
   for (final ch in input.trim().split('')) {
     final e = _easternDigits.indexOf(ch), f = _persianDigits.indexOf(ch);
@@ -109,9 +106,19 @@ int? parseAmount(String input) {
       b.write(ch);
     }
   }
+  return b.toString();
+}
+
+/// Parses what someone typed into an amount field into fils. Accepts Latin
+/// or Arabic-Indic digits, `.` or `٫` as the decimal point, and thousands
+/// separators. Returns null for anything else, including more decimals than
+/// the currency has, and a comma that isn't between thousands: `12,5` is a
+/// decimal comma, which would otherwise read as 125.
+int? parseAmount(String input) {
+  final b = latinDigits(input);
   // A thousands separator follows a digit and comes before exactly three.
-  if (b.toString().contains(RegExp(r'(?<!\d),|,(?!\d{3}(?:[,.]|$))'))) return null;
-  final m = RegExp('^(\\d*)(?:\\.(\\d{0,${appCurrency.decimals}}))?\$').firstMatch(b.toString().replaceAll(',', ''));
+  if (b.contains(RegExp(r'(?<!\d),|,(?!\d{3}(?:[,.]|$))'))) return null;
+  final m = RegExp('^(\\d*)(?:\\.(\\d{0,${appCurrency.decimals}}))?\$').firstMatch(b.replaceAll(',', ''));
   if (m == null || (m.group(1)!.isEmpty && (m.group(2) ?? '').isEmpty)) return null;
   final whole = m.group(1)!.isEmpty ? 0 : int.parse(m.group(1)!);
   final frac = int.parse((m.group(2) ?? '').padRight(3, '0'));

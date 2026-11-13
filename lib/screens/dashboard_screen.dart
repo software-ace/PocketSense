@@ -15,6 +15,7 @@ import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import '../settings/manage_accounts_screen.dart';
 import 'accounts_screen.dart';
+import 'circles_screen.dart';
 import 'loans_screen.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -48,6 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   List<int> _weekday = const [];
   List<({DateTime day, int fils})> _daily = [];
   List<Loan> _loans = [];
+  List<Circle> _circles = [];
   List<Account> _accounts = [];
 
   @override
@@ -92,6 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _repo.transactionMonths(),
         _repo.totals(_pickedFrom(_Chart.totals, now), _pickedTo(_Chart.totals, now)),
         _repo.accounts(),
+        _repo.circles(),
       ]);
 
       if (!mounted) return;
@@ -109,6 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _dataMonths = results[10] as List<DateTime>;
         _pickedTotals = results[11] as ({int income, int expense});
         _accounts = results[12] as List<Account>;
+        _circles = results[13] as List<Circle>;
         _loading = false;
       });
     } catch (e) {
@@ -241,6 +245,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
           HomeSection.weekday => _chartCard(theme, l.chartWeekday, _buildWeekdayChart()),
           HomeSection.totals => _totals(theme, desktop),
           HomeSection.loans => _loansCard(theme),
+          HomeSection.circles => _circlesCard(theme),
           HomeSection.accounts => _accountsCard(theme),
           HomeSection.recent => throw ArgumentError(s), // slivers, below
         };
@@ -385,32 +390,42 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   Widget _loansCard(ThemeData theme) {
     final l = context.l10n;
     final totals = loanTotals(_loans);
-    Widget total(String label, int fils, {Color? color}) => Expanded(
+    return _owedCard(theme, Icons.handshake_outlined, l.loans, const LoansScreen(), (l.owedToYou, totals.owedToYou), (l.youOwe, totals.youOwe));
+  }
+
+  Widget _circlesCard(ThemeData theme) {
+    final l = context.l10n;
+    final totals = circleTotals(_circles);
+    return _owedCard(theme, Icons.groups_outlined, l.circles, const CirclesScreen(), (l.circlesOweYou, totals.owedToYou), (l.youOweCircles, totals.youOwe));
+  }
+
+  /// A card that opens [page], with what's owed to you (green when there's
+  /// some) and what you owe.
+  Widget _owedCard(ThemeData theme, IconData icon, String title, Widget page, (String, int) toYou, (String, int) byYou) {
+    Widget total((String, int) t, {bool good = false}) => Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: theme.textTheme.bodySmall),
+            Text(t.$1, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
-            _fit(Text(formatMoney(fils), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: color))),
+            _fit(Text(formatMoney(t.$2),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: good && t.$2 > 0 ? Colors.green : null))),
           ]),
         );
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoansScreen())),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page)),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Icon(Icons.handshake_outlined, size: 18, color: theme.colorScheme.primary),
+              Icon(icon, size: 18, color: theme.colorScheme.primary),
               const SizedBox(width: 6),
-              Expanded(child: Text(l.loans, style: theme.textTheme.titleSmall)),
+              Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
               const Icon(Icons.chevron_right, size: 20),
             ]),
             const SizedBox(height: 10),
-            Row(children: [
-              total(l.owedToYou, totals.owedToYou, color: totals.owedToYou > 0 ? Colors.green : null),
-              total(l.youOwe, totals.youOwe),
-            ]),
+            Row(children: [total(toYou, good: true), total(byYou)]),
           ]),
         ),
       ),

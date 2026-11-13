@@ -7,14 +7,15 @@ import 'format.dart';
 import 'recurring.dart';
 
 /// One reminder for one due date. [payload] names what it's about:
-/// `recurring:<id>` or `loan:<id>`.
+/// `recurring:<id>`, `loan:<id>` or `circle:<id>`.
 class Reminder {
-  const Reminder({required this.at, required this.due, required this.payload, this.item, this.loan});
+  const Reminder({required this.at, required this.due, required this.payload, this.item, this.loan, this.circle});
   final DateTime at;
   final DateTime due;
   final String payload;
   final RecurringExpense? item;
   final Loan? loan;
+  final Circle? circle;
 
   /// The same for every run, so rescheduling replaces rather than doubles it.
   int get id => Object.hash(payload, at.millisecondsSinceEpoch) & 0x7fffffff;
@@ -30,7 +31,9 @@ DateTime _at(DateTime due, int daysBefore, int minutes) =>
 /// Every reminder after [from], up to and including [to], soonest first.
 /// Paused items, settled loans and loans without a due date have none. A
 /// loan reminded days before is reminded again on the day if still open.
-List<Reminder> remindersBetween(Iterable<RecurringExpense> items, Iterable<Loan> loans, DateTime from, DateTime to) {
+/// A circle reminds before each round not yet paid in full.
+List<Reminder> remindersBetween(Iterable<RecurringExpense> items, Iterable<Loan> loans, DateTime from, DateTime to,
+    [Iterable<Circle> circles = const []]) {
   final out = <Reminder>[];
   void add(Reminder r) {
     if (r.at.isAfter(from) && !r.at.isAfter(to)) out.add(r);
@@ -56,6 +59,16 @@ List<Reminder> remindersBetween(Iterable<RecurringExpense> items, Iterable<Loan>
       add(Reminder(at: _at(due, before, _minutes(l.dueMinutes)), due: due, payload: 'loan:${l.id}', loan: l));
     }
   }
+  for (final c in circles) {
+    final days = _days(c.reminderDays);
+    if (days == null) continue;
+    for (var round = c.nextRound ?? c.rounds + 1; round <= c.rounds; round++) {
+      final due = c.dueDate(round);
+      final at = _at(due, days, _minutes(c.dueMinutes));
+      if (at.isAfter(to)) break;
+      add(Reminder(at: at, due: due, payload: 'circle:${c.id}', circle: c));
+    }
+  }
   return out..sort((a, b) => a.at.compareTo(b.at));
 }
 
@@ -70,6 +83,10 @@ String reminderText(AppLocalizations l, Reminder r, DateTime today, {required bo
   final item = r.item;
   if (item != null) {
     return amounts ? l.reminderRecurringAmount(item.description, money(item.amountFils), when) : l.reminderRecurring(item.description, when);
+  }
+  final circle = r.circle;
+  if (circle != null) {
+    return amounts ? l.reminderCircleAmount(circle.name, money(circle.contributionFils), when) : l.reminderCircle(circle.name, when);
   }
   final loan = r.loan!;
   if (!amounts) return l.reminderLoan(loan.person, when);

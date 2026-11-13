@@ -10,6 +10,7 @@ import 'l10n/l10n.dart';
 import 'screens/onboarding_screen.dart';
 import 'security/amount_privacy.dart';
 import 'security/lock_gate.dart';
+import 'security/vault_gate.dart';
 import 'settings/app_settings.dart';
 import 'shell.dart';
 import 'sync/sync_service.dart';
@@ -96,8 +97,9 @@ class PocketSenseApp extends StatelessWidget {
         },
         theme: appTheme(Brightness.light),
         darkTheme: appTheme(Brightness.dark, black: AppSettings.theme.value == AppTheme.black),
-        // Above the Navigator, so the lock covers every route and dialog.
-        builder: (context, child) => LockGate(onEraseAll: _eraseAndRestart, child: child!),
+        // Above the Navigator, so the lock covers every route and dialog. The
+        // vault (Linux without a keyring) opens first: the lock's PIN is in it.
+        builder: (context, child) => VaultGate(onErase: _eraseAndRestart, child: LockGate(onEraseAll: _eraseAndRestart, child: child!)),
         home: ValueListenableBuilder<int>(
           valueListenable: _generation,
           builder: (_, generation, _) => Boot(key: ValueKey(generation)),

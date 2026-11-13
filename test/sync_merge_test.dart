@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/models/default_categories.dart';
 import 'package:pocket_sense/data/backup.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/sync/merge.dart';
@@ -94,7 +95,7 @@ void main() {
 
     await Mesh().settle([a, b]);
 
-    expect(await a.db.query('categories'), hasLength(16));
+    expect(await a.db.query('categories'), hasLength(defaultCategories.length));
     expect(await snapshot(a), await snapshot(b));
   });
 

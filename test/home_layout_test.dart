@@ -76,6 +76,7 @@ void main() {
       await tester.pumpWidget(localizedApp(const DashboardScreen()));
       await settleWithDb(tester);
       expect(find.text('Owed to you'), findsNothing);
+      expect(find.text('Circles owe you'), findsNothing);
       expect(find.text('Accounts'), findsNothing);
       expect(find.text('Income (mo)'), findsOneWidget, reason: 'the rest of Home is there');
     });
@@ -85,6 +86,7 @@ void main() {
       await tester.pumpWidget(localizedApp(const HomeLayoutScreen()));
       await tester.pumpAndSettle();
       expect(find.text('Loans'), findsNothing);
+      expect(find.text('Savings circles'), findsNothing);
       expect(find.text('Accounts'), findsNothing);
 
       // Totals' handle dragged below Daily Spending, the next listed row.
@@ -101,8 +103,8 @@ void main() {
       await gesture.up();
       await tester.pumpAndSettle();
 
-      expect(AppSettings.homeLayout.value.order.take(4),
-          [HomeSection.daily, HomeSection.accounts, HomeSection.loans, HomeSection.totals]);
+      expect(AppSettings.homeLayout.value.order.take(5),
+          [HomeSection.daily, HomeSection.accounts, HomeSection.loans, HomeSection.circles, HomeSection.totals]);
     });
   });
 }

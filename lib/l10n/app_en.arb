@@ -1281,5 +1281,207 @@
       }
     }
   },
-  "csvSumUnknownAccounts": "Rows put in your default account (account not found)"
+  "csvSumUnknownAccounts": "Rows put in your default account (account not found)",
+  "catCirclePayments": "Circle Payments",
+  "catCirclePayouts": "Circle Payouts",
+  "circles": "Savings circles",
+  "circleTitle": "Savings circle",
+  "newCircle": "New circle",
+  "editCircle": "Edit circle",
+  "circleName": "Name",
+  "enterCircleName": "Enter a name",
+  "circleContribution": "Payment each round",
+  "circleRounds": "Number of participants",
+  "circleYourTurn": "Your turn (round)",
+  "circleFirstPayment": "First payment",
+  "circleRoundsRange": "From 2 to {max}",
+  "@circleRoundsRange": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "circleTurnRange": "From 1 to {rounds}",
+  "@circleTurnRange": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "noCirclesYet": "No savings circles yet",
+  "noCirclesHint": "Track the circles you're in: what you pay each round, when your turn comes, and where you stand.",
+  "noActiveCircles": "No circles in progress",
+  "noFinishedCircles": "No finished circles",
+  "circlesActive": "In progress",
+  "circlesFinished": "Finished",
+  "circlesOweYou": "Circles owe you",
+  "youOweCircles": "You owe circles",
+  "circleOwesYou": "The circle owes you",
+  "youOweCircle": "You owe the circle",
+  "circleRoundOf": "Round {round} of {rounds}",
+  "@circleRoundOf": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "circleTerms": "{amount} × {rounds} · {frequency}",
+  "@circleTerms": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "rounds": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "String"
+      }
+    }
+  },
+  "circleTurnOn": "Your turn: {date}",
+  "@circleTurnOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "circlePayoutOf": "Payout of {amount}",
+  "@circlePayoutOf": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "circleUpToTurn": "You pay up to your turn",
+  "circleAfterTurn": "You pay after your turn",
+  "circlePaid": "{amount} paid",
+  "@circlePaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "circleSchedule": "Schedule",
+  "recordCirclePayment": "Record payment",
+  "recordCirclePayout": "Record payout",
+  "circlePayoutReceived": "Payout received: {amount}",
+  "@circlePayoutReceived": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCircleTitle": "Delete this circle?",
+  "circlePaymentTo": "Payment to {name}",
+  "@circlePaymentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "circlePayoutFrom": "Payout from {name}",
+  "@circlePayoutFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCircle": "Your {name} payment is {when}.",
+  "@reminderCircle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCircleAmount": "Your {name} payment of {amount} is {when}.",
+  "@reminderCircleAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCirclesAlwaysShown": "Always shown: it's the way into Savings circles",
+  "vaultCreateTitle": "Set a passphrase",
+  "vaultCreateBody": "No system keyring (such as GNOME Keyring or KWallet) is running, so Pocket Sense keeps its encryption keys in a file locked with this passphrase. You'll type it each time you open the app. If you forget it, your data can't be recovered.",
+  "vaultUnlockTitle": "Enter your passphrase",
+  "vaultUnlockBody": "Pocket Sense keeps its encryption keys in a file locked with your passphrase, because no system keyring was running when you set it up.",
+  "vaultPassphrase": "Passphrase",
+  "vaultRepeat": "Repeat passphrase",
+  "vaultMismatch": "The passphrases don't match",
+  "vaultWrong": "Wrong passphrase",
+  "vaultForgot": "Forgot passphrase?",
+  "vaultForgotBody": "Without the passphrase your data can't be opened. Erase it and start over with a new passphrase? You can still import a backup afterwards.",
+  "circleNextReminder": "Your next payment reminder in: {time}",
+  "@circleNextReminder": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "countdownDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@countdownDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownHours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@countdownHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@countdownMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownSeconds": "{count, plural, =1{1 second} other{{count} seconds}}",
+  "@countdownSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownSeparator": ", ",
+  "nextReminderIn": "Your next reminder in: {time}",
+  "@nextReminderIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }

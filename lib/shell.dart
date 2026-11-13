@@ -9,6 +9,7 @@ import 'screens/accounts_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/budgets_screen.dart';
+import 'screens/circles_screen.dart';
 import 'screens/loans_screen.dart';
 import 'screens/recurring_screen.dart';
 import 'l10n/l10n.dart';
@@ -18,8 +19,8 @@ import 'utils/platform.dart';
 import 'widgets/whats_new.dart';
 
 /// Root scaffold that adapts navigation to the viewport:
-/// - Wide (≥ 900 px): left [NavigationRail] with labelled icons, plus Loans
-///   and Accounts, which a phone reaches from Home's cards.
+/// - Wide (≥ 900 px): left [NavigationRail] with labelled icons, plus Loans,
+///   Savings circles and Accounts, which a phone reaches from Home's cards.
 /// - Narrow (< 900 px): bottom bar with 4 primary tabs.
 /// Categories moved to Settings (gear icon in each tab's app bar).
 class Shell extends StatefulWidget {
@@ -73,9 +74,9 @@ class _ShellState extends State<Shell> {
     super.dispose();
   }
 
-  /// A tapped reminder, once unlocked: Recurring, or the loan it's about.
-  /// Create Transaction also posts the recurring item (as its ▶ button
-  /// does), or opens Record repayment for the loan.
+  /// A tapped reminder, once unlocked: Recurring, or the loan or circle it's
+  /// about. Create Transaction also posts the recurring item (as its ▶
+  /// button does), or opens Record repayment or Record payment.
   void _onReminderTap() {
     final pending = ReminderNotifications.pending.value;
     if (pending == null || !LockGate.unlocked.value || !mounted) return;
@@ -88,6 +89,8 @@ class _ShellState extends State<Shell> {
       if (create && id != null) _post(id);
     } else if (kind == 'loan' && id != null) {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoanScreen(loanId: id, repay: create)));
+    } else if (kind == 'circle' && id != null) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleScreen(circleId: id, pay: create)));
     }
   }
 
@@ -117,6 +120,7 @@ class _ShellState extends State<Shell> {
   static const _desktopPages = <Widget>[
     ..._pages,
     LoansScreen(tab: true),
+    CirclesScreen(tab: true),
     AccountsScreen(tab: true),
   ];
 
@@ -130,6 +134,7 @@ class _ShellState extends State<Shell> {
       _Dest(Icons.repeat_rounded, l.navRecurring),
       if (desktop) ...[
         _Dest(Icons.handshake_outlined, l.loans),
+        _Dest(Icons.groups_outlined, l.circles),
         _Dest(Icons.account_balance_wallet_outlined, l.accounts),
       ],
     ];
