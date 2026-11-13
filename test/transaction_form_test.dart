@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
 import 'package:pocket_sense/security/lock_gate.dart';
@@ -234,5 +235,29 @@ void main() {
     await tester.enterText(search, '');
     await settleWithDb(tester);
     expect(['Coffee', 'Lunch', 'Taxi'].every((d) => find.text(d).evaluate().isNotEmpty), isTrue);
+  });
+
+  testWidgets('past the newest 200, "Show older entries" reaches the rest', (tester) async {
+    await tester.runAsync(() async {
+      final store = await LocalStore.instance();
+      await store.write((txn) async {
+        for (var i = 0; i < 205; i++) {
+          final day = DateTime(2026, 1, 1).add(Duration(days: i));
+          await store.insertIn(txn, 'transactions',
+              {'amount_fils': 100, 'type': 'expense', 'date': day.toIso8601String().substring(0, 10), 'description': i == 0 ? 'Oldest' : 'e$i'});
+        }
+      });
+    });
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    final older = find.text('Show older entries');
+    final list = find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(older, 500, scrollable: list);
+    expect(find.text('Oldest'), findsNothing);
+
+    await tester.tap(older);
+    await settleWithDb(tester);
+    await tester.scrollUntilVisible(find.text('Oldest'), 500, scrollable: list);
+    expect(find.text('Oldest'), findsOneWidget);
+    expect(older, findsNothing, reason: 'all 205 shown: nothing older');
   });
 }

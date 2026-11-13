@@ -73,13 +73,30 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   // Bumped by every load: an older search that answers late is dropped.
   int _loads = 0;
 
+  // How many entries to show; "Show older entries" raises it.
+  static const _page = 200;
+  int _limit = _page;
+
+  // A full page: there may be older ones.
+  bool get _more => _items.length >= _limit;
+
+  void _showOlder() {
+    _limit += _page;
+    _load();
+  }
+
+  Widget _olderButton() => Center(
+      child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: TextButton.icon(onPressed: _showOlder, icon: const Icon(Icons.expand_more), label: Text(context.l10n.showOlderEntries))));
+
   /// Loads with the type filter and whatever is typed in search.
   Future<void> _load() async {
     final load = ++_loads;
     // No spinner here: it shows only before the first load, not per keystroke.
     if (_error != null) setState(() => _error = null);
     try {
-      final items = await _repo.transactions(type: _typeFilter, q: _searchCtrl.text.trim());
+      final items = await _repo.transactions(type: _typeFilter, q: _searchCtrl.text.trim(), limit: _limit);
       if (!mounted || load != _loads) return;
       setState(() {
         _items = items;
@@ -287,7 +304,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       margin: EdgeInsets.zero,
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: DataTable(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          DataTable(
           headingRowHeight: 44,
           dataRowMinHeight: 48,
           dataRowMaxHeight: 56,
@@ -315,7 +333,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               ])),
             ]);
           }).toList(),
-        ),
+          ),
+          if (_more) _olderButton(),
+        ]),
       ),
     );
   }
@@ -324,8 +344,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     return ListView.builder(
       // Room below the last row so the floating add button never covers it.
       padding: const EdgeInsets.only(bottom: 88),
-      itemCount: _items.length,
+      itemCount: _items.length + (_more ? 1 : 0),
       itemBuilder: (_, i) {
+        if (i == _items.length) return _olderButton();
         final t = _items[i];
         return Dismissible(
           key: ValueKey(t.id),

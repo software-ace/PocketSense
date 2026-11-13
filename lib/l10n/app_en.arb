@@ -1484,5 +1484,6 @@
       }
     }
   },
-  "deleteTransferTitle": "Delete this transfer?"
+  "deleteTransferTitle": "Delete this transfer?",
+  "showOlderEntries": "Show older entries"
 }

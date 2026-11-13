@@ -578,5 +578,6 @@
   "countdownSeconds": "{count, plural, =1{ثانية واحدة} =2{ثانيتان} few{{count} ثوانٍ} many{{count} ثانية} other{{count} ثانية}}",
   "countdownSeparator": "، ",
   "nextReminderIn": "تذكيرك القادم بعد: {time}",
-  "deleteTransferTitle": "حذف هذا التحويل؟"
+  "deleteTransferTitle": "حذف هذا التحويل؟",
+  "showOlderEntries": "عرض قيود أقدم"
 }

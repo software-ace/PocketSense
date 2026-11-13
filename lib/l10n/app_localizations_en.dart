@@ -2305,4 +2305,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteTransferTitle => 'Delete this transfer?';
+
+  @override
+  String get showOlderEntries => 'Show older entries';
 }

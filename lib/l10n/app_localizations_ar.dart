@@ -2373,4 +2373,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteTransferTitle => 'حذف هذا التحويل؟';
+
+  @override
+  String get showOlderEntries => 'عرض قيود أقدم';
 }

@@ -3571,6 +3571,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this transfer?'**
   String get deleteTransferTitle;
+
+  /// No description provided for @showOlderEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Show older entries'**
+  String get showOlderEntries;
 }
 
 class _AppLocalizationsDelegate
