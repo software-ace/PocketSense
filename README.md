@@ -102,7 +102,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
   - **What others on your Wi-Fi can see:** discovery announcements (UDP multicast to 224.0.0.167) are unencrypted. They carry the app's name, a device ID (a hash of its public key) and, only while **Pair a device** is open, the device's name. Sync messages travel over plain HTTP with encrypted bodies, so the devices' addresses, the timing and size of messages, and the sender's device ID are visible, but never their contents.
   - **Pairing** exchanges public keys in the open and has both screens show a 6-digit code, the way Bluetooth pairing does. Checking the codes match is what stops a device in the middle from passing itself off as yours: it would have a one-in-a-million chance of getting the same code on both.
   - Unpairing stops sharing; the data stays on both devices. Erasing all data unpairs this device from all the others.
-- **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet).
+- **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet). On Linux without a keyring, a fresh install asks for a passphrase instead and keeps the key in a file locked with it, which it asks for each time it opens.
   - If the keystore doesn't respond, the app says so and offers **Try again**. It never deletes anything to get past the error, and with a PIN set it stays locked until the PIN can be checked.
 - **Hide amounts:** every amount shows as `•••`, the same for any value and with no sign, so a glance at the screen gives nothing away. The 👁 in the top bar shows them; they hide again after 30 seconds in the background and at every launch. It's on by default; **Settings → Security → Hide amounts** turns it off. Forms show the real number, including when you edit an entry, and chart shapes still show proportions.
 - **Private screen:** on Android the app is hidden in the recent-apps preview and can't be captured in screenshots or screen recordings. It's on by default; **Settings → Security → Private screen** turns it off, e.g. to take a screenshot.
@@ -144,7 +144,7 @@ Installed the APK from GitHub? [Obtainium](https://github.com/ImranR98/Obtainium
 
 The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` command, and install what it needs. With the AppImage or the tarball, you need:
 - GTK 3 and EGL/GLES, which almost every desktop already has.
-- A running keyring (GNOME Keyring or KWallet). Without one, the app explains the problem instead of opening.
+- A running keyring (GNOME Keyring or KWallet), or a passphrase you type each time it opens: a fresh install without a keyring asks for one.
 - `parecord` for voice entry: `pulseaudio-utils` on Debian, Ubuntu and Fedora, `libpulse` on Arch.
 
 **Windows 10 or 11, x64:**

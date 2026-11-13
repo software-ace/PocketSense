@@ -1,0 +1,5 @@
+• New: Savings circles (جمعيات): your payment each round, your turn and payout, and whether you owe the circle or it owes you, with reminders.
+• New: a live countdown to the next reminder on recurring items, loans and circles.
+• Improved: Activity reaches entries older than the newest 200, and loads faster.
+• Fixed: items due on the 29th–31st come every month; Cancel on a swiped entry keeps it.
+• Update all your paired devices: sync needs the same version on each.
