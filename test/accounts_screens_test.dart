@@ -122,4 +122,18 @@ void main() {
     expect(await count(), 0);
     expect(find.text('Delete transfer'), findsNothing, reason: 'the sheet closed');
   });
+
+  testWidgets('tapping Save twice on a new account adds one account', (tester) async {
+    await pumpScreenWithDb(tester, const ManageAccountsScreen());
+    await tester.tap(find.text('New account'));
+    await settleWithDb(tester);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Wallet');
+    final save = find.widgetWithText(FilledButton, 'Save');
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.tap(save, warnIfMissed: false);
+    await settleWithDb(tester);
+    final names = [for (final a in (await tester.runAsync(() => repo.accounts()))!) a.name];
+    expect(names.where((n) => n == 'Wallet'), hasLength(1));
+  });
 }

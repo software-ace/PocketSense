@@ -109,11 +109,20 @@ Future<void> showAccountForm(BuildContext context, {Account? existing}) async {
   final accounts = await repo.accounts();
   final def = await repo.defaultAccountId();
   if (!context.mounted) return;
-  await showModalBottomSheet<void>(
+  final action = await showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     builder: (_) => _AccountForm(existing: existing, accounts: accounts, isDefault: existing?.id == def),
   );
+  // Close and Delete run from here, not from the sheet: it's gone by the
+  // time their dialogs answer, and a failure could no longer be shown.
+  if (existing == null || !context.mounted) return;
+  switch (action) {
+    case 'close':
+      await _closeAccount(context, existing, accounts);
+    case 'delete':
+      await _deleteAccount(context, existing, accounts);
+  }
 }
 
 class _AccountForm extends StatefulWidget {
@@ -133,6 +142,8 @@ class _AccountFormState extends State<_AccountForm> {
   late bool _makeDefault = widget.isDefault;
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
+  // A second tap on Save while the first is saving would add a second account.
+  bool _saving = false;
 
   static String _openingText(int fils) => fils == 0 ? '' : (fils < 0 ? '-${amountToInput(-fils)}' : amountToInput(fils));
 
@@ -153,22 +164,30 @@ class _AccountFormState extends State<_AccountForm> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     if (!_formKey.currentState!.validate()) {
       setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
       return;
     }
+    setState(() => _saving = true);
     final repo = FinanceRepo();
     final name = _nameCtrl.text.trim(), opening = _parseOpening(_openingCtrl.text)!;
     final e = widget.existing;
-    final int id;
-    if (e == null) {
-      id = await repo.insertAccount(name: name, kind: _kind, openingFils: opening);
-    } else {
-      await repo.updateAccount(e.id, name: name, kind: _kind, openingFils: opening);
-      id = e.id;
+    try {
+      final int id;
+      if (e == null) {
+        id = await repo.insertAccount(name: name, kind: _kind, openingFils: opening);
+      } else {
+        await repo.updateAccount(e.id, name: name, kind: _kind, openingFils: opening);
+        id = e.id;
+      }
+      if (_makeDefault && !widget.isDefault) await repo.setDefaultAccount(id);
+      if (mounted) Navigator.pop(context);
+    } catch (err) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.saveFailed('$err'))));
     }
-    if (_makeDefault && !widget.isDefault) await repo.setDefaultAccount(id);
-    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -222,24 +241,18 @@ class _AccountFormState extends State<_AccountForm> {
                 onChanged: widget.isDefault ? null : (v) => setState(() => _makeDefault = v),
               ),
               const SizedBox(height: 16),
-              FilledButton(onPressed: _save, child: Text(l.save)),
+              FilledButton(onPressed: _saving ? null : _save, child: Text(l.save)),
               if (canGo) ...[
                 const Divider(height: 32),
                 OutlinedButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await _closeAccount(context, e, widget.accounts);
-                  },
+                  onPressed: () => Navigator.pop(context, 'close'),
                   icon: const Icon(Icons.archive_outlined),
                   label: Text(l.closeAccount),
                 ),
                 const SizedBox(height: 4),
                 Text(l.closeAccountHint, textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                 TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await _deleteAccount(context, e, widget.accounts);
-                  },
+                  onPressed: () => Navigator.pop(context, 'delete'),
                   style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
                   child: Text(l.deleteAccount),
                 ),
