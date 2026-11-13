@@ -113,14 +113,18 @@ class FinanceRepo {
     }
     final clash = (await store.selectRows('merchants', where: 'name = ?', whereArgs: [clean])).firstOrNull;
     if (clash != null) throw StateError('A merchant called "$clean" already exists');
-    await store.updateRow('merchants', id, {'name': clean});
-    for (final t in const ['transactions', 'recurring_expenses']) {
-      for (final r in await store.selectRows(t, where: 'merchant IS NOT NULL', whereArgs: const [])) {
-        final m = r['merchant'] as String;
-        if (m == clean || m.trim().toLowerCase() != old.toLowerCase()) continue;
-        await store.updateRow(t, r['id'] as int, {'merchant': clean});
+    // One write: all of it lands or none (no entries left with the old
+    // name), and the screens reload once, not once per entry.
+    await store.write((txn) async {
+      await store.updateIn(txn, 'merchants', id, {'name': clean});
+      for (final t in const ['transactions', 'recurring_expenses']) {
+        for (final r in await txn.query(t, columns: ['id', 'merchant'], where: 'merchant IS NOT NULL')) {
+          final m = r['merchant'] as String;
+          if (m == clean || m.trim().toLowerCase() != old.toLowerCase()) continue;
+          await store.updateIn(txn, t, r['id'] as int, {'merchant': clean});
+        }
       }
-    }
+    });
   }
 
   /// Removes a merchant from the list. Past transactions keep their text,

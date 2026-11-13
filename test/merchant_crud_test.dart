@@ -38,9 +38,11 @@ void main() {
     await repo.insertTransaction(amountFils: 3000, type: 'expense', date: day, description: '', merchant: 'Other');
     await repo.insertRecurring(description: '', amountFils: 500, frequency: 'monthly', anchorDate: day, merchant: 'star');
 
-    await repo.renameMerchant(id, 'Starbucks');
-
     final store = await LocalStore.instance();
+    final before = store.changes.value;
+    await repo.renameMerchant(id, 'Starbucks');
+    expect(store.changes.value - before, 1, reason: 'one write, so the screens reload once');
+
     expect([for (final t in await store.selectRows('transactions')) t['merchant']], ['Starbucks', 'Starbucks', 'Other']);
     expect((await store.selectRows('recurring_expenses')).single['merchant'], 'Starbucks');
     expect((await store.selectRows('merchants')).single['name'], 'Starbucks');
