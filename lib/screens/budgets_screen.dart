@@ -168,7 +168,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                         const SizedBox(height: 6),
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                                           Text(over ? l.overBudgetBy(formatMoney(spent - b.limitFils)) : l.amountRemaining(formatMoney(b.limitFils - spent)), style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
-                                          Text('${(ratio * 100).toInt()}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                                          // The real share: ratio is capped for the bar only.
+                                          Text('${b.limitFils > 0 ? spent * 100 ~/ b.limitFils : 0}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                                         ]),
                                       ]),
                                     ),
