@@ -191,4 +191,25 @@ void main() {
     await tester.pump();
     expect(_merchantField(tester).controller!.text, 'Amazon');
   });
+
+  testWidgets('swiping an entry away asks first: Cancel keeps it, Delete deletes it', (tester) async {
+    final repo = FinanceRepo();
+    await tester.runAsync(() => repo.insertTransaction(amountFils: 2500, type: 'expense', date: DateTime.now(), description: 'Lunch'));
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+
+    await tester.drag(find.text('Lunch'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await settleWithDb(tester);
+    expect(find.text('Lunch'), findsOneWidget, reason: 'still listed after Cancel');
+    expect(tester.getSize(find.widgetWithText(ListTile, 'Lunch')).height, greaterThan(0));
+
+    await tester.drag(find.text('Lunch'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await settleWithDb(tester);
+    expect(find.text('Lunch'), findsNothing);
+    expect(await tester.runAsync(() => repo.transactions()), isEmpty);
+    await settleWithDb(tester); // the reload after the delete
+  });
 }

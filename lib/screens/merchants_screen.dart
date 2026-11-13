@@ -57,7 +57,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
     if (saved == true) await _load();
   }
 
-  Future<void> _delete(Merchant m) async {
+  Future<bool> _confirmDelete(Merchant m) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -69,13 +69,19 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
         ],
       ),
     );
-    if (ok != true) return;
+    return ok == true;
+  }
+
+  /// [confirmed]: a swipe already asked (in confirmDismiss).
+  Future<void> _delete(Merchant m, {bool confirmed = false}) async {
+    if (!confirmed && !await _confirmDelete(m)) return;
     try {
       await _repo.deleteMerchant(m.id);
       await _load();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
+      await _load(); // brings back a row a swipe took away
     }
   }
 
@@ -116,7 +122,12 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
                                   key: ValueKey(m.id),
                                   direction: DismissDirection.endToStart,
                                   background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
-                                  onDismissed: (_) => _delete(m),
+                                  // Asked before the row leaves: Cancel keeps it in place.
+                                  confirmDismiss: (_) => _confirmDelete(m),
+                                  onDismissed: (_) {
+                                    setState(() => _merchants.remove(m));
+                                    _delete(m, confirmed: true);
+                                  },
                                   child: ListTile(
                                     onTap: () => _edit(m),
                                     leading: const CircleAvatar(radius: 18, child: Icon(Icons.storefront)),

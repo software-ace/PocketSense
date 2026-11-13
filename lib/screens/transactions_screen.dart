@@ -143,7 +143,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     }
   }
 
-  Future<void> _delete(Transaction t) async {
+  Future<bool> _confirmDelete(Transaction t) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
@@ -155,9 +155,20 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         ],
       ),
     );
-    if (ok != true) return;
-    await _repo.deleteTransaction(t.id);
-    await _load();
+    return ok == true;
+  }
+
+  /// [confirmed]: a swipe already asked (in confirmDismiss).
+  Future<void> _delete(Transaction t, {bool confirmed = false}) async {
+    if (!confirmed && !await _confirmDelete(t)) return;
+    try {
+      await _repo.deleteTransaction(t.id);
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      _toast(context.l10n.deleteFailed('$e'));
+      await _load(); // brings back a row a swipe took away
+    }
   }
 
   void _toast(String msg) {
@@ -317,7 +328,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
           key: ValueKey(t.id),
           direction: DismissDirection.endToStart,
           background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
-          onDismissed: (_) => _delete(t),
+          // Asked before the row leaves: Cancel keeps it in place.
+          confirmDismiss: (_) => _confirmDelete(t),
+          onDismissed: (_) {
+            setState(() => _items.remove(t));
+            _delete(t, confirmed: true);
+          },
           child: ListTile(
             onTap: () => _editTransaction(t),
             onLongPress: () => _mobileActionSheet(t),
