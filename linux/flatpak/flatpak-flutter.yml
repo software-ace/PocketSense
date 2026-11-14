@@ -54,7 +54,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/software-ace/PocketSense.git
-        branch: flatpak
+        # Pinned, not a branch: Flathub builds reproducibly from a commit.
+        commit: 075e3e22d14932f81835e46b60309afdcc02a6f8
       - type: git
         url: https://github.com/flutter/flutter.git
         tag: 3.47.8
