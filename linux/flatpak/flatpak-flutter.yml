@@ -57,7 +57,7 @@ modules:
         branch: flatpak
       - type: git
         url: https://github.com/flutter/flutter.git
-        tag: 3.47.6
+        tag: 3.47.8
         dest: flutter
       - type: archive
         url: https://github.com/sqlcipher/sqlcipher/archive/refs/tags/v4.19.0.tar.gz
