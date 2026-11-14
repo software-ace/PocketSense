@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:pocket_sense/l10n/app_localizations.dart';
 import 'package:pocket_sense/settings/app_settings.dart';
 import 'package:pocket_sense/utils/format.dart';
 
@@ -19,6 +20,17 @@ void main() {
       expect(formatMoney(12500, locale: 'ar'), '\u206612.500\u2069\u00A0د.أ');
       expect(formatMoney(-12500, locale: 'ar'), '\u2066-12.500\u2069\u00A0د.أ');
       expect(formatMoney(12500, locale: 'ar_JO'), contains('12.500'));
+    });
+
+    test('Hide amounts: the same ••• for every amount, with no sign', () {
+      maskAmounts = true;
+      addTearDown(() => maskAmounts = false);
+      expect(formatMoney(12500, locale: 'en'), 'JOD\u00A0•••');
+      expect(formatMoney(-1234567, showSign: true, locale: 'en'), 'JOD\u00A0•••');
+      expect(formatMoney(12500, locale: 'ar'), '\u2066•••\u2069\u00A0د.أ');
+      expect(compactAmount(1500), '•••');
+      expect(formatMoney(12500, locale: 'en', showHidden: true), 'JOD\u00A012.500', reason: "a form's limit");
+      expect(formatMoney(null), '—');
     });
   });
 
@@ -51,6 +63,17 @@ void main() {
       expect(parseAmount('-5'), isNull);
       expect(parseAmount('1.2.3'), isNull);
     });
+
+    test('a comma only separates thousands: a decimal comma is rejected, not read as more', () {
+      expect(parseAmount('12,5'), isNull, reason: 'would otherwise be 125');
+      expect(parseAmount('1,23'), isNull);
+      expect(parseAmount('1,2345'), isNull);
+      expect(parseAmount(',500'), isNull);
+      expect(parseAmount('1,000,'), isNull);
+      expect(parseAmount('١٬٢٥'), isNull);
+      expect(parseAmount('1,234'), 1234000);
+      expect(parseAmount('12,345,678.9'), 12345678900);
+    });
   });
 
   test('amountToInput round-trips through parseAmount', () {
@@ -75,6 +98,50 @@ void main() {
     expect(currencyAffix(locale: 'ar'), (prefix: null, suffix: ' د.أ'));
   });
 
+  group('other currencies', () {
+    tearDown(() => appCurrency = currencies.first);
+
+    test('decimals follow the currency: 2 for USD, 0 for JPY, 3 for KWD', () {
+      expect([for (final c in ['USD', 'JPY', 'KWD', 'JOD']) Currency.byCode(c)!.decimals], [2, 0, 3, 3]);
+    });
+
+    test('formatMoney: the code in English, the Arabic symbol or the code in Arabic', () {
+      appCurrency = Currency.byCode('USD')!;
+      expect(formatMoney(12500, locale: 'en'), 'USD\u00A012.50');
+      expect(formatMoney(12500, locale: 'ar'), '\u206612.50\u2069\u00A0USD');
+      appCurrency = Currency.byCode('SAR')!;
+      expect(formatMoney(-3000, locale: 'ar'), '\u2066-3.00\u2069\u00A0ر.س');
+      appCurrency = Currency.byCode('JPY')!;
+      expect(formatMoney(1500000, locale: 'en'), 'JPY\u00A01,500');
+    });
+
+    test('parseAmount allows only as many decimals as the currency has', () {
+      appCurrency = Currency.byCode('USD')!;
+      expect(parseAmount('12.5'), 12500);
+      expect(parseAmount('12.55'), 12550);
+      expect(parseAmount('12.555'), isNull);
+      appCurrency = Currency.byCode('JPY')!;
+      expect(parseAmount('1,500'), 1500000);
+      expect(parseAmount('1500.5'), isNull);
+    });
+
+    test('every currency on offer fits in fils', () {
+      for (final c in currencies) {
+        expect(c.decimals, lessThanOrEqualTo(3), reason: c.code);
+      }
+      expect(currencies.map((c) => c.code).toSet(), hasLength(currencies.length));
+    });
+
+    test('every currency on offer has a name in each language, not just its code', () {
+      for (final locale in const [Locale('en'), Locale('ar')]) {
+        final l = lookupAppLocalizations(locale);
+        for (final c in currencies) {
+          expect(l.currencyName(c.code), isNot(c.code), reason: '${c.code} in $locale');
+        }
+      }
+    });
+  });
+
   group('formatDate', () {
     // The app gets this from Flutter's localization delegates.
     setUpAll(() => initializeDateFormatting());
@@ -89,5 +156,12 @@ void main() {
       AppSettings.applyToIntl(const Locale('ar'));
       expect(formatDate(DateTime(2026, 10, 1)), '1 أكتوبر 2026');
     });
+  });
+
+  test('parseHex reads #rrggbb as an opaque colour, and nothing else', () {
+    expect(parseHex('#22c55e'), const Color(0xFF22C55E));
+    for (final bad in [null, '', 'red', '22c55e', '#22c55', '#22c55e00', '#zzzzzz']) {
+      expect(parseHex(bad), isNull, reason: '$bad');
+    }
   });
 }

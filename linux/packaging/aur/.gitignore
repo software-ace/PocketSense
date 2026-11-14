@@ -1,0 +1,5 @@
+# makepkg output
+pkg/
+src/
+*.deb
+*.pkg.tar.zst

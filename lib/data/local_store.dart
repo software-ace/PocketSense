@@ -37,12 +37,33 @@ class LocalStore {
   void notifyChanged() => changes.value++;
 
   static const fileName = 'pocketsense.db';
-  static const schemaVersion = 2;
+  static const schemaVersion = 8;
 
   /// Tables whose rows sync between paired devices, parents first.
-  static const syncedTables = ['categories', 'transactions', 'budgets', 'recurring_expenses'];
+  static const syncedTables = ['categories', 'merchants', 'loans', 'circles', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
 
-  static Future<String> _dir() async => Platform.isLinux ? linuxDataDir() : await sq.getDatabasesPath();
+  // The synced tables before v8, for the upgrades that run before it.
+  static const _tablesBeforeV8 = ['categories', 'merchants', 'loans', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
+
+  // The synced tables before v7, for the upgrades that run before it.
+  static const _tablesBeforeV7 = ['categories', 'merchants', 'loans', 'transactions', 'budgets', 'recurring_expenses'];
+
+  /// The key in `categoryNames` (see [open]) for the first account's name,
+  /// "Cash" in the UI language.
+  static const cashNameKey = 'account:cash';
+
+  /// The first account's uid: the same on every device, so two paired
+  /// devices that each upgrade make one account, not two.
+  static const cashUid = 'default:cash';
+
+  // The synced tables before v4. The older upgrades run on databases that
+  // don't have the newer tables yet.
+  static const _tablesBeforeV4 = ['categories', 'merchants', 'transactions', 'budgets', 'recurring_expenses'];
+
+  // The desktop opens SQLCipher through FFI; Android through sqflite_sqlcipher.
+  static bool get _desktop => Platform.isLinux || Platform.isWindows;
+
+  static Future<String> _dir() async => _desktop ? desktopDataDir() : await sq.getDatabasesPath();
 
   static Future<String> path() async => p.join(await _dir(), fileName);
 
@@ -56,7 +77,7 @@ class LocalStore {
     final file = await path();
     final key = await DbKey.obtain(dbExists: await File(file).exists());
     final sq.Database db;
-    if (Platform.isLinux) {
+    if (_desktop) {
       db = await openEncryptedFfi(file, key, categoryNames: categoryNames, starterNames: starterNames);
     } else {
       db = await sq.openDatabase(file,
@@ -64,13 +85,13 @@ class LocalStore {
           version: schemaVersion,
           onConfigure: _configure,
           onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
-          onUpgrade: (db, from, _) => upgrade(db, from, starterNames));
+          onUpgrade: (db, from, _) => upgrade(db, from, starterNames, categoryNames: categoryNames));
     }
     return _instance = await LocalStore._(db)._loadClock();
   }
 
-  /// Linux: sqflite_common_ffi on the system libsqlcipher (see hooks: in
-  /// pubspec.yaml). [hexKey] is a raw 256-bit key, so SQLCipher skips its
+  /// Linux and Windows: sqflite_common_ffi on the sqlite3 package's
+  /// bundled SQLCipher (see hooks: in pubspec.yaml). [hexKey] is a raw 256-bit key, so SQLCipher skips its
   /// passphrase KDF. The key must be the very first statement.
   @visibleForTesting
   static Future<sq.Database> openEncryptedFfi(String file, String hexKey,
@@ -84,7 +105,7 @@ class LocalStore {
             await _configure(db);
           },
           onCreate: (db, _) => createSchema(db, categoryNames: categoryNames),
-          onUpgrade: (db, from, _) => upgrade(db, from, starterNames),
+          onUpgrade: (db, from, _) => upgrade(db, from, starterNames, categoryNames: categoryNames),
         ));
   }
 
@@ -157,6 +178,11 @@ class LocalStore {
         id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE, type TEXT NOT NULL, color TEXT NOT NULL
       )
     ''');
+    await db.execute('''
+      CREATE TABLE merchants (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE
+      )
+    ''');
     // created_at orders same-day entries.
     await db.execute('''
       CREATE TABLE transactions (
@@ -185,10 +211,130 @@ class LocalStore {
     // A new database goes through the same upgrade as an old one, so there
     // is one schema, not two that could drift apart.
     await _upgradeToV2(db, {for (final c in defaultCategories) c.key: {(categoryNames[c.key] ?? c.name).toLowerCase()}});
+    // Seeding already made the loan categories, or the caller wants none.
+    await _upgradeToV4(db, categoryNames, addCategories: false);
+    await _upgradeToV6(db);
+    await _upgradeToV7(db, categoryNames[cashNameKey] ?? 'Cash');
+    await _upgradeToV8(db, categoryNames, addCategories: false);
   }
 
-  static Future<void> upgrade(sq.Database db, int from, Map<String, Set<String>> starterNames) async {
+  /// [categoryNames]: as for [open]; names the categories v4 adds.
+  static Future<void> upgrade(sq.Database db, int from, Map<String, Set<String>> starterNames,
+      {Map<String, String> categoryNames = const {}}) async {
     if (from < 2) await _upgradeToV2(db, starterNames);
+    if (from < 3) await _upgradeToV3(db);
+    if (from < 4) await _upgradeToV4(db, categoryNames);
+    if (from < 6) await _upgradeToV6(db);
+    if (from < 7) await _upgradeToV7(db, categoryNames[cashNameKey] ?? 'Cash');
+    if (from < 8) await _upgradeToV8(db, categoryNames);
+  }
+
+  /// v8 adds savings circles, built like loans (v4): a circle holds its
+  /// terms, and its money is ordinary transactions that point at it, in two
+  /// starter categories with fixed uids. Safe to run twice.
+  static Future<void> _upgradeToV8(sq.Database db, Map<String, String> categoryNames, {bool addCategories = true}) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS circles (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL, contribution_fils INTEGER NOT NULL,
+        rounds INTEGER NOT NULL, frequency TEXT NOT NULL, start_date TEXT NOT NULL,
+        payout_round INTEGER NOT NULL, note TEXT, due_time INTEGER, reminder_days INTEGER,
+        uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_circles_uid ON circles(uid)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_circles_seq ON circles(seq)');
+    final txColumns = {for (final c in await db.rawQuery('PRAGMA table_info(transactions)')) c['name']};
+    if (!txColumns.contains('circle_id')) {
+      // SET NULL is the fallback only: deleting a circle deletes its entries
+      // first, as stamped changes.
+      await db.execute('ALTER TABLE transactions ADD COLUMN circle_id INTEGER REFERENCES circles(id) ON DELETE SET NULL');
+    }
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_circle ON transactions(circle_id)');
+    if (!addCategories) return;
+    // Above every seq already sent to a peer, as in v3.
+    final union = [for (final t in [...syncedTables, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    for (final c in defaultCategories.where((c) => circleCategoryKeys.contains(c.key))) {
+      // As in v4: skipped if the user has a category of that name.
+      await db.insert('categories', {
+        'name': categoryNames[c.key] ?? c.name, 'type': c.type, 'color': c.color, 'uid': 'default:${c.key}',
+        'hlc': _formatHlc(0, 0, node), 'seq': ++seq,
+      }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    }
+  }
+
+  /// The starter categories circle entries go in: payments, payouts.
+  static const circleCategoryKeys = ['circlePayments', 'circlePayouts'];
+
+  /// v6 adds due times and reminders, part of the item so they sync with
+  /// it: due_time in minutes after midnight (null is 9:00), reminder_days
+  /// before it (null is off). Older apps drop these columns from synced rows
+  /// and leave them alone. Safe to run twice, like v4. (v5 was only a test
+  /// build's, with the loan's time named reminder_time.)
+  static Future<void> _upgradeToV6(sq.Database db) async {
+    const added = {
+      'recurring_expenses': ['due_time', 'reminder_days'],
+      'loans': ['due_time', 'reminder_days'],
+    };
+    for (final MapEntry(key: table, value: columns) in added.entries) {
+      final have = {for (final c in await db.rawQuery('PRAGMA table_info($table)')) c['name']};
+      for (final c in columns.where((c) => !have.contains(c))) {
+        await db.execute('ALTER TABLE $table ADD COLUMN $c INTEGER');
+      }
+    }
+  }
+
+  /// v7 adds accounts and transfers. Every entry and recurring item belongs
+  /// to an account. Everyone starts with one, Cash ([cashUid]), and all
+  /// existing entries go into it; people add the others they need.
+  /// Transfers are a table of their own, not a third kind of entry, so
+  /// nothing that sums income and spending can count one. Safe to run twice.
+  static Future<void> _upgradeToV7(sq.Database db, String cashName) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS accounts (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL DEFAULT 'cash',
+        opening_fils INTEGER NOT NULL DEFAULT 0, closed INTEGER NOT NULL DEFAULT 0,
+        uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    // SET NULL is the fallback only: deleting an account moves its entries
+    // and transfers first, as stamped changes.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS transfers (
+        id INTEGER PRIMARY KEY,
+        from_account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+        to_account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+        amount_fils INTEGER NOT NULL, date TEXT NOT NULL, note TEXT, created_at TEXT,
+        uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    for (final t in ['accounts', 'transfers']) {
+      await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_${t}_uid ON $t(uid)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_${t}_seq ON $t(seq)');
+    }
+    for (final t in ['transactions', 'recurring_expenses']) {
+      final have = {for (final c in await db.rawQuery('PRAGMA table_info($t)')) c['name']};
+      if (!have.contains('account_id')) {
+        await db.execute('ALTER TABLE $t ADD COLUMN account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL');
+      }
+    }
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_account ON transactions(account_id)');
+
+    // Above every seq already sent to a peer, as in v3.
+    final union = [for (final t in [..._tablesBeforeV8, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    final seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    // Time 0, as for starter categories (v2).
+    await db.insert('accounts', {
+      'name': cashName, 'kind': 'cash', 'uid': cashUid,
+      'hlc': _formatHlc(0, 0, node), 'seq': seq + 1,
+    }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    final cash = (await db.query('accounts', columns: ['id'], where: 'uid = ?', whereArgs: [cashUid])).first['id'];
+    // Not stamped: every device does the same, so there's nothing to send.
+    for (final t in ['transactions', 'recurring_expenses']) {
+      await db.update(t, {'account_id': cash}, where: 'account_id IS NULL');
+    }
   }
 
   /// v2 adds what sync needs. Every synced row gets:
@@ -204,7 +350,11 @@ class LocalStore {
   static Future<void> _upgradeToV2(sq.Database db, Map<String, Set<String>> starterNames) async {
     final node = randomHex(8);
     final hlc = _formatHlc(DateTime.now().millisecondsSinceEpoch, 0, node);
-    for (final t in syncedTables) {
+    // A v1 database has no merchants yet: v3 creates that table, with these
+    // columns already.
+    final have = {for (final r in await db.rawQuery("SELECT name FROM sqlite_master WHERE type = 'table'")) r['name']};
+    final tables = _tablesBeforeV4.where(have.contains).toList();
+    for (final t in tables) {
       await db.execute('ALTER TABLE $t ADD COLUMN uid TEXT');
       await db.execute('ALTER TABLE $t ADD COLUMN hlc TEXT');
       await db.execute('ALTER TABLE $t ADD COLUMN seq INTEGER');
@@ -216,9 +366,11 @@ class LocalStore {
       final key = starterNames.entries.where((e) => !taken.contains(e.key) && e.value.contains(name)).firstOrNull?.key;
       if (key == null) continue;
       taken.add(key);
-      await db.update('categories', {'uid': 'default:$key'}, where: 'id = ?', whereArgs: [c['id']]);
+      // Time 0, like every starter row: each device makes its own, and a
+      // real rename or delete anywhere must outrank one made later.
+      await db.update('categories', {'uid': 'default:$key', 'hlc': _formatHlc(0, 0, node)}, where: 'id = ?', whereArgs: [c['id']]);
     }
-    for (final t in syncedTables) {
+    for (final t in tables) {
       await db.execute('CREATE UNIQUE INDEX idx_${t}_uid ON $t(uid)');
       await db.execute('CREATE INDEX idx_${t}_seq ON $t(seq)');
     }
@@ -240,6 +392,81 @@ class LocalStore {
     await db.execute('CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT)');
     await db.insert('meta', {'k': 'node', 'v': node});
   }
+
+  /// v3 adds merchants: the names the merchant picker offers. They sync like
+  /// the other tables, and the list starts with the names already written on
+  /// transactions and recurring items.
+  static Future<void> _upgradeToV3(sq.Database db) async {
+    // A database coming from v2 has no merchants table yet; one that just
+    // went through _upgradeToV2 already has it, with the sync columns.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS merchants (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_merchants_uid ON merchants(uid)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_merchants_seq ON merchants(seq)');
+    // Backfill from the merchant text already on transactions and recurring
+    // items, one list entry per distinct name (case-insensitively). The new
+    // rows must sit above every seq already sent to a peer, or devices that
+    // have already synced would never receive them.
+    final union = [for (final t in [..._tablesBeforeV4, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    final ms = DateTime.now().millisecondsSinceEpoch;
+    var counter = 0;
+    for (final r in await db.rawQuery('''
+      SELECT DISTINCT trim(merchant) AS name FROM (
+        SELECT merchant FROM transactions UNION ALL SELECT merchant FROM recurring_expenses
+      ) WHERE merchant IS NOT NULL AND trim(merchant) != ''
+    ''')) {
+      seq++;
+      await db.insert('merchants', {
+        'name': r['name'] as String, 'uid': randomHex(16),
+        'hlc': _formatHlc(ms, counter++, node), 'seq': seq,
+      }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    }
+  }
+
+  /// v4 adds loans. A loan holds who and when it's due; its money is
+  /// ordinary transactions that point at it, so every total stays a sum of
+  /// transactions. Older databases also get the two loan categories, as
+  /// starters with fixed uids, so each device's copy is the same row.
+  /// Safe to run twice: a new database runs it after creating the rest.
+  static Future<void> _upgradeToV4(sq.Database db, Map<String, String> categoryNames, {bool addCategories = true}) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS loans (
+        id INTEGER PRIMARY KEY, direction TEXT NOT NULL, person TEXT NOT NULL COLLATE NOCASE,
+        due_date TEXT, note TEXT, uid TEXT, hlc TEXT, seq INTEGER
+      )
+    ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_loans_uid ON loans(uid)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_loans_seq ON loans(seq)');
+    final txColumns = {for (final c in await db.rawQuery('PRAGMA table_info(transactions)')) c['name']};
+    if (!txColumns.contains('loan_id')) {
+      // SET NULL is the fallback only: deleting a loan deletes its entries
+      // first, as stamped changes.
+      await db.execute('ALTER TABLE transactions ADD COLUMN loan_id INTEGER REFERENCES loans(id) ON DELETE SET NULL');
+    }
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_tx_loan ON transactions(loan_id)');
+    if (!addCategories) return;
+    // Above every seq already sent to a peer, as in v3.
+    final union = [for (final t in [..._tablesBeforeV7, 'tombstones']) 'SELECT seq FROM $t'].join(' UNION ALL ');
+    var seq = (await db.rawQuery('SELECT max(seq) AS s FROM ($union)')).first['s'] as int? ?? 0;
+    final node = (await db.query('meta', where: "k = 'node'")).firstOrNull?['v'] as String? ?? randomHex(8);
+    for (final c in defaultCategories.where((c) => loanCategoryKeys.contains(c.key))) {
+      // Ignored if one is there already, or the user has a category of
+      // that name: loan entries are then uncategorized.
+      await db.insert('categories', {
+        'name': categoryNames[c.key] ?? c.name, 'type': c.type, 'color': c.color, 'uid': 'default:${c.key}',
+        'hlc': _formatHlc(0, 0, node), 'seq': ++seq, // time 0, as in v2
+      }, conflictAlgorithm: sq.ConflictAlgorithm.ignore);
+    }
+  }
+
+  /// The starter categories loan entries go in: money out, money in.
+  static const loanCategoryKeys = ['loansPaid', 'loansReceived'];
 
   static Future<void> _seedCategories(sq.Database db, Map<String, String> names) async {
     final batch = db.batch();
@@ -299,32 +526,63 @@ class LocalStore {
 
   // ── Row access ────────────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> selectRows(String table, {String? where, List<Object?>? whereArgs}) =>
-      db.query(table, where: where, whereArgs: whereArgs);
+  Future<List<Map<String, dynamic>>> selectRows(String table, {String? where, List<Object?>? whereArgs, String? orderBy, int? limit}) =>
+      db.query(table, where: where, whereArgs: whereArgs, orderBy: orderBy, limit: limit);
 
-  Future<int> insertRow(String table, Map<String, dynamic> values) async {
-    final id = await db.transaction((txn) => txn.insert(table, {'uid': randomHex(16), ...values, ...stamp()}));
+  /// Writes that land together or not at all, made with the *In methods
+  /// below. Listeners hear about them once, after.
+  Future<T> write<T>(Future<T> Function(sq.Transaction txn) body) async {
+    final result = await db.transaction(body);
     notifyChanged();
-    return id;
+    return result;
   }
 
-  Future<int> updateRow(String table, int id, Map<String, dynamic> values) async {
-    final n = await db.transaction((txn) => txn.update(table, {...values, ...stamp()}, where: 'id = ?', whereArgs: [id]));
-    notifyChanged();
-    return n;
-  }
+  Future<int> insertRow(String table, Map<String, dynamic> values) => write((txn) => insertIn(txn, table, values));
+
+  Future<int> updateRow(String table, int id, Map<String, dynamic> values) => write((txn) => updateIn(txn, table, id, values));
 
   /// Deletes the row and leaves a tombstone for peers.
-  Future<int> deleteRow(String table, int id) async {
-    final n = await db.transaction((txn) async {
-      final row = (await txn.query(table, columns: ['uid'], where: 'id = ?', whereArgs: [id])).firstOrNull;
-      if (row == null) return 0;
-      if (table == 'categories') await releaseCategory(txn, id);
-      await txn.insert('tombstones', {'tbl': table, 'uid': row['uid'], ...stamp()}, conflictAlgorithm: sq.ConflictAlgorithm.replace);
-      return txn.delete(table, where: 'id = ?', whereArgs: [id]);
-    });
-    notifyChanged();
-    return n;
+  Future<int> deleteRow(String table, int id) => write((txn) => deleteIn(txn, table, id));
+
+  Future<int> insertIn(sq.Transaction txn, String table, Map<String, dynamic> values) =>
+      txn.insert(table, {'uid': randomHex(16), ...values, ...stamp()});
+
+  Future<int> updateIn(sq.Transaction txn, String table, int id, Map<String, dynamic> values) =>
+      txn.update(table, {...values, ...stamp()}, where: 'id = ?', whereArgs: [id]);
+
+  Future<int> deleteIn(sq.Transaction txn, String table, int id) async {
+    final row = (await txn.query(table, columns: ['uid'], where: 'id = ?', whereArgs: [id])).firstOrNull;
+    if (row == null) return 0;
+    if (table == 'categories') await releaseCategory(txn, id);
+    await txn.insert('tombstones', {'tbl': table, 'uid': row['uid'], ...stamp()}, conflictAlgorithm: sq.ConflictAlgorithm.replace);
+    return txn.delete(table, where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Moves everything in account [from] into [to], as stamped changes:
+  /// entries, recurring items and transfers (those between the two would go
+  /// from an account to itself, so they're deleted). [addOpening]: [from]'s
+  /// opening balance moves too, so the total stays the same; a peer applying
+  /// a delete leaves it out, since the device that deleted already moved it.
+  Future<void> moveAccountIn(sq.Transaction txn, int from, int to, {bool addOpening = true}) async {
+    for (final t in ['transactions', 'recurring_expenses']) {
+      for (final r in await txn.query(t, columns: ['id'], where: 'account_id = ?', whereArgs: [from])) {
+        await updateIn(txn, t, r['id'] as int, {'account_id': to});
+      }
+    }
+    for (final r in await txn.query('transfers', where: 'from_account_id = ? OR to_account_id = ?', whereArgs: [from, from])) {
+      final f = r['from_account_id'] == from ? to : r['from_account_id'];
+      final t = r['to_account_id'] == from ? to : r['to_account_id'];
+      if (f == t) {
+        await deleteIn(txn, 'transfers', r['id'] as int);
+      } else {
+        await updateIn(txn, 'transfers', r['id'] as int, {'from_account_id': f, 'to_account_id': t});
+      }
+    }
+    if (!addOpening) return;
+    final opening = (await txn.query('accounts', columns: ['opening_fils'], where: 'id = ?', whereArgs: [from])).first['opening_fils'] as int;
+    if (opening == 0) return;
+    final target = (await txn.query('accounts', columns: ['opening_fils'], where: 'id = ?', whereArgs: [to])).first['opening_fils'] as int;
+    await updateIn(txn, 'accounts', to, {'opening_fils': target + opening});
   }
 
   /// What the foreign keys do when a category is deleted (entries and

@@ -4,12 +4,17 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/recurring.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../widgets/account_field.dart';
+import '../widgets/merchant_field.dart';
+import '../widgets/reminder_countdown.dart';
+import '../widgets/reminder_field.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -58,11 +63,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
   }
 
   Future<void> _edit(RecurringExpense? existing) async {
-    final saved = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (_) => _RecurringDialog(existing: existing, cats: _cats),
     );
-    if (saved == true && mounted) await _load();
   }
 
   Future<void> _post(RecurringExpense r) async {
@@ -71,7 +75,6 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
       await _repo.postRecurring(r, description: l.recurringSuffix(r.description));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.postedAsTransaction(r.description))));
-      await _load();
     } catch (e, st) {
       debugPrint('postRecurring error: $e\n$st');
       if (!mounted) return;
@@ -94,7 +97,6 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
     if (ok != true) return;
     try {
       await _repo.deleteRecurring(r.id);
-      if (mounted) await _load();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }
@@ -107,7 +109,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.navRecurring), actions: const [SyncButton(), SettingsButton()]),
+      appBar: AppBar(title: Text(l.navRecurring), actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(heroTag: null, onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
@@ -149,7 +151,8 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
         child: DataTable(
           headingRowHeight: 44,
           dataRowMinHeight: 52,
-          dataRowMaxHeight: 60,
+          // Room for a countdown that wraps under the description.
+          dataRowMaxHeight: 76,
           columns: [
             DataColumn(label: Text(l.description)),
             DataColumn(label: Text(l.frequency)),
@@ -164,7 +167,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             final days = daysUntil(next);
             final overdue = days < 0;
             return DataRow(cells: [
-              DataCell(Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+              DataCell(Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(r.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                ReminderCountdown(item: r, inTable: true),
+              ])),
               DataCell(Text(formatFrequency(l, r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
               DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
@@ -219,7 +225,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
               Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(4)), child: Text(l.inactive, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10))),
             ],
           ]),
-          subtitle: Text([formatFrequency(l, r.frequency), ?r.categoryName].join(' · ')),
+          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text([formatFrequency(l, r.frequency), ?r.categoryName].join(' · ')),
+            ReminderCountdown(item: r, compact: true),
+          ]),
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
             if (r.active)
@@ -273,6 +282,10 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   late bool _active = widget.existing?.active ?? true;
   // Anchor date drives every future due date (weekday / day-of-month).
   late DateTime _anchor = widget.existing?.anchorDate ?? DateTime.now();
+  // Its reminder rings at this time on its day.
+  late int _dueMinutes = widget.existing?.dueMinutes ?? defaultReminderMinutes;
+  late int? _reminderDays = widget.existing?.reminderDays;
+  late int? _accountId = widget.existing?.accountId;
   bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
@@ -313,9 +326,9 @@ class _RecurringDialogState extends State<_RecurringDialog> {
       final merch = _merchCtrl.text.trim().isEmpty ? null : _merchCtrl.text.trim();
       final notes = _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
       if (widget.existing == null) {
-        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.insertRecurring(description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays, accountId: _accountId);
       } else {
-        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active);
+        await repo.updateRecurring(widget.existing!.id, description: desc, amountFils: fils, type: _type, frequency: _freq, anchorDate: anchor, categoryId: _catId, merchant: merch, notes: notes, active: _active, dueMinutes: _dueMinutes, reminderDays: _reminderDays, accountId: _accountId);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -380,6 +393,10 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             ),
           ),
           const SizedBox(height: 16),
+          TimeField(label: l.dueTime, minutes: _dueMinutes, onPicked: (m) => setState(() => _dueMinutes = m)),
+          const SizedBox(height: 16),
+          ReminderField(days: _reminderDays, onChanged: (d) => setState(() => _reminderDays = d)),
+          const SizedBox(height: 16),
           DropdownButtonFormField<int>(
             // Keyed by type so the field resets when the category list changes.
             key: ValueKey(_type),
@@ -389,7 +406,8 @@ class _RecurringDialogState extends State<_RecurringDialog> {
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _merchCtrl, decoration: InputDecoration(labelText: l.merchantOptional)),
+          MerchantField(controller: _merchCtrl),
+          AccountField(value: _accountId, onChanged: (v) => setState(() => _accountId = v)),
           const SizedBox(height: 16),
           TextField(controller: _notesCtrl, decoration: InputDecoration(labelText: l.notesOptional, hintText: l.notesHint)),
           if (widget.existing != null) ...[

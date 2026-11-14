@@ -13,15 +13,15 @@ void main() {
   String xdg() => p.join(home.path, 'xdg');
 
   test('without XDG_DATA_HOME, ~/.local/share', () {
-    expect(linuxDataDir({'HOME': home.path}), legacy());
+    expect(desktopDataDir({'HOME': home.path}), legacy());
   });
 
   test('a Flatpak (or a new install with XDG_DATA_HOME) uses XDG_DATA_HOME', () {
-    expect(linuxDataDir({'HOME': home.path, 'XDG_DATA_HOME': xdg()}), p.join(xdg(), 'pocket_sense'));
+    expect(desktopDataDir({'HOME': home.path, 'XDG_DATA_HOME': xdg()}), p.join(xdg(), 'pocket_sense'));
   });
 
   test('an existing install keeps its folder even with XDG_DATA_HOME set', () {
     Directory(legacy()).createSync(recursive: true);
-    expect(linuxDataDir({'HOME': home.path, 'XDG_DATA_HOME': xdg()}), legacy());
+    expect(desktopDataDir({'HOME': home.path, 'XDG_DATA_HOME': xdg()}), legacy());
   });
 }

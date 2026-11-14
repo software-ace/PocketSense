@@ -1,9 +1,16 @@
-// Pure, deterministic date math for recurring items. Month steps use
-// DateTime's own overflow: Jan 31 + 1 month is "Feb 31", which is Mar 3 (or 2).
+// Pure, deterministic date math for recurring items. A month step keeps the
+// day but never spills into the next month: Jan 31, Feb 28, Mar 31, Apr 30.
 
 import '../l10n/app_localizations.dart';
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+/// [d] plus [months] months, on the same day or that month's last if it's
+/// shorter (Jan 31 + 1 is Feb 28, + 2 is Mar 31; Feb 29 + 12 is Feb 28).
+DateTime addMonths(DateTime d, int months) {
+  final last = DateTime(d.year, d.month + months + 1, 0).day;
+  return DateTime(d.year, d.month + months, d.day < last ? d.day : last);
+}
 
 /// Next occurrence on or after [from] for a frequency anchored at [anchor]:
 /// the first of anchor, anchor + 1 period, anchor + 2 periods… that isn't
@@ -30,14 +37,13 @@ DateTime nextOccurrence(String frequency, DateTime anchor, DateTime from) {
     'yearly' => 12,
     _ => throw ArgumentError('unknown frequency: $frequency'),
   };
-  // Start from the last step that can't be past [from], then walk forward
-  // (month-end overflow can push a step a few days later).
+  // Start from the last step that can't be past [from], then walk forward.
   var k = ((f.year - a.year) * 12 + (f.month - a.month)) ~/ months;
   if (k > 0) k--;
-  var cand = DateTime(a.year, a.month + k * months, a.day);
+  var cand = addMonths(a, k * months);
   while (cand.isBefore(f)) {
     k++;
-    cand = DateTime(a.year, a.month + k * months, a.day);
+    cand = addMonths(a, k * months);
   }
   return cand;
 }

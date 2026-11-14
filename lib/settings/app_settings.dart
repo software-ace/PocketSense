@@ -5,6 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/app_localizations.dart';
+import '../utils/format.dart';
+
+/// Light or dark, or the device's choice. Black is dark with a pure-black
+/// background: AMOLED screens leave those pixels off.
+enum AppTheme { system, light, dark, black }
 
 /// App-wide preferences that aren't financial data (those live in the
 /// encrypted database). Stored with shared_preferences.
@@ -19,9 +24,19 @@ class AppSettings {
   static const _syncOnKey = 'sync.enabled';
   static const _syncNameKey = 'sync.name';
   static const _privateScreenKey = 'privateScreen';
+  static const _hideAmountsKey = 'hideAmounts';
+  static const _reminderAmountsKey = 'reminderAmounts';
+  static const _homeOrderKey = 'homeOrder';
+  static const _defaultAccountKey = 'defaultAccount';
+  static const _homeHiddenKey = 'homeHidden';
+  static const _currencyKey = 'currency';
+  static const _whatsNewKey = 'whatsNew.seen';
+  static const _themeKey = 'theme';
 
   /// The chosen UI language, or null to follow the system.
   static final ValueNotifier<Locale?> locale = ValueNotifier(null);
+
+  static final theme = ValueNotifier(AppTheme.system);
 
   /// First-run onboarding progress: 0 = choose data, 1 = security, 2 = done.
   /// Saved per step, so closing the app mid-way resumes where it stopped
@@ -41,6 +56,31 @@ class AppSettings {
   /// recordings. On by default; MainActivity starts with it on, so it holds
   /// before this is even read.
   static final privateScreen = ValueNotifier(true);
+
+  /// Amounts show as ••• until revealed with the eye (AmountPrivacy). On by
+  /// default, after an update too.
+  static final hideAmounts = ValueNotifier(true);
+
+  /// Amounts in reminder notifications: off, as they show outside the app.
+  static final reminderAmounts = ValueNotifier(false);
+
+  /// The account new entries go into on this device, by uid; null is Cash
+  /// (or the first open account). Per device: two people sharing data can
+  /// each keep their own.
+  static final defaultAccount = ValueNotifier<String?>(null);
+
+  /// What Home shows, in order, and what of it is hidden: everything, in
+  /// [HomeSection]'s order, until changed in Settings → Home page.
+  static final homeLayout = ValueNotifier<({List<HomeSection> order, Set<HomeSection> hidden})>(
+      (order: HomeSection.values, hidden: const {}));
+
+  /// What amounts are shown in (JOD until chosen). Mirrors [appCurrency],
+  /// which the formatting functions read.
+  static final currency = ValueNotifier(appCurrency);
+
+  /// The build whose "What's new" was last shown (or skipped, on a fresh
+  /// install); null before that existed.
+  static int? whatsNewSeen;
   static const _window = MethodChannel('pocketsense/window');
 
   static final _prefs = SharedPreferencesAsync();
@@ -49,6 +89,7 @@ class AppSettings {
     try {
       final code = await _prefs.getString(_localeKey);
       locale.value = AppLocalizations.supportedLocales.where((l) => l.languageCode == code).firstOrNull;
+      theme.value = AppTheme.values.asNameMap()[await _prefs.getString(_themeKey)] ?? AppTheme.system;
       onboardingStep = await _prefs.getInt(_onboardingKey) ?? 0;
       autoBackup.value = (
         dir: await _prefs.getString(_autoDirKey),
@@ -57,6 +98,12 @@ class AppSettings {
       );
       sync.value = (enabled: await _prefs.getBool(_syncOnKey) ?? false, name: await _prefs.getString(_syncNameKey) ?? '');
       privateScreen.value = await _prefs.getBool(_privateScreenKey) ?? true;
+      hideAmounts.value = await _prefs.getBool(_hideAmountsKey) ?? true;
+      reminderAmounts.value = await _prefs.getBool(_reminderAmountsKey) ?? false;
+      defaultAccount.value = await _prefs.getString(_defaultAccountKey);
+      homeLayout.value = homeLayoutFrom(await _prefs.getStringList(_homeOrderKey), await _prefs.getStringList(_homeHiddenKey));
+      currency.value = appCurrency = Currency.byCode(await _prefs.getString(_currencyKey)) ?? currencies.first;
+      whatsNewSeen = await _prefs.getInt(_whatsNewKey);
       if (!privateScreen.value) await _applyPrivateScreen();
     } catch (_) {
       // Unreadable preferences: follow the system language, show onboarding.
@@ -90,14 +137,69 @@ class AppSettings {
     if (name != null) await _prefs.setString(_syncNameKey, name);
   }
 
+  static Future<void> setWhatsNewSeen(int build) async {
+    whatsNewSeen = build;
+    await _prefs.setInt(_whatsNewKey, build);
+  }
+
+  static Future<void> setCurrency(Currency c) async {
+    currency.value = appCurrency = c;
+    await _prefs.setString(_currencyKey, c.code);
+  }
+
   static Future<void> setPrivateScreen(bool on) async {
     privateScreen.value = on;
     await _prefs.setBool(_privateScreenKey, on);
     await _applyPrivateScreen();
   }
 
+  static Future<void> setHideAmounts(bool on) async {
+    hideAmounts.value = on;
+    await _prefs.setBool(_hideAmountsKey, on);
+  }
+
+  /// The saved names, read back: unknown ones (from a newer app) are
+  /// dropped, and sections added since are shown, where they'd be by default.
+  @visibleForTesting
+  static ({List<HomeSection> order, Set<HomeSection> hidden}) homeLayoutFrom(List<String>? order, List<String>? hidden) {
+    final byName = HomeSection.values.asNameMap();
+    final saved = [...{for (final n in order ?? const <String>[]) ?byName[n]}];
+    // A section added since goes right after the one before it in the
+    // default order (Accounts under Totals), else first.
+    for (final (i, s) in HomeSection.values.indexed) {
+      if (saved.contains(s)) continue;
+      final before = i == 0 ? -1 : saved.indexOf(HomeSection.values[i - 1]);
+      saved.insert(before + 1, s);
+    }
+    return (
+      order: saved,
+      hidden: {for (final n in hidden ?? const <String>[]) ?byName[n]}..removeAll(alwaysShownSections),
+    );
+  }
+
+  static Future<void> setHomeLayout(List<HomeSection> order, Set<HomeSection> hidden) async {
+    homeLayout.value = (order: order, hidden: hidden);
+    await _prefs.setStringList(_homeOrderKey, [for (final s in order) s.name]);
+    await _prefs.setStringList(_homeHiddenKey, [for (final s in hidden) s.name]);
+  }
+
+  static Future<void> setDefaultAccount(String uid) async {
+    defaultAccount.value = uid;
+    await _prefs.setString(_defaultAccountKey, uid);
+  }
+
+  static Future<void> setReminderAmounts(bool on) async {
+    reminderAmounts.value = on;
+    await _prefs.setBool(_reminderAmountsKey, on);
+  }
+
   static Future<void> _applyPrivateScreen() async {
     if (defaultTargetPlatform == TargetPlatform.android) await _window.invokeMethod('setSecure', privateScreen.value);
+  }
+
+  static Future<void> setTheme(AppTheme value) async {
+    theme.value = value;
+    await _prefs.setString(_themeKey, value.name);
   }
 
   static Future<void> setLocale(Locale? value) async {
@@ -119,3 +221,12 @@ class AppSettings {
     Intl.defaultLocale = code;
   }
 }
+
+/// What Home can show, in its default order.
+enum HomeSection { totals, accounts, loans, circles, daily, category, merchant, monthTotals, monthly, pace, weekday, recent }
+
+/// Rail tabs on the desktop, so Home and its settings leave them out there.
+const desktopTabSections = {HomeSection.loans, HomeSection.circles, HomeSection.accounts};
+
+/// Can't be hidden: on a phone their cards are the only way in.
+const alwaysShownSections = {HomeSection.loans, HomeSection.circles};

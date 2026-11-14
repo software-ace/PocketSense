@@ -16,7 +16,11 @@ import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/l10n/l10n.dart';
 import 'package:pocket_sense/main.dart' show appTheme;
+import 'package:pocket_sense/screens/accounts_screen.dart';
+import 'package:pocket_sense/screens/circles_screen.dart';
 import 'package:pocket_sense/screens/dashboard_screen.dart';
+import 'package:pocket_sense/screens/loans_screen.dart';
+import 'package:pocket_sense/screens/settings_screen.dart';
 import 'package:pocket_sense/screens/sync_screen.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
 import 'package:pocket_sense/security/app_lock.dart';
@@ -65,7 +69,8 @@ void main() {
     locale.value = l;
     await settle(tester);
     // What Boot does when the language changes.
-    await FinanceRepo().localizeStarterCategories(starterCategoryNames(lookupAppLocalizations(l)), starterCategoryDefaultNames());
+    final names = lookupAppLocalizations(l);
+    await FinanceRepo().localizeStarterCategories({...starterCategoryNames(names), LocalStore.cashNameKey: names.cashAccount}, starterCategoryDefaultNames());
   }
 
   // Home scrolled down to the trend charts: steps down until the card is
@@ -86,6 +91,59 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // Steps Home down until [target] is built, then brings it into view.
+  Future<void> scrollHomeTo(WidgetTester tester, Finder target) async {
+    final pos = tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+    while (target.evaluate().isEmpty) {
+      pos.jumpTo(pos.pixels + 300);
+      await tester.pump();
+    }
+    await Scrollable.ensureVisible(tester.element(target), alignment: 0.3);
+    await tester.pumpAndSettle();
+  }
+
+  // Loans, opened from its card on Home as a person would. The Accounts
+  // card above it can push it below the fold on a phone.
+  Future<void> loansShot(WidgetTester tester, String path) async {
+    final card = find.descendant(of: find.byType(DashboardScreen), matching: find.byIcon(Icons.handshake_outlined));
+    await scrollHomeTo(tester, card);
+    await tester.tap(card);
+    await shot(tester, path);
+    Navigator.of(tester.element(find.byType(LoansScreen))).pop();
+    await tester.pumpAndSettle();
+    await scrollToTop(tester);
+  }
+
+  // A savings circle's page, opened from the list: where you stand, the
+  // countdown to its reminder and its schedule.
+  Future<void> circleShot(WidgetTester tester, String path) async {
+    await tester.tap(find.text('Family circle'));
+    await shot(tester, path);
+    Navigator.of(tester.element(find.byType(CircleScreen))).pop();
+    await tester.pumpAndSettle();
+  }
+
+  // Savings circles, opened from its card on Home (under Loans), then one
+  // circle.
+  Future<void> circlesShots(WidgetTester tester, String listPath, String circlePath) async {
+    final card = find.descendant(of: find.byType(DashboardScreen), matching: find.byIcon(Icons.groups_outlined));
+    await scrollHomeTo(tester, card);
+    await tester.tap(card);
+    await shot(tester, listPath);
+    await circleShot(tester, circlePath);
+    Navigator.of(tester.element(find.byType(CirclesScreen))).pop();
+    await tester.pumpAndSettle();
+    await scrollToTop(tester);
+  }
+
+  // Accounts, opened from its card on Home.
+  Future<void> accountsShot(WidgetTester tester, String path) async {
+    await tester.tap(find.descendant(of: find.byType(DashboardScreen), matching: find.byIcon(Icons.account_balance_wallet_outlined)).first);
+    await shot(tester, path);
+    Navigator.of(tester.element(find.byType(AccountsScreen))).pop();
+    await tester.pumpAndSettle();
+  }
+
   // Sync as it looks with two paired devices. Only what the screens show is
   // faked: the service never starts, so no sockets and no sync key.
   Future<void> syncShots(WidgetTester tester, {required String me, String? settingsPath, required String pairPath}) async {
@@ -101,8 +159,12 @@ void main() {
     service.peers.value = [peer('a1', other, const Duration(minutes: 2)), peer('b2', 'Family tablet', const Duration(hours: 26))];
     service.states.value = {'a1': PeerState.synced, 'b2': PeerState.unreachable};
     await tester.pumpAndSettle();
+    // Settings is a long list: Sync is built only once scrolled near.
+    final settingsList = find.descendant(of: find.byType(SettingsScreen), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.text(l.syncToggle), 300, scrollable: settingsList);
     if (settingsPath != null) {
-      Scrollable.ensureVisible(tester.element(find.text(l.syncToggle)), alignment: 0.15);
+      await Scrollable.ensureVisible(tester.element(find.text(l.syncToggle)), alignment: 0.15);
+      await tester.pumpAndSettle();
       await shot(tester, settingsPath);
     }
     // Before opening it: with no devices, the pair screen spins forever and
@@ -111,7 +173,10 @@ void main() {
       'a1': NearbyDevice('a1', other, InternetAddress('192.168.1.23'), SyncNode.defaultPort, DateTime.now()),
       'c3': NearbyDevice('c3', 'Office PC', InternetAddress('192.168.1.40'), SyncNode.defaultPort, DateTime.now()),
     };
+    await tester.scrollUntilVisible(find.text(l.syncPairDevice), 300, scrollable: settingsList);
+    // Barely in view isn't enough to tap it.
     await tester.ensureVisible(find.text(l.syncPairDevice));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(l.syncPairDevice));
     await tester.pumpAndSettle();
     // What an incoming request from "Office PC" shows.
@@ -132,6 +197,10 @@ void main() {
     expect(_demo, isNotEmpty, reason: 'pass --dart-define=DEMO_BACKUP=…');
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     AppLock.instance = AppLock(store: MemorySecretStore());
+    // Not over the screenshots: this run is a build with a number too.
+    AppSettings.whatsNewSeen = 1 << 30;
+    // The store images show amounts, and no eye for hiding them.
+    AppSettings.hideAmounts.value = false;
     final store = phone ? await LocalStore.open() : await LocalStore.openInMemoryForTest();
     LocalStore.overrideInstanceForTest(store);
     await Backup.import(store, utf8.decode(gzip.decode(base64.decode(_demo))));
@@ -175,6 +244,9 @@ void main() {
         await scrollToTrends(tester);
         await shot(tester, '$dir/1_home_charts.png');
         await scrollToTop(tester);
+        await accountsShot(tester, '$dir/1_home_accounts.png');
+        await loansShot(tester, '$dir/1_home_loans.png');
+        await circlesShots(tester, '$dir/1_home_circles.png', '$dir/1_home_circle.png');
         await tab(tester, (l) => l.navActivity);
         await shot(tester, '$dir/2_activity.png');
         await tester.tap(find.descendant(of: find.byType(TransactionsScreen), matching: find.byIcon(Icons.add)).first);
@@ -198,6 +270,14 @@ void main() {
       await scrollToTrends(tester);
       await shot(tester, '$dir/desktop-charts.png');
       await scrollToTop(tester);
+      // Rail tabs on the desktop, not Home cards.
+      await tab(tester, (l) => l.accounts);
+      await shot(tester, '$dir/desktop-accounts.png');
+      await tab(tester, (l) => l.loans);
+      await shot(tester, '$dir/desktop-loans.png');
+      await tab(tester, (l) => l.circles);
+      await shot(tester, '$dir/desktop-circles.png');
+      await circleShot(tester, '$dir/desktop-circle.png');
       await tab(tester, (l) => l.navActivity);
       await shot(tester, '$dir/desktop-activity.png');
       await tab(tester, (l) => l.navBudgets);

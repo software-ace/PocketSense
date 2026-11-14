@@ -12,6 +12,7 @@ extension L10n on BuildContext {
 Map<String, String> starterCategoryNames(AppLocalizations l) => {
       'groceries': l.catGroceries,
       'dining': l.catDining,
+      'coffee': l.catCoffee,
       'transport': l.catTransport,
       'housing': l.catHousing,
       'utilities': l.catUtilities,
@@ -23,6 +24,10 @@ Map<String, String> starterCategoryNames(AppLocalizations l) => {
       'salary': l.catSalary,
       'freelance': l.catFreelance,
       'otherIncome': l.catOtherIncome,
+      'loansPaid': l.catLoansPaid,
+      'loansReceived': l.catLoansReceived,
+      'circlePayments': l.catCirclePayments,
+      'circlePayouts': l.catCirclePayouts,
     };
 
 /// Every default name each starter category has had, in every language

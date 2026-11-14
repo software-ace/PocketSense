@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick add widget (QuickAddWidget.kt). Only views RemoteViews allows.
+     @android:id/background lets Android 12+ clip it to the launcher's corners. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/quick_add_widget_bg"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:id="@+id/quick_add_expense"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="1"
+        android:background="@drawable/quick_add_expense_bg"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_quick_add_expense"
+            android:tint="@color/quick_add_expense_fg" />
+
+        <!-- Shrinks to fit narrow 2×1 cells ("Expense" didn't). -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:autoSizeMaxTextSize="13sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeTextType="uniform"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="2dp"
+            android:text="@string/quick_add_expense"
+            android:textColor="@color/quick_add_expense_fg"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/quick_add_income"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="1"
+        android:background="@drawable/quick_add_income_bg"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_quick_add_income"
+            android:tint="@color/quick_add_income_fg" />
+
+        <!-- Shrinks to fit narrow 2×1 cells ("Expense" didn't). -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:autoSizeMaxTextSize="13sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeTextType="uniform"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="2dp"
+            android:text="@string/quick_add_income"
+            android:textColor="@color/quick_add_income_fg"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/quick_add_voice"
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/quick_add_voice_bg"
+        android:contentDescription="@string/quick_add_voice"
+        android:scaleType="center"
+        android:src="@drawable/ic_quick_add_voice"
+        android:tint="@color/quick_add_voice_fg" />
+</LinearLayout>

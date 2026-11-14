@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
 import '../widgets/startup_error.dart';
+import 'amount_privacy.dart';
 import 'app_lock.dart';
 import 'biometrics.dart';
 import 'pin_pad.dart';
@@ -16,6 +17,11 @@ class LockGate extends StatefulWidget {
   const LockGate({super.key, required this.child, required this.onEraseAll, this.relockAfter = const Duration(seconds: 30)});
 
   final Widget child;
+
+  /// Whether the app is showing (not covered, nor about to be): what's
+  /// opened from outside, like the home-screen widget's form, waits for it.
+  /// True without a gate (tests).
+  static final unlocked = ValueNotifier(true);
 
   /// "Forgot PIN" → erase everything and start over.
   final Future<void> Function() onEraseAll;
@@ -34,6 +40,7 @@ class _LockGateState extends State<LockGate> {
   @override
   void initState() {
     super.initState();
+    LockGate.unlocked.value = false;
     _check();
     _lifecycle = AppLifecycleListener(onHide: _onHide, onShow: _onShow);
   }
@@ -43,7 +50,7 @@ class _LockGateState extends State<LockGate> {
   void _check() {
     if (_error != null) setState(() => _error = null);
     AppLock.instance.enabled.then((on) {
-      if (mounted) setState(() => _locked = on);
+      if (mounted) _setLocked(on);
     }, onError: (Object e) {
       if (mounted) setState(() => _error = e);
     });
@@ -55,19 +62,37 @@ class _LockGateState extends State<LockGate> {
     super.dispose();
   }
 
-  void _onHide() => _hiddenAt ??= DateTime.now();
+  void _setLocked(bool locked) {
+    setState(() => _locked = locked);
+    LockGate.unlocked.value = !locked;
+  }
+
+  // Closed as soon as the app goes: a widget tap reaches the app before it
+  // shows again, and must not act before the lock is checked.
+  void _onHide() {
+    _hiddenAt ??= DateTime.now();
+    LockGate.unlocked.value = false;
+  }
 
   Future<void> _onShow() async {
     final hidden = _hiddenAt;
     _hiddenAt = null;
-    if (hidden == null || DateTime.now().difference(hidden) < widget.relockAfter) return;
+    if (hidden == null || DateTime.now().difference(hidden) < widget.relockAfter) {
+      LockGate.unlocked.value = _error == null && _locked == false;
+      return;
+    }
+    // Shown amounts hide again with the lock, with or without a PIN.
+    AmountPrivacy.revealed.value = false;
+    // Covered until the keystore says whether there's a PIN: the app mustn't
+    // show, or take taps, in the meantime.
+    setState(() => _locked = null);
     _check();
   }
 
   Future<void> _erase() async {
     await widget.onEraseAll();
     await AppLock.instance.disable();
-    if (mounted) setState(() => _locked = false);
+    if (mounted) _setLocked(false);
   }
 
   @override
@@ -87,7 +112,7 @@ class _LockGateState extends State<LockGate> {
         HeroControllerScope.none(
           child: Navigator(
             onGenerateRoute: (_) => MaterialPageRoute(
-              builder: (_) => LockScreen(onUnlocked: () => setState(() => _locked = false), onEraseAll: _erase),
+              builder: (_) => LockScreen(onUnlocked: () => _setLocked(false), onEraseAll: _erase),
             ),
           ),
         ),

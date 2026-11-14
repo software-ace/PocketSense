@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/backup.dart';
 import 'package:pocket_sense/data/local_store.dart';
+import 'package:pocket_sense/utils/format.dart';
 import 'package:pocket_sense/data/repo.dart';
+import 'package:pocket_sense/models/models.dart';
 
 void main() {
   late LocalStore store;
@@ -27,7 +29,7 @@ void main() {
   // hlc and seq are left out: they're sync bookkeeping, and an import
   // stamps every row afresh so paired devices take it.
   Future<Map<String, List<Map<String, Object?>>>> dump(LocalStore s) async => {
-        for (final t in ['categories', 'transactions', 'budgets', 'recurring_expenses'])
+        for (final t in ['categories', 'loans', 'transactions', 'budgets', 'recurring_expenses'])
           t: [for (final r in await s.db.query(t, orderBy: 'id')) {...r}..remove('hlc')..remove('seq')],
       };
 
@@ -38,20 +40,48 @@ void main() {
     final json = await Backup.export(store, now: DateTime.utc(2026, 9, 29));
     final doc = decode(json);
     expect(doc['format'], 'pocketsense-backup');
-    expect(doc['version'], 1);
+    expect(doc['version'], 4);
     expect(doc['currency'], 'JOD');
     expect(doc['exported_at'], '2026-09-29T00:00:00.000Z');
 
     final fresh = await LocalStore.openInMemoryForTest();
     final summary = await Backup.import(fresh, json);
-    expect(summary, (categories: 2, transactions: 2, budgets: 1, recurring: 1));
+    expect(summary, (categories: 2, merchants: 0, loans: 0, circles: 0, transactions: 2, budgets: 1, recurring: 1, currency: Currency.byCode('JOD')!));
+    expect(await dump(fresh), await dump(store));
+  });
+
+  test('loans and the link from their entries come back', () async {
+    await seed();
+    final id = await repo.insertLoan(direction: 'borrowed', person: 'Sara', amountFils: 100000, date: DateTime(2026, 10, 15), dueDate: DateTime(2026, 11, 1), description: 'Payment from Sara');
+    await repo.recordRepayment(id, amountFils: 40000, date: DateTime(2026, 10, 20), description: 'Payment for Sara');
+
+    final fresh = await LocalStore.openInMemoryForTest();
+    final summary = await Backup.import(fresh, await Backup.export(store));
+    expect((summary.loans, summary.transactions), (1, 4));
     expect(await dump(fresh), await dump(store));
   });
 
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 13, transactions: 180, budgets: 6, recurring: 8));
+    expect(summary, (categories: 17, merchants: 37, loans: 4, circles: 2, transactions: 699, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    // Ahmad 70 and Lina 40 owe you; you owe Omar 125; Sara is settled.
+    expect(loanTotals(await repo.loans()), (owedToYou: 110000, youOwe: 125000));
+    // Family circle: 6 rounds paid, payout of 1,000 taken in round 3, so you
+    // owe it 400. Office circle: 2 paid, turn 10 in June, so it owes you 100.
+    final circles = {for (final c in await repo.circles()) c.name: c};
+    expect((circles['Family circle']!.positionFils, circles['Office circle']!.positionFils), (400000, -100000));
+    expect(circleTotals(circles.values), (owedToYou: 100000, youOwe: 400000));
+    // Cash topped up at the ATM, the card paid off on the 25th (so it owes
+    // since Oct 25), and JOD 200 saved each payday. The circles go through
+    // Arab Bank: 1,000 in, 700 out.
+    expect([for (final a in await repo.accounts()) (a.name, a.balanceFils)], [
+      ('Cash', 109600),
+      ('Arab Bank', 1265090),
+      ('Savings', 5600000),
+      ('Visa card', -113490),
+    ]);
+    expect((await repo.recurring()).firstWhere((r) => r.description == 'Rent').reminderDays, 3);
   });
 
   test('import replaces what was there and notifies listeners', () async {
@@ -92,8 +122,19 @@ void main() {
 
     test('corrupt JSON', () => expectProblem('{"format": "pocketsense-b', BackupProblem.notJson));
     test('some other JSON file', () => expectProblem('{"hello": "world"}', BackupProblem.notABackup));
-    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 2), BackupProblem.tooNew));
-    test('another currency', () => expectProblem(jsonEncode(valid()..['currency'] = 'USD'), BackupProblem.wrongCurrency));
+    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 5), BackupProblem.tooNew));
+    test('a currency the app doesn\'t offer', () => expectProblem(jsonEncode(valid()..['currency'] = 'XYZ'), BackupProblem.wrongCurrency));
+
+    test('an export says which currency its amounts are in', () async {
+      appCurrency = Currency.byCode('EUR')!;
+      addTearDown(() => appCurrency = currencies.first);
+      expect(decode(await Backup.export(store))['currency'], 'EUR');
+    });
+
+    test('another supported currency imports, and says which', () async {
+      final summary = await Backup.import(store, jsonEncode(valid()..['currency'] = 'USD'));
+      expect(summary.currency.code, 'USD');
+    });
 
     test('a row missing a required column', () {
       final doc = valid();
@@ -104,6 +145,14 @@ void main() {
     test('a non-integer amount', () {
       final doc = valid();
       ((doc['tables'] as Map)['transactions'] as List).first['amount_fils'] = '12.5';
+      return expectProblem(jsonEncode(doc), BackupProblem.badData);
+    });
+
+    test('a loan with an unknown direction', () {
+      final doc = valid();
+      (doc['tables'] as Map)['loans'] = [
+        {'id': 1, 'direction': 'gifted', 'person': 'X'},
+      ];
       return expectProblem(jsonEncode(doc), BackupProblem.badData);
     });
 
@@ -130,6 +179,49 @@ void main() {
     final summary = await Backup.import(store, json);
     expect(summary.categories, 1);
     expect((await repo.categories()).single.name, 'Food');
+  });
+
+  test('an older backup keeps the starter categories newer than it, unless they were deleted here', () async {
+    var seeded = await LocalStore.openInMemoryForTest(seed: true);
+    String file(int version) => jsonEncode({
+          'format': 'pocketsense-backup',
+          'version': version,
+          'currency': 'JOD',
+          'tables': {
+            'categories': [
+              {'id': 1, 'name': 'Food', 'type': 'expense', 'color': '#000000', 'uid': 'food'},
+              if (version >= 2) {'id': 2, 'name': 'Loans Paid', 'type': 'expense', 'color': '#d946ef', 'uid': 'default:loansPaid'},
+            ],
+          },
+        });
+    Future<Set<Object?>> uids() async => {for (final c in await seeded.db.query('categories')) c['uid']};
+
+    await Backup.import(seeded, file(3));
+    expect(await uids(), {'food', 'default:loansPaid', 'default:circlePayments', 'default:circlePayouts'});
+    final tombstoned = {for (final t in await seeded.db.query('tombstones')) t['uid']};
+    expect(tombstoned.intersection({'default:circlePayments', 'default:circlePayouts'}), isEmpty, reason: 'peers keep them too');
+
+    seeded = await LocalStore.openInMemoryForTest(seed: true);
+    await Backup.import(seeded, file(1));
+    expect(await uids(), containsAll(['default:loansPaid', 'default:loansReceived', 'default:circlePayouts']), reason: 'v1 predates loans too');
+
+    seeded = await LocalStore.openInMemoryForTest(seed: true);
+    final id = (await seeded.db.query('categories', where: 'uid = ?', whereArgs: ['default:circlePayouts'])).single['id'] as int;
+    await seeded.deleteRow('categories', id);
+    await Backup.import(seeded, file(3));
+    expect(await uids(), isNot(contains('default:circlePayouts')), reason: 'deleted here before the restore');
+  });
+
+  test('refuses dates the app never writes, before touching anything', () async {
+    await seed();
+    final before = await Backup.export(store, now: DateTime.utc(2026));
+    for (final date in ['1/9/2026', '2026-09-01T10:00', '2026-02-30', 20260901]) {
+      final doc = decode(before);
+      ((doc['tables'] as Map)['transactions'] as List).first['date'] = date;
+      await expectLater(Backup.import(store, jsonEncode(doc)),
+          throwsA(isA<BackupException>().having((e) => e.problem, 'problem', BackupProblem.badData)), reason: '$date');
+    }
+    expect(await Backup.export(store, now: DateTime.utc(2026)), before, reason: 'the data is untouched');
   });
 
   group('encrypted', () {

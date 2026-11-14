@@ -1,0 +1,23 @@
+# Maintainer: software-ace <a.abuyahia@protonmail.com>
+# Repackages the release .deb, so the files and paths match the .deb/.rpm
+# (linux/packaging/nfpm.yaml). Bump pkgver and sha256sums each release.
+pkgname=pocket-sense-bin
+pkgver=2.6.0
+pkgrel=1
+pkgdesc='Offline, encrypted personal finance tracker, in English and Arabic'
+arch=('x86_64')
+url='https://github.com/software-ace/PocketSense'
+license=('GPL-3.0-or-later')
+depends=('gtk3' 'libsecret' 'sqlite' 'libglvnd' 'glib2' 'glibc' 'gcc-libs')
+optdepends=('libpulse: parecord, for voice entry'
+            'org.freedesktop.secrets: keyring to hold the database key (GNOME Keyring or KWallet)')
+provides=('pocket-sense')
+conflicts=('pocket-sense')
+# Prebuilt Flutter engine and Dart AOT snapshot: stripping can break them.
+options=('!strip' '!debug')
+source=("$url/releases/download/v$pkgver/PocketSense-v$pkgver-linux-x64.deb")
+sha256sums=('c90452732268dad9a01f6499a51bfb2a4fe008d2dd7698336d4b2a2c71213458')
+
+package() {
+  bsdtar -xf data.tar.gz -C "$pkgdir"
+}

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/amount_field.dart';
@@ -62,11 +63,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
   }
 
   Future<void> _edit(Budget? existing) async {
-    final saved = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (_) => _BudgetDialog(existing: existing, cats: _cats),
     );
-    if (saved == true && mounted) await _load();
   }
 
   Future<void> _delete(Budget b) async {
@@ -84,7 +84,6 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     if (ok != true) return;
     try {
       await _repo.deleteBudget(b.id);
-      if (mounted) await _load();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
     }
@@ -98,7 +97,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.navBudgets), actions: const [SyncButton(), SettingsButton()]),
+      appBar: AppBar(title: Text(l.navBudgets), actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(heroTag: null, onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
@@ -124,7 +123,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                               itemBuilder: (_, i) {
                                 final p = _budgets[i];
                                 final b = p.budget;
-                                final color = _hex(b.categoryColor, theme.colorScheme.primary);
+                                final color = parseHex(b.categoryColor) ?? theme.colorScheme.primary;
                                 final spent = p.spentFils;
                                 final ratio = b.limitFils > 0 ? (spent / b.limitFils).clamp(0.0, 1.5) : 0.0;
                                 final over = spent > b.limitFils;
@@ -167,7 +166,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                         const SizedBox(height: 6),
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                                           Text(over ? l.overBudgetBy(formatMoney(spent - b.limitFils)) : l.amountRemaining(formatMoney(b.limitFils - spent)), style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
-                                          Text('${(ratio * 100).toInt()}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                                          // The real share: ratio is capped for the bar only.
+                                          Text('${b.limitFils > 0 ? spent * 100 ~/ b.limitFils : 0}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                                         ]),
                                       ]),
                                     ),
@@ -181,12 +181,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
     );
   }
 
-  Color _hex(String? css, Color fallback) {
-    if (css != null && css.startsWith('#') && css.length >= 7) {
-      return Color(int.parse(css.substring(1, 7), radix: 16) | 0xFF000000);
-    }
-    return fallback;
-  }
+
 }
 
 // ── Dialog ────────────────────────────────────────────────────────────────

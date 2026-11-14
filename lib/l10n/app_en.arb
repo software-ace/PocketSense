@@ -11,6 +11,18 @@
   "newItem": "New",
   "more": "More",
   "done": "Done",
+  "whatsNewTitle": "What's new in {version}",
+  "@whatsNewTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNewFeatures": "New features",
+  "whatsNewImprovements": "Enhancements",
+  "whatsNewChanges": "Changes",
+  "whatsNewFixes": "Fixes",
   "all": "All",
   "expense": "Expense",
   "income": "Income",
@@ -22,6 +34,7 @@
   "descriptionOptional": "Description (optional)",
   "merchant": "Merchant",
   "merchantOptional": "Merchant (optional)",
+  "merchantSearchHint": "Search or create merchants…",
   "notesOptional": "Notes (optional)",
   "notesHint": "Any extra details…",
   "type": "Type",
@@ -82,6 +95,7 @@
   "eraseAndStartOver": "Erase and start over",
   "catGroceries": "Groceries",
   "catDining": "Dining Out",
+  "catCoffee": "Coffee",
   "catTransport": "Transport",
   "catHousing": "Housing",
   "catUtilities": "Utilities",
@@ -93,21 +107,32 @@
   "catSalary": "Salary",
   "catFreelance": "Freelance",
   "catOtherIncome": "Other Income",
+  "catLoansPaid": "Loans Paid",
+  "catLoansReceived": "Loans Received",
   "statIncomeMonth": "Income (mo)",
   "statSpentMonth": "Spent (mo)",
   "statNetMonth": "Net (mo)",
   "statYearTotal": "Spent this year",
   "chartDaily": "Daily Spending (30d)",
-  "chartByCategory": "By Category (30d)",
-  "chartByMerchant": "By Merchant (30d)",
+  "chartByCategory": "By Category",
+  "chartByMerchant": "By Merchant",
   "noMerchant": "No merchant",
   "otherMerchants": "Other",
   "chartMonthly": "Income vs Spending (6 months)",
+  "nextYear": "Next year",
+  "previousYear": "Previous year",
+  "pickMonth": "Pick month",
+  "chartMonthTotals": "Monthly Income vs Spending",
   "chartPace": "This Month vs Last Month",
   "chartWeekday": "By Weekday (12-week daily average)",
   "thisMonth": "This month",
   "lastMonth": "Last month",
   "recentActivity": "Recent Activity",
+  "homePage": "Home page",
+  "homePageSubtitle": "Choose what Home shows, and in what order",
+  "homePageHint": "Drag a row by its handle to move it. Switch off what you don't need on Home.",
+  "homeTotals": "Totals (this month and year)",
+  "homeLoansAlwaysShown": "Always shown: it's the way into Loans",
   "noTransactionsYet": "No transactions yet",
   "noData": "No data",
   "noExpensesYet": "No expenses yet",
@@ -152,7 +177,14 @@
       }
     }
   },
-  "enterPositiveAmount": "Enter an amount above zero, with at most 3 decimals.",
+  "enterPositiveAmount": "{decimals, plural, =0{Enter a whole amount above zero.} =1{Enter an amount above zero, with at most 1 decimal.} other{Enter an amount above zero, with at most {decimals} decimals.}}",
+  "@enterPositiveAmount": {
+    "placeholders": {
+      "decimals": {
+        "type": "int"
+      }
+    }
+  },
   "enterAmount": "Enter an amount",
   "enterDescription": "Enter a description",
   "enterName": "Enter a name",
@@ -303,11 +335,49 @@
   "noExpenseCategories": "No expense categories",
   "noIncomeCategories": "No income categories",
   "noCategoriesHint": "Create one to start tagging transactions.",
+  "merchants": "Merchants",
+  "merchantsSubtitle": "Names you transact with",
+  "merchantsShown": "{count} merchants",
+  "@merchantsShown": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newMerchant": "New merchant",
+  "editMerchant": "Edit merchant",
+  "noMerchants": "No merchants yet",
+  "noMerchantsHint": "Create one and it will show up in the transaction form's suggestions.",
+  "deleteMerchantBody": "This only removes the merchant from the list. Past transactions keep their name.",
+  "merchantNotFound": "Merchant not found. Create it?",
+  "createMerchant": "Create it",
+  "duplicateMerchant": "This merchant already exists",
   "name": "Name",
   "color": "Color",
   "settingsData": "Data",
   "settingsGeneral": "General",
   "language": "Language",
+  "theme": "Theme",
+  "themeName": "{theme, select, system{System default} light{Light} dark{Dark} black{Black (AMOLED)} other{{theme}}}",
+  "@themeName": {
+    "placeholders": {
+      "theme": {
+        "type": "String"
+      }
+    }
+  },
+  "currency": "Currency",
+  "currencyName": "{code, select, JOD{Jordanian dinar} SAR{Saudi riyal} AED{UAE dirham} KWD{Kuwaiti dinar} QAR{Qatari riyal} BHD{Bahraini dinar} OMR{Omani rial} EGP{Egyptian pound} IQD{Iraqi dinar} LBP{Lebanese pound} SYP{Syrian pound} MAD{Moroccan dirham} DZD{Algerian dinar} TND{Tunisian dinar} LYD{Libyan dinar} YER{Yemeni rial} SDG{Sudanese pound} USD{US dollar} EUR{Euro} GBP{British pound} TRY{Turkish lira} INR{Indian rupee} PKR{Pakistani rupee} CAD{Canadian dollar} AUD{Australian dollar} CHF{Swiss franc} JPY{Japanese yen} CNY{Chinese yuan} SEK{Swedish krona} HKD{Hong Kong dollar} IDR{Indonesian rupiah} MRU{Mauritanian ouguiya} DJF{Djiboutian franc} SOS{Somali shilling} KMF{Comorian franc} SGD{Singapore dollar} KRW{South Korean won} NOK{Norwegian krone} NZD{New Zealand dollar} MXN{Mexican peso} TWD{New Taiwan dollar} ZAR{South African rand} BRL{Brazilian real} DKK{Danish krone} PLN{Polish złoty} THB{Thai baht} CZK{Czech koruna} HUF{Hungarian forint} CLP{Chilean peso} PHP{Philippine peso} MYR{Malaysian ringgit} RON{Romanian leu} RUB{Russian ruble} COP{Colombian peso} PEN{Peruvian sol} ARS{Argentine peso} BGN{Bulgarian lev} NGN{Nigerian naira} ISK{Icelandic króna} VND{Vietnamese dong} BDT{Bangladeshi taka} UAH{Ukrainian hryvnia} KES{Kenyan shilling} RSD{Serbian dinar} ALL{Albanian lek} BAM{Bosnia-Herzegovina convertible mark} MKD{Macedonian denar} MDL{Moldovan leu} BYN{Belarusian ruble} other{{code}}}",
+  "@currencyName": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "noCurrencyMatches": "No currency matches",
+  "currencyChangeNote": "Amounts aren't converted: 12.5 stays 12.5 in the new currency.",
   "languageSystem": "System default",
   "voiceDownloading": "Downloading speech model…",
   "voiceListening": "Listening…",
@@ -361,10 +431,114 @@
     }
   },
   "backup": "Backup",
-  "exportData": "Export data",
+  "exportData": "Export Backup",
   "exportDataSubtitle": "Save everything to an encrypted file",
-  "importData": "Import data",
+  "importData": "Import Backup",
   "importDataSubtitle": "Replace everything with a backup file",
+  "importTransactions": "Import Transactions",
+  "importTransactionsSubtitle": "Add entries from a CSV file",
+  "exportTransactions": "Export Transactions",
+  "exportTransactionsSubtitle": "Save all entries as a CSV file for a spreadsheet. Transfers between accounts aren't included.",
+  "importCsv": "Import CSV",
+  "exportCsv": "Export CSV",
+  "csvSaved": "CSV file saved.",
+  "csvCantImportTitle": "Nothing was imported",
+  "csvMissingColumns": "The first row needs these columns: {columns}.",
+  "@csvMissingColumns": {
+    "placeholders": {
+      "columns": {
+        "type": "String"
+      }
+    }
+  },
+  "csvLayoutHint": "Export a file first to see the layout: columns {columns}, dates like 2026-11-08, type income or expense, amounts like 12.5.",
+  "@csvLayoutHint": {
+    "placeholders": {
+      "columns": {
+        "type": "String"
+      }
+    }
+  },
+  "csvNotUtf8": "This file isn't UTF-8 text. In Excel, save it as \"CSV UTF-8\".",
+  "csvRowsFound": "rows found",
+  "csvWillImport": "will import",
+  "csvDuplicate": "duplicate",
+  "csvRejected": "rejected",
+  "csvPreviewNote": "Nothing is saved until you import. Categories are matched by name; a category you don't have leaves the entry uncategorized. Tap a number to see just those rows.",
+  "csvColDate": "Date",
+  "csvColAmount": "Amount",
+  "csvColDetails": "Details",
+  "csvColStatus": "Status",
+  "csvNew": "New",
+  "csvDuplicateTag": "Duplicate",
+  "csvRejectedTag": "Rejected",
+  "csvProblemDate": "The date must look like 2026-11-08.",
+  "csvProblemType": "The type must be income or expense.",
+  "csvProblemNoAmount": "No amount in the amount column.",
+  "csvProblemAmount": "The amount must be a number above 0.",
+  "csvProblemDecimalComma": "Use a decimal point: 12.5, not 12,5.",
+  "csvLayoutTitle": "File layout",
+  "csvRuleDate": "date: year-month-day, like 2026-11-08.",
+  "csvRuleType": "type: income or expense.",
+  "csvRuleAmount": "amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.",
+  "csvRuleOptional": "category, merchant and account can be empty: an empty or unknown account means your default one. Columns can be in any order, and others are ignored.",
+  "csvExample": "Example",
+  "csvNoRowsHere": "No rows here.",
+  "csvImportN": "{count, plural, =0{Nothing to import} =1{Import 1 transaction} other{Import {count} transactions}}",
+  "importCategories": "Import Categories",
+  "importMerchants": "Import Merchants",
+  "csvImportCategoriesN": "{count, plural, =0{Nothing to import} =1{Import 1 category} other{Import {count} categories}}",
+  "@csvImportCategoriesN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImportMerchantsN": "{count, plural, =0{Nothing to import} =1{Import 1 merchant} other{Import {count} merchants}}",
+  "@csvImportMerchantsN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvPreviewNoteNames": "Nothing is saved until you import. Names you already have, in any letter case, are skipped. Tap a number to see just those rows.",
+  "csvColName": "Name",
+  "csvColType": "Type",
+  "csvColColor": "Color",
+  "csvProblemName": "The name is empty.",
+  "csvProblemColor": "The color must look like #4f46e5.",
+  "csvRuleName": "name: the category, one per row.",
+  "csvRuleColor": "color: optional, like #4f46e5. Without one, the category is gray.",
+  "csvRuleMerchant": "name: the merchant, one per row. Names with spaces stay whole.",
+  "csvSumCategoriesAdded": "Categories added",
+  "csvSumMerchantsAdded": "Merchants added",
+  "csvSumAlreadyThere": "Already in your list",
+  "@csvImportN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImporting": "Importing…",
+  "csvImportingDetail": "{count, plural, =1{1 row. Duplicates and rejected rows are skipped.} other{{count} rows. Duplicates and rejected rows are skipped.}}",
+  "@csvImportingDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImportComplete": "Import complete",
+  "csvImportCompleteBody": "Your entries are saved and encrypted like everything else in Pocket Sense.",
+  "csvSumAdded": "Transactions added",
+  "csvSumDuplicates": "Skipped as duplicate",
+  "csvSumRejected": "Rejected rows",
+  "csvSumCategories": "Categories matched",
+  "csvSumMerchants": "New merchants saved",
+  "csvSumUncategorized": "Rows without a category",
   "exportDone": "Backup saved.",
   "exportFailed": "Export failed: {error}",
   "@exportFailed": {
@@ -388,7 +562,7 @@
   "backupNotJson": "This file isn't valid JSON, so nothing was changed.",
   "backupNotABackup": "This isn't a Pocket Sense backup, so nothing was changed.",
   "backupTooNew": "This backup comes from a newer version of Pocket Sense. Update the app, then try again.",
-  "backupWrongCurrency": "This backup uses another currency ({currency}), so nothing was changed.",
+  "backupWrongCurrency": "This backup uses a currency Pocket Sense doesn't support ({currency}), so nothing was changed.",
   "@backupWrongCurrency": {
     "placeholders": {
       "currency": {
@@ -466,6 +640,9 @@
   "appLockSubtitle": "Ask for a PIN when opening Pocket Sense",
   "changePin": "Change PIN",
   "useBiometrics": "Unlock with fingerprint or face",
+  "hideAmounts": "Hide amounts",
+  "hideAmountsSubtitle": "Show ••• for every amount until you tap the eye",
+  "showAmounts": "Show amounts",
   "privateScreen": "Private screen",
   "privateScreenSubtitle": "Hide Pocket Sense in recent apps, and block screenshots and screen recording",
   "enterPin": "Enter your PIN",
@@ -525,6 +702,8 @@
   "turnOn": "Turn on",
   "notNow": "Not now",
   "about": "About",
+  "sponsor": "Sponsor Pocket Sense",
+  "sponsorSubtitle": "Support its development on GitHub Sponsors",
   "aboutDescription": "A private, offline personal finance tracker. Your data stays encrypted on your device.",
   "aboutLegalese": "© 2026 software-ace\nFree software under the GNU GPL v3 or later.",
   "syncSection": "Sync",
@@ -607,6 +786,14 @@
   "syncErrDeclined": "Pairing was declined, or took too long.",
   "syncErrBusy": "That device is pairing with another one. Try again in a moment.",
   "syncErrVersion": "Update Pocket Sense on both devices to the same version.",
+  "syncErrCurrency": "The other device uses {currency}. Choose the same currency on both, in Settings → General.",
+  "@syncErrCurrency": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "syncErrCode": "Pairing cancelled.",
   "syncErrFailed": "Couldn't pair: {detail}",
   "@syncErrFailed": {
@@ -628,6 +815,7 @@
   "syncStateSyncing": "Syncing…",
   "syncStateUnreachable": "Not found on this network",
   "syncStateNeedsUpdate": "Update Pocket Sense on both devices to the same version",
+  "syncStateOtherCurrency": "Uses another currency: choose the same one on both devices",
   "syncStateNotPaired": "That device no longer pairs with this one. Unpair it here, then pair again.",
   "syncStateFailed": "The last sync failed",
   "syncLastSeen": "{state} · last synced {when}",
@@ -671,5 +859,631 @@
         "type": "String"
       }
     }
-  }
+  },
+  "loans": "Loans",
+  "owedToYou": "Owed to you",
+  "youOwe": "You owe",
+  "owesYou": "Owes you",
+  "loanEven": "Even",
+  "loansUnsettled": "Unsettled",
+  "loansSettled": "Settled",
+  "newLoan": "New loan",
+  "editLoan": "Edit loan",
+  "loanTitle": "Loan",
+  "iLent": "I lent",
+  "iBorrowed": "I borrowed",
+  "loanPerson": "Person",
+  "enterPerson": "Enter a name",
+  "dueDateOptional": "Due date (optional)",
+  "clearDueDate": "Clear due date",
+  "dueOn": "Due {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "overdueSince": "Overdue · due {date}",
+  "@overdueSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "lentOn": "You lent · {date}",
+  "@lentOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "borrowedOn": "You borrowed · {date}",
+  "@borrowedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "youLentPerson": "You lent {name}",
+  "@youLentPerson": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "youBorrowedFrom": "You borrowed from {name}",
+  "@youBorrowedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "amountRepaid": "{amount} repaid",
+  "@amountRepaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountLeft": "{amount} left",
+  "@amountLeft": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "repayments": "Repayments",
+  "noRepaymentsYet": "No repayments yet",
+  "recordRepayment": "Record repayment",
+  "settleLoan": "Settle",
+  "settleLoanTitle": "Settle this loan?",
+  "settleLentBody": "This records that {person} paid back the remaining {amount} today, adds it to Activity, and closes the loan.",
+  "@settleLentBody": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "settleBorrowedBody": "This records that you paid {person} the remaining {amount} today, adds it to Activity, and closes the loan.",
+  "@settleBorrowedBody": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "repayUpTo": "Up to {amount}",
+  "@repayUpTo": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountAtMost": "At most {amount}, what's left",
+  "@amountAtMost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "amountAtLeastRepaid": "At least {amount}, already repaid",
+  "@amountAtLeastRepaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteLoanTitle": "Delete this loan?",
+  "deleteLoanBody": "{count, plural, =0{It has no entries in Activity.} =1{Its entry in Activity is deleted too.} other{Its {count} entries in Activity are deleted too.}}",
+  "@deleteLoanBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noLoansYet": "No loans yet",
+  "noLoansHint": "Money you lend or borrow shows here, with what's still owed.",
+  "noSettledLoans": "No settled loans",
+  "noOpenLoans": "Nothing is owed either way",
+  "loanPaymentFor": "Payment for {person}",
+  "@loanPaymentFor": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "loanPaymentFrom": "Payment from {person}",
+  "@loanPaymentFrom": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "reminder": "Reminder",
+  "reminderOff": "Off",
+  "reminderSameDayDueTime": "Same day on due time",
+  "reminderDaysBefore": "{days, plural, =1{1 day before} other{{days} days before}}",
+  "@reminderDaysBefore": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderWeekBefore": "1 week before",
+  "dueTime": "Due time",
+  "reminderPermissionOff": "Notifications are off for Pocket Sense, so reminders won't show. Allow them in Android Settings → Apps → Pocket Sense → Notifications.",
+  "reminderBackgroundNote": "So reminders arrive, allow Pocket Sense to start on its own (Autostart) and to run without battery limits.",
+  "reminderOpenSettings": "Open settings",
+  "reminderDesktopNote": "Reminders show while Pocket Sense is open, and any missed ones when you open it.",
+  "reminderTitle": "Payment reminder",
+  "reminderChannel": "Reminders",
+  "reminderOpen": "Open",
+  "reminderCreate": "Create Transaction",
+  "reminderDismiss": "Dismiss",
+  "reminderWhen": "{days, plural, =0{due today} =1{due tomorrow} other{due in {days} days}}",
+  "@reminderWhen": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderLate": "{days, plural, =1{1 day overdue} other{{days} days overdue}}",
+  "@reminderLate": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderRecurring": "Your {name} is {when}. Check Recurring.",
+  "@reminderRecurring": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderRecurringAmount": "Your {name} ({amount}) is {when}. Check Recurring.",
+  "@reminderRecurringAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderLoan": "Your loan with {person} is {when}.",
+  "@reminderLoan": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderLent": "{person} owes you {amount}, {when}.",
+  "@reminderLent": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderBorrowed": "You owe {person} {amount}, {when}.",
+  "@reminderBorrowed": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderAmounts": "Amounts in reminders",
+  "reminderAmountsSubtitle": "Show amounts in recurring and loan reminder notifications",
+  "cashAccount": "Cash",
+  "account": "Account",
+  "accounts": "Accounts",
+  "accountsSubtitle": "Add, rename, close or delete your cash, bank, savings and card accounts",
+  "accountClosedName": "{name} (closed)",
+  "@accountClosedName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountKind": "{kind, select, bank{Bank} savings{Savings} card{Card} other{Cash}}",
+  "@accountKind": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "accountEntries": "{count, plural, =0{No entries} =1{1 entry} other{{count} entries}}",
+  "@accountEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalBalance": "Total balance",
+  "balance": "Balance",
+  "transfer": "Transfer",
+  "editTransfer": "Edit transfer",
+  "transferFrom": "From",
+  "transferTo": "To",
+  "transferSwap": "Swap From and To",
+  "transferSame": "Pick two different accounts.",
+  "transferAfter": "After this transfer",
+  "transferNotIncome": "Transfers between your accounts aren't income or spending: totals, charts and budgets stay the same.",
+  "transferBelowZero": "This takes {name} below zero. You can still go ahead.",
+  "@transferBelowZero": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "transferToAccount": "To {name}",
+  "@transferToAccount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "transferFromAccount": "From {name}",
+  "@transferFromAccount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTransfer": "Delete transfer",
+  "manageAccounts": "Manage",
+  "accountGone": "This account was deleted.",
+  "incomeThisMonth": "In this month",
+  "spentThisMonth": "Out this month",
+  "addEntry": "Add entry",
+  "openingBalance": "Opening balance",
+  "openingBalanceHint": "What's in it today; it isn't counted as income. For a card you owe, start with a minus: -120.",
+  "defaultBadge": "Default",
+  "newAccount": "New account",
+  "editAccount": "Edit account",
+  "accountName": "Name",
+  "accountKindLabel": "Kind",
+  "useForNewEntries": "Use for new entries",
+  "useForNewEntriesHint": "To change it, turn it on for another account",
+  "closedAccounts": "Closed · {count}",
+  "@closedAccounts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reopen": "Reopen",
+  "closedAccountsNote": "Closed accounts keep their history, so past charts and totals don't change. They're hidden from Home, the account pickers and Transfer.",
+  "lastAccountNote": "You need at least one open account, so this one stays.",
+  "closeAccount": "Close account",
+  "closeAccountHint": "Keeps its history. Hides it from Home, pickers and Transfer.",
+  "closeAccountTitle": "Close {name}?",
+  "@closeAccountTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "closeAccountMoney": "{name} still holds {amount}. It moves, as a transfer, to:",
+  "@closeAccountMoney": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "closeAccountOwes": "{name} owes {amount}. Pay it off, as a transfer, from:",
+  "@closeAccountOwes": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "closeAccountRecurring": "{count, plural, =1{Its recurring item moves there too.} other{Its {count} recurring items move there too.}}",
+  "@closeAccountRecurring": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "closeAccountKeeps": "Its entries stay in your history and charts. You can reopen it in Settings → Accounts.",
+  "closeAccountConfirm": "Close",
+  "deleteAccount": "Delete account",
+  "deleteAccountTitle": "Delete {name}?",
+  "@deleteAccountTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAccountBody": "{count, plural, =0{Nothing in it is deleted: its transfers and opening balance move to:} =1{Nothing in it is deleted: its entry, transfers and opening balance move to:} other{Nothing in it is deleted: its {count} entries, transfers and opening balance move to:}}",
+  "@deleteAccountBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAccountNoUndo": "This can't be undone, here or on your paired devices. Just stopped using it? Close it instead.",
+  "deleteAccountConfirm": "Move and delete",
+  "becomesDefaultIfDefault": "If this was your default account, {name} becomes the default.",
+  "@becomesDefaultIfDefault": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "csvSumUnknownAccounts": "Rows put in your default account (account not found)",
+  "catCirclePayments": "Circle Payments",
+  "catCirclePayouts": "Circle Payouts",
+  "circles": "Savings circles",
+  "circleTitle": "Savings circle",
+  "newCircle": "New circle",
+  "editCircle": "Edit circle",
+  "circleName": "Name",
+  "enterCircleName": "Enter a name",
+  "circleContribution": "Payment each round",
+  "circleRounds": "Number of participants",
+  "circleYourTurn": "Your turn (round)",
+  "circleFirstPayment": "First payment",
+  "circleRoundsRange": "From 2 to {max}",
+  "@circleRoundsRange": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "circleTurnRange": "From 1 to {rounds}",
+  "@circleTurnRange": {
+    "placeholders": {
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "noCirclesYet": "No savings circles yet",
+  "noCirclesHint": "Track the circles you're in: what you pay each round, when your turn comes, and where you stand.",
+  "noActiveCircles": "No circles in progress",
+  "noFinishedCircles": "No finished circles",
+  "circlesActive": "In progress",
+  "circlesFinished": "Finished",
+  "circlesOweYou": "Circles owe you",
+  "youOweCircles": "You owe circles",
+  "circleOwesYou": "The circle owes you",
+  "youOweCircle": "You owe the circle",
+  "circleRoundOf": "Round {round} of {rounds}",
+  "@circleRoundOf": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "circleTerms": "{amount} × {rounds} · {frequency}",
+  "@circleTerms": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "rounds": {
+        "type": "int"
+      },
+      "frequency": {
+        "type": "String"
+      }
+    }
+  },
+  "circleTurnOn": "Your turn: {date}",
+  "@circleTurnOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "circlePayoutOf": "Payout of {amount}",
+  "@circlePayoutOf": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "circleUpToTurn": "You pay up to your turn",
+  "circleAfterTurn": "You pay after your turn",
+  "circlePaid": "{amount} paid",
+  "@circlePaid": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "circleSchedule": "Schedule",
+  "recordCirclePayment": "Record payment",
+  "recordCirclePayout": "Record payout",
+  "circlePayoutReceived": "Payout received: {amount}",
+  "@circlePayoutReceived": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCircleTitle": "Delete this circle?",
+  "circlePaymentTo": "Payment to {name}",
+  "@circlePaymentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "circlePayoutFrom": "Payout from {name}",
+  "@circlePayoutFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCircle": "Your {name} payment is {when}.",
+  "@reminderCircle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCircleAmount": "Your {name} payment of {amount} is {when}.",
+  "@reminderCircleAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCirclesAlwaysShown": "Always shown: it's the way into Savings circles",
+  "vaultCreateTitle": "Set a passphrase",
+  "vaultCreateBody": "No system keyring (such as GNOME Keyring or KWallet) is running, so Pocket Sense keeps its encryption keys in a file locked with this passphrase. You'll type it each time you open the app. If you forget it, your data can't be recovered.",
+  "vaultUnlockTitle": "Enter your passphrase",
+  "vaultUnlockBody": "Pocket Sense keeps its encryption keys in a file locked with your passphrase, because no system keyring was running when you set it up.",
+  "vaultPassphrase": "Passphrase",
+  "vaultRepeat": "Repeat passphrase",
+  "vaultMismatch": "The passphrases don't match",
+  "vaultWrong": "Wrong passphrase",
+  "vaultForgot": "Forgot passphrase?",
+  "vaultForgotBody": "Without the passphrase your data can't be opened. Erase it and start over with a new passphrase? You can still import a backup afterwards.",
+  "circleNextReminder": "Your next payment reminder in: {time}",
+  "@circleNextReminder": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "countdownDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@countdownDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownHours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@countdownHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@countdownMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownSeconds": "{count, plural, =1{1 second} other{{count} seconds}}",
+  "@countdownSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownSeparator": ", ",
+  "nextReminderIn": "Your next reminder in: {time}",
+  "@nextReminderIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTransferTitle": "Delete this transfer?",
+  "showOlderEntries": "Show older entries"
 }

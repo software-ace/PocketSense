@@ -17,7 +17,9 @@ Future<void> settleWithDb(WidgetTester tester) async {
   for (var i = 0; i < 50; i++) {
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     await tester.pump(const Duration(milliseconds: 50));
-    if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
+    // A few rounds even without a spinner: an action's writes are a chain
+    // of database calls, each needing one.
+    if (i >= 4 && find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
   }
   await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
   await tester.pumpAndSettle();

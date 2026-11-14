@@ -112,6 +112,7 @@ class _PeerTile extends StatelessWidget {
       PeerState.syncing => l.syncStateSyncing,
       PeerState.unreachable => l.syncStateUnreachable,
       PeerState.needsUpdate => l.syncStateNeedsUpdate,
+      PeerState.otherCurrency => l.syncStateOtherCurrency,
       PeerState.notPaired => l.syncStateNotPaired,
       PeerState.failed => l.syncStateFailed,
       PeerState.synced || null => null,
@@ -153,7 +154,7 @@ class _PeerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final trouble = state == PeerState.needsUpdate || state == PeerState.notPaired || state == PeerState.failed;
+    final trouble = state == PeerState.needsUpdate || state == PeerState.otherCurrency || state == PeerState.notPaired || state == PeerState.failed;
     return ListTile(
       leading: Icon(trouble ? Icons.sync_problem : Icons.devices, color: trouble ? Theme.of(context).colorScheme.error : null),
       title: Text(peer.name),
@@ -320,6 +321,7 @@ class _PairScreenState extends State<PairScreen> {
         SyncProblem.declined || SyncProblem.notPaired => l.syncErrDeclined,
         SyncProblem.busy => l.syncErrBusy,
         SyncProblem.versionMismatch => l.syncErrVersion,
+        SyncProblem.otherCurrency => l.syncErrCurrency(e.detail ?? '?'),
         SyncProblem.codeMismatch => l.syncErrCode,
         SyncProblem.failed => l.syncErrFailed(e.detail ?? ''),
       };
@@ -422,7 +424,7 @@ class SyncButton extends StatelessWidget {
       builder: (context, _) {
         if (!AppSettings.sync.value.enabled || service.peers.value.isEmpty) return const SizedBox.shrink();
         final trouble = service.states.value.values
-            .any((s) => s == PeerState.needsUpdate || s == PeerState.notPaired || s == PeerState.failed);
+            .any((s) => s == PeerState.needsUpdate || s == PeerState.otherCurrency || s == PeerState.notPaired || s == PeerState.failed);
         return IconButton(
           tooltip: context.l10n.syncNow,
           onPressed: service.busy.value ? null : service.syncAll,

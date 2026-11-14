@@ -1,0 +1,24 @@
+pkgbase = pocket-sense-bin
+	pkgdesc = Offline, encrypted personal finance tracker, in English and Arabic
+	pkgver = 2.6.0
+	pkgrel = 1
+	url = https://github.com/software-ace/PocketSense
+	arch = x86_64
+	license = GPL-3.0-or-later
+	depends = gtk3
+	depends = libsecret
+	depends = sqlite
+	depends = libglvnd
+	depends = glib2
+	depends = glibc
+	depends = gcc-libs
+	optdepends = libpulse: parecord, for voice entry
+	optdepends = org.freedesktop.secrets: keyring to hold the database key (GNOME Keyring or KWallet)
+	provides = pocket-sense
+	conflicts = pocket-sense
+	options = !strip
+	options = !debug
+	source = https://github.com/software-ace/PocketSense/releases/download/v2.6.0/PocketSense-v2.6.0-linux-x64.deb
+	sha256sums = c90452732268dad9a01f6499a51bfb2a4fe008d2dd7698336d4b2a2c71213458
+
+pkgname = pocket-sense-bin

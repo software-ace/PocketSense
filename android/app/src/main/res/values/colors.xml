@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="splash_bg">#FF000000</color>
+    <!-- Quick add widget: red for spending, green for income, the app's
+         indigo for voice, as in the app. Dark versions in values-night. -->
+    <color name="quick_add_widget_bg">#FFF3F1FA</color>
+    <color name="quick_add_expense_bg">#FFFFDAD6</color>
+    <color name="quick_add_expense_fg">#FF5F1412</color>
+    <color name="quick_add_income_bg">#FFCDEFC8</color>
+    <color name="quick_add_income_fg">#FF0F3D16</color>
+    <color name="quick_add_voice_bg">#FFE1E0FF</color>
+    <color name="quick_add_voice_fg">#FF23218A</color>
 </resources>

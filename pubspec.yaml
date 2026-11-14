@@ -16,13 +16,13 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.2.9+504
+version: 2.6.0+510
 
 environment:
   sdk: ^3.13.4
   # Exact, for reproducible builds: CI and F-Droid's recipe both build with
   # this version. Bump it here only.
-  flutter: 3.47.6
+  flutter: 3.47.8
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -51,6 +51,8 @@ dependencies:
   crypto: ^3.0.7
   cryptography: ^2.9.0
   url_launcher: ^6.3.2
+  flutter_local_notifications: ^22.3.3
+  timezone: ^0.11.2
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +87,9 @@ flutter:
     - assets/splash_icon.png
     - assets/github.png # GitHub mark (via Simple Icons, CC0), for About
     - assets/fonts/OFL.txt # shown under About → View licenses
+    # The F-Droid changelogs, shown in "What's new" after an update.
+    - fastlane/metadata/android/en-US/changelogs/
+    - fastlane/metadata/android/ar/changelogs/
 
   # Arabic UI font (SIL OFL 1.1, see assets/fonts/OFL.txt). Bundled because
   # many Linux installs have no good Arabic font; used as a fallback, so
@@ -127,8 +132,8 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Encryption backend for sqflite_common_ffi (Linux, and unit tests on a Linux
-# host): the sqlite3 package's own SQLCipher build, checksum-verified and
+# Encryption backend for sqflite_common_ffi (Linux, Windows, and unit tests
+# on a Linux host): the sqlite3 package's own SQLCipher build, checksum-verified and
 # bundled into the app. The system libsqlcipher can't be used: the GTK stack
 # already loads the system libsqlite3, and SQLCipher's internal sqlite3_*
 # calls bind to that copy (no -Bsymbolic) and crash. Android uses
@@ -140,4 +145,5 @@ hooks:
     sqlite3:
       source:
         linux: sqlcipher
+        windows: sqlcipher
         default: system

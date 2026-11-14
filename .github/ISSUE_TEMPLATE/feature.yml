@@ -1,0 +1,55 @@
+name: Feature request
+description: An idea for something new, or a change to how something works.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Please [search the open issues](https://github.com/software-ace/PocketSense/issues?q=is%3Aissue) first; if it's already there, add a 👍 and your use case to that one.
+        Pocket Sense stays offline: no accounts, no servers, no bank connections. Ideas that need the internet won't fit, but there may be an offline way to the same goal.
+        Don't post real amounts, backup files or transactions. Use made-up numbers.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The problem or need, not the solution yet. What's hard, slow or missing today?
+      placeholder: "I split rent with a roommate, and at the end of the month I can't tell how much they owe me."
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How do you handle it now?
+      description: In Pocket Sense, another app, or on paper.
+      placeholder: "I add the full rent as an expense and track my roommate's share in a notes app."
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like Pocket Sense to do?
+      description: Walk through it step by step. Which screen, what you tap, what you see.
+      placeholder: |
+        1. When adding an expense, mark part of it as owed by someone
+        2. Home shows "Owed to you: JOD 150.000"
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Other ways it could work
+      description: Other designs you thought about, or apps that already do this well.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where would you use it?
+      options:
+        - Android
+        - Linux
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Sketches or screenshots
+      description: A rough drawing or a mock-up helps. Drag files here.

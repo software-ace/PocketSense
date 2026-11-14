@@ -7,10 +7,16 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
+import '../settings/app_settings.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../settings/manage_accounts_screen.dart';
+import 'accounts_screen.dart';
+import 'circles_screen.dart';
+import 'loans_screen.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -20,6 +26,9 @@ class DashboardScreen extends StatefulWidget {
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
+
+/// The charts on Home that show a month you pick, each its own.
+enum _Chart { category, merchant, totals }
 
 class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   final _repo = FinanceRepo();
@@ -32,9 +41,16 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   List<({String? label, int fils, String? color})> _byCategory = [];
   List<({String? label, int fils})> _byMerchant = [];
   List<({DateTime month, int income, int expense})> _monthly = [];
+  // The month each picker chart shows; one not in here follows the current month.
+  final _picked = <_Chart, DateTime>{};
+  ({int income, int expense}) _pickedTotals = (income: 0, expense: 0);
+  List<DateTime> _dataMonths = [];
   ({List<int> thisMonth, List<int> lastMonth}) _pace = (thisMonth: const [], lastMonth: const []);
   List<int> _weekday = const [];
   List<({DateTime day, int fils})> _daily = [];
+  List<Loan> _loans = [];
+  List<Circle> _circles = [];
+  List<Account> _accounts = [];
 
   @override
   void onDataChanged() => _load();
@@ -43,6 +59,15 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   void initState() {
     super.initState();
     _load();
+    AppSettings.homeLayout.addListener(_onLayout);
+  }
+
+  void _onLayout() => setState(() {});
+
+  @override
+  void dispose() {
+    AppSettings.homeLayout.removeListener(_onLayout);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -54,18 +79,22 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       final now = DateTime.now();
       final monthStart = DateTime(now.year, now.month, 1);
       final yearStart = DateTime(now.year, 1, 1);
-      final thirtyDaysAgo = now.subtract(const Duration(days: 30));
 
       final results = await Future.wait([
         _repo.totals(monthStart, now),
         _repo.totals(yearStart, now),
         _repo.transactions(limit: 8),
-        _repo.spendingByCategory(thirtyDaysAgo, now),
+        _repo.spendingByCategory(_pickedFrom(_Chart.category, now), _pickedTo(_Chart.category, now)),
         _repo.dailySpending(end: now, days: 30),
-        _repo.spendingByMerchant(thirtyDaysAgo, now),
+        _repo.spendingByMerchant(_pickedFrom(_Chart.merchant, now), _pickedTo(_Chart.merchant, now)),
         _repo.monthlyTotals(now),
         _repo.monthPace(now),
         _repo.weekdayAverages(now),
+        _repo.loans(),
+        _repo.transactionMonths(),
+        _repo.totals(_pickedFrom(_Chart.totals, now), _pickedTo(_Chart.totals, now)),
+        _repo.accounts(),
+        _repo.circles(),
       ]);
 
       if (!mounted) return;
@@ -79,6 +108,11 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         _monthly = results[6] as List<({DateTime month, int income, int expense})>;
         _pace = results[7] as ({List<int> thisMonth, List<int> lastMonth});
         _weekday = results[8] as List<int>;
+        _loans = results[9] as List<Loan>;
+        _dataMonths = results[10] as List<DateTime>;
+        _pickedTotals = results[11] as ({int income, int expense});
+        _accounts = results[12] as List<Account>;
+        _circles = results[13] as List<Circle>;
         _loading = false;
       });
     } catch (e) {
@@ -90,6 +124,82 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     }
   }
 
+  // A chart's picked month: all of a past one; the current one up to today.
+  DateTime _pickedFrom(_Chart c, DateTime now) => _picked[c] ?? DateTime(now.year, now.month);
+  DateTime _pickedTo(_Chart c, DateTime now) {
+    final m = _picked[c];
+    return m == null ? now : DateTime(m.year, m.month + 1, 0);
+  }
+
+  // Reloads only that chart, so the rest of Home doesn't flash.
+  Future<void> _pickMonth(_Chart c, DateTime month) async {
+    final now = DateTime.now();
+    setState(() => month.year == now.year && month.month == now.month ? _picked.remove(c) : _picked[c] = month);
+    final from = _pickedFrom(c, now), to = _pickedTo(c, now);
+    switch (c) {
+      case _Chart.category:
+        final v = await _repo.spendingByCategory(from, to);
+        if (mounted) setState(() => _byCategory = v);
+      case _Chart.merchant:
+        final v = await _repo.spendingByMerchant(from, to);
+        if (mounted) setState(() => _byMerchant = v);
+      case _Chart.totals:
+        final v = await _repo.totals(from, to);
+        if (mounted) setState(() => _pickedTotals = v);
+    }
+  }
+
+  // Which month the chart shows: a year column and a month column, each
+  // with ▲ (later) and ▼ (earlier), kept between the oldest month with
+  // entries and the current month (or a later one with entries). Tapping
+  // either opens the list of all of them, newest first.
+  Widget _monthPicker(ThemeData theme, _Chart chart) {
+    final l = context.l10n;
+    final material = MaterialLocalizations.of(context);
+    final now = DateTime.now();
+    final current = DateTime(now.year, now.month);
+    final selected = _picked[chart] ?? current;
+    final months = {current, ..._dataMonths}.toList()..sort((a, b) => b.compareTo(a));
+    final newest = months.first, oldest = months.last;
+    // A year step can land outside the months there are: stop at the edge.
+    DateTime clamp(DateTime m) => m.isAfter(newest) ? newest : (m.isBefore(oldest) ? oldest : m);
+
+    Widget arrow(IconData icon, String tooltip, DateTime to, bool enabled) => IconButton(
+          icon: Icon(icon),
+          tooltip: tooltip,
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 40, height: 24),
+          onPressed: enabled ? () => _pickMonth(chart, clamp(to)) : null,
+        );
+    Widget column(String text, Widget up, Widget down) => Column(mainAxisSize: MainAxisSize.min, children: [
+          up,
+          PopupMenuButton<DateTime>(
+            tooltip: l.pickMonth,
+            initialValue: selected,
+            onSelected: (m) => _pickMonth(chart, m),
+            itemBuilder: (_) => [
+              for (final m in months) CheckedPopupMenuItem(value: m, checked: m == selected, child: Text(DateFormat.yMMM().format(m))),
+            ],
+            child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(text, style: theme.textTheme.labelLarge)),
+          ),
+          down,
+        ]);
+
+    return Row(key: Key('monthPicker-${chart.name}'), mainAxisSize: MainAxisSize.min, children: [
+      column(
+        DateFormat.y().format(selected),
+        arrow(Icons.keyboard_arrow_up, l.nextYear, DateTime(selected.year + 1, selected.month), selected.year < newest.year),
+        arrow(Icons.keyboard_arrow_down, l.previousYear, DateTime(selected.year - 1, selected.month), selected.year > oldest.year),
+      ),
+      column(
+        DateFormat.MMM().format(selected),
+        arrow(Icons.keyboard_arrow_up, material.nextMonthTooltip, DateTime(selected.year, selected.month + 1), selected.isBefore(newest)),
+        arrow(Icons.keyboard_arrow_down, material.previousMonthTooltip, DateTime(selected.year, selected.month - 1), selected.isAfter(oldest)),
+      ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -97,7 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(desktop ? l.navOverview : l.navHome), centerTitle: false, actions: const [SyncButton(), SettingsButton()]),
+      appBar: AppBar(title: Text(desktop ? l.navOverview : l.navHome), centerTitle: false, actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: CustomScrollView(
@@ -109,69 +219,93 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
               child: ErrorView(message: _error.toString(), onRetry: _load),
             )
           else ...[
-            // Stat cards row
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: PlatformUi.hPadding(context)),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final cols = desktop ? 4 : 2;
-                    return GridView.count(
-                      crossAxisCount: cols,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: desktop ? 2.4 : 1.8,
-                      children: [
-                        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
-                        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
-                        _statCard(theme, l.statNetMonth, formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
-                        _statCard(theme, l.statYearTotal, formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-            // Charts section
-            _padded(_chartCard(theme, l.chartDaily, _buildLineChart())),
-            _gap,
-            ..._pair(desktop, _chartCard(theme, l.chartByCategory, _buildPieChart(_categorySlices())),
-                _chartCard(theme, l.chartByMerchant, _buildPieChart(_merchantSlices()))),
-            _gap,
-            _padded(_chartCard(theme, l.chartMonthly, _buildMonthlyChart())),
-            _gap,
-            ..._pair(desktop, _chartCard(theme, l.chartPace, _buildPaceChart()), _chartCard(theme, l.chartWeekday, _buildWeekdayChart())),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-            // Recent activity
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 0, PlatformUi.hPadding(context), 8),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(l.recentActivity, style: theme.textTheme.titleMedium),
-                ),
-              ),
-            ),
-            if (_recent.isEmpty)
-              SliverToBoxAdapter(child: EmptyView(icon: Icons.receipt_long, title: l.noTransactionsYet))
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (_, i) => _activityTile(theme, _recent[i]),
-                  childCount: _recent.length,
-                ),
-              ),
+            for (final (i, part) in _sections(theme, desktop).indexed) ...[if (i > 0) _gap, ...part],
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
           ],
         ),
       ),
     );
+  }
+
+  /// The sections in the order Settings → Home page gives, without hidden
+  /// ones (nor, on desktop, the rail's tabs), each as its slivers. On desktop, two half-width cards in a row
+  /// share it, side by side.
+  List<List<Widget>> _sections(ThemeData theme, bool desktop) {
+    final l = context.l10n;
+    final layout = AppSettings.homeLayout.value;
+    const halves = {HomeSection.category, HomeSection.merchant, HomeSection.pace, HomeSection.weekday};
+    Widget card(HomeSection s) => switch (s) {
+          HomeSection.daily => _chartCard(theme, l.chartDaily, _buildLineChart()),
+          HomeSection.category => _chartCard(theme, l.chartByCategory, _buildPieChart(_categorySlices()), action: _monthPicker(theme, _Chart.category)),
+          HomeSection.merchant => _chartCard(theme, l.chartByMerchant, _buildPieChart(_merchantSlices()), action: _monthPicker(theme, _Chart.merchant)),
+          HomeSection.monthTotals => _chartCard(theme, l.chartMonthTotals, _buildMonthTotalsChart(), action: _monthPicker(theme, _Chart.totals)),
+          HomeSection.monthly => _chartCard(theme, l.chartMonthly, _buildMonthlyChart()),
+          HomeSection.pace => _chartCard(theme, l.chartPace, _buildPaceChart()),
+          HomeSection.weekday => _chartCard(theme, l.chartWeekday, _buildWeekdayChart()),
+          HomeSection.totals => _totals(theme, desktop),
+          HomeSection.loans => _loansCard(theme),
+          HomeSection.circles => _circlesCard(theme),
+          HomeSection.accounts => _accountsCard(theme),
+          HomeSection.recent => throw ArgumentError(s), // slivers, below
+        };
+    final shown = [
+      for (final s in layout.order)
+        if (!layout.hidden.contains(s) && !(desktop && desktopTabSections.contains(s))) s
+    ];
+    final out = <List<Widget>>[];
+    for (var i = 0; i < shown.length; i++) {
+      final s = shown[i];
+      if (desktop && halves.contains(s) && i + 1 < shown.length && halves.contains(shown[i + 1])) {
+        out.add(_pair(true, card(s), card(shown[++i])));
+      } else {
+        out.add(s == HomeSection.recent ? _recentActivity(theme) : [_padded(card(s))]);
+      }
+    }
+    return out;
+  }
+
+  // This month's income, spending and net, and spending so far this year.
+  Widget _totals(ThemeData theme, bool desktop) {
+    final l = context.l10n;
+    return GridView.count(
+      crossAxisCount: desktop ? 4 : 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: desktop ? 2.4 : 1.8,
+      children: [
+        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
+        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
+        _statCard(theme, l.statNetMonth, formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
+        _statCard(theme, l.statYearTotal, formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
+      ],
+    );
+  }
+
+  List<Widget> _recentActivity(ThemeData theme) {
+    final l = context.l10n;
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 4, PlatformUi.hPadding(context), 8),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(l.recentActivity, style: theme.textTheme.titleMedium),
+          ),
+        ),
+      ),
+      if (_recent.isEmpty)
+        SliverToBoxAdapter(child: EmptyView(icon: Icons.receipt_long, title: l.noTransactionsYet))
+      else
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (_, i) => _activityTile(theme, _recent[i]),
+            childCount: _recent.length,
+          ),
+        ),
+    ];
   }
 
   Widget _padded(Widget child) =>
@@ -183,6 +317,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
   List<Widget> _pair(bool desktop, Widget a, Widget b) => desktop
       ? [_padded(Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: a), const SizedBox(width: 16), Expanded(child: b)]))]
       : [_padded(a), _gap, _padded(b)];
+
+  /// A big amount shrinks to fit its card instead of wrapping (or overflowing).
+  static Widget _fit(Widget amount) =>
+      FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: amount);
 
   Widget _statCard(ThemeData theme, String label, String value, IconData icon, Color accent) {
     return Card(
@@ -200,21 +338,111 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                 Expanded(child: Text(label, style: theme.textTheme.bodySmall, overflow: TextOverflow.ellipsis)),
               ],
             ),
-            Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            _fit(Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
           ],
         ),
       ),
     );
   }
 
-  Widget _chartCard(ThemeData theme, String title, Widget chart) {
+  // Every open account and the total; the way into Accounts and Transfer.
+  // Amounts follow Hide amounts here, like the rest of Home.
+  Widget _accountsCard(ThemeData theme) {
+    final l = context.l10n;
+    final open = [for (final a in _accounts) if (!a.closed) a];
+    final total = _accounts.fold(0, (sum, a) => sum + a.balanceFils);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        InkWell(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AccountsScreen())),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Icon(Icons.account_balance_wallet_outlined, size: 18, color: theme.colorScheme.primary),
+                const SizedBox(width: 6),
+                Expanded(child: Text(l.accounts, style: theme.textTheme.titleSmall)),
+                const Icon(Icons.chevron_right, size: 20),
+              ]),
+              const SizedBox(height: 8),
+              Text(l.totalBalance, style: theme.textTheme.bodySmall),
+              _fit(Text(formatMoney(total), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))),
+            ]),
+          ),
+        ),
+        for (final a in open) AccountTile(account: a),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+          child: Row(children: [
+            if (open.length > 1) ...[
+              Expanded(child: FilledButton.icon(onPressed: () => showTransferSheet(context), icon: const Icon(Icons.swap_horiz), label: Text(l.transfer))),
+              const SizedBox(width: 8),
+            ],
+            Expanded(child: OutlinedButton.icon(onPressed: () => showAccountForm(context), icon: const Icon(Icons.add), label: Text(l.newAccount))),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _loansCard(ThemeData theme) {
+    final l = context.l10n;
+    final totals = loanTotals(_loans);
+    return _owedCard(theme, Icons.handshake_outlined, l.loans, const LoansScreen(), (l.owedToYou, totals.owedToYou), (l.youOwe, totals.youOwe));
+  }
+
+  Widget _circlesCard(ThemeData theme) {
+    final l = context.l10n;
+    final totals = circleTotals(_circles);
+    return _owedCard(theme, Icons.groups_outlined, l.circles, const CirclesScreen(), (l.circlesOweYou, totals.owedToYou), (l.youOweCircles, totals.youOwe));
+  }
+
+  /// A card that opens [page], with what's owed to you (green when there's
+  /// some) and what you owe.
+  Widget _owedCard(ThemeData theme, IconData icon, String title, Widget page, (String, int) toYou, (String, int) byYou) {
+    Widget total((String, int) t, {bool good = false}) => Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(t.$1, style: theme.textTheme.bodySmall),
+            const SizedBox(height: 4),
+            _fit(Text(formatMoney(t.$2),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: good && t.$2 > 0 ? Colors.green : null))),
+          ]),
+        );
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(icon, size: 18, color: theme.colorScheme.primary),
+              const SizedBox(width: 6),
+              Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
+              const Icon(Icons.chevron_right, size: 20),
+            ]),
+            const SizedBox(height: 10),
+            Row(children: [total(toYou, good: true), total(byYou)]),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _chartCard(ThemeData theme, String title, Widget chart, {Widget? action}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: theme.textTheme.titleSmall),
+            Row(children: [
+              Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
+              ?action,
+            ]),
             const SizedBox(height: 12),
             SizedBox(height: 200, child: chart),
           ],
@@ -238,7 +466,15 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       LineChartData(
         minY: 0,
         maxY: maxY,
-        lineTouchData: LineTouchData(enabled: true),
+        // White text on fl_chart's fixed dark tooltip background, like the
+        // other charts; the default uses the line's indigo, unreadable here.
+        lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+                getTooltipItems: (spots) => [
+                      for (final s in spots)
+                        LineTooltipItem(formatMoney((s.y * 1000).round()),
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                    ])),
         gridData: FlGridData(
           drawVerticalLine: false,
           horizontalInterval: step,
@@ -323,8 +559,10 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
 
   BarTouchData _barTooltips() => BarTouchData(
       touchTooltipData: BarTouchTooltipData(
+          // White on fl_chart's fixed dark tooltip background: the bar colors
+          // (green, red, indigo) vanish on it.
           getTooltipItem: (group, gi, rod, ri) => BarTooltipItem(formatMoney((rod.toY * 1000).round()),
-              TextStyle(color: rod.color, fontWeight: FontWeight.w600, fontSize: 12))));
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12))));
 
   // Income and spending side by side, one pair of bars per month.
   Widget _buildMonthlyChart() {
@@ -355,6 +593,36 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       ),
       const SizedBox(height: 8),
       _legend([(l.income, Colors.green), (l.expense, Colors.redAccent)]),
+    ]);
+  }
+
+  // The picked month's income and spending as a pie with their amounts on it.
+  Widget _buildMonthTotalsChart() {
+    final l = context.l10n;
+    final (:income, :expense) = _pickedTotals;
+    final total = income + expense;
+    if (total == 0) return Center(child: Text(l.noData));
+    PieChartSectionData slice(int fils, Color color) => PieChartSectionData(
+          value: fils.toDouble(),
+          color: color,
+          radius: 54,
+          // Too thin a slice has no room: the legend has its amount too.
+          showTitle: fils / total > 0.12,
+          // Code and number on two lines, so the amount fits in the ring.
+          title: formatMoney(fils).replaceFirst('\u00A0', '\n'),
+          titleStyle: TextStyle(
+              fontSize: 10, fontWeight: FontWeight.w600, color: color.computeLuminance() > 0.2 ? Colors.black87 : Colors.white),
+        );
+    return Column(children: [
+      Expanded(
+        child: PieChart(PieChartData(
+          sections: [if (income > 0) slice(income, Colors.green), if (expense > 0) slice(expense, Colors.redAccent)],
+          centerSpaceRadius: 30,
+          sectionsSpace: 2,
+        )),
+      ),
+      const SizedBox(height: 8),
+      _legend([('${l.income}: ${formatMoney(income)}', Colors.green), ('${l.expense}: ${formatMoney(expense)}', Colors.redAccent)]),
     ]);
   }
 
@@ -394,7 +662,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
                     getTooltipItems: (spots) => [
                           for (final s in spots)
                             LineTooltipItem(formatMoney((s.y * 1000).round()),
-                                TextStyle(color: s.bar.color, fontWeight: FontWeight.w600, fontSize: 12)),
+                                const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
                         ])),
           )),
         ),
@@ -490,7 +758,12 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         radius: 55,
         showTitle: pct > 0.08,
         title: '${(pct * 100).toInt()}%',
-        titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+        // White is unreadable on light slices (amber, sky blue, gray); switch
+        // to dark text there.
+        titleStyle: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: item.color.computeLuminance() > 0.2 ? Colors.black87 : Colors.white),
       );
     }).toList();
 
@@ -528,12 +801,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     );
   }
 
-  Color _hex(String? css) {
-    if (css != null && css.startsWith('#') && css.length >= 7) {
-      return Color(int.parse(css.substring(1, 7), radix: 16) | 0xFF000000);
-    }
-    return const Color(0xFF9CA3AF);
-  }
+  Color _hex(String? css) => parseHex(css) ?? const Color(0xFF9CA3AF);
 
   // `date` carries no time of day (formatting it always showed 00:00). Show the
   // entry time only when it was recorded on that same day; a back-dated entry's

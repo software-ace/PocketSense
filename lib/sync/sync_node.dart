@@ -7,6 +7,7 @@ import 'package:cryptography/cryptography.dart' show SecretKey;
 import 'package:sqflite_sqlcipher/sqflite.dart' show ConflictAlgorithm;
 
 import '../data/local_store.dart';
+import '../utils/format.dart';
 import 'identity.dart';
 import 'merge.dart';
 
@@ -38,7 +39,7 @@ class PairRequest {
 }
 
 /// Why a sync or pairing attempt failed, for the UI.
-enum SyncProblem { unreachable, notPaired, versionMismatch, declined, busy, codeMismatch, failed }
+enum SyncProblem { unreachable, notPaired, versionMismatch, otherCurrency, declined, busy, codeMismatch, failed }
 
 class SyncFailure implements Exception {
   SyncFailure(this.problem, [this.detail]);
@@ -55,22 +56,43 @@ class SyncFailure implements Exception {
 /// [SyncIdentity.sharedKey]); only pairing runs in the clear, and the
 /// 6-digit code the users compare is what makes it safe.
 class SyncNode {
-  SyncNode({required this.identity, required this.store, required this.name});
+  SyncNode({required this.identity, required this.store, required this.name, Currency Function()? currency})
+      : currency = currency ?? (() => appCurrency);
 
   static const defaultPort = 47823;
   static const protocol = 1;
 
   // Comfortably above years of entries; refuse anything bigger unread.
   static const _maxBody = 64 << 20;
+  // Pairing messages are a key and a few names: anyone on the Wi-Fi can send
+  // them, so they get no more room than that.
+  static const _maxPairBody = 16 << 10;
+  // Codes one opening of the pairing screen shows: guessing a million takes
+  // a million, and a real pairing needs one or two.
+  static const maxPairCodes = 3;
+  // Which paired device a sync is from, so a stranger's body goes unread.
+  static const fromHeader = 'x-pocketsense-from';
   static const _pairTimeout = Duration(minutes: 2);
 
   final SyncIdentity identity;
   final Future<LocalStore> Function() store;
   String name;
 
+  /// What this device's amounts are in; asked at each sync.
+  final Currency Function() currency;
+
   /// Set while the pairing screen is open: asks the user whether the code
   /// matches. Pairing requests are refused while it's null.
-  Future<bool> Function(PairRequest request)? onPairRequest;
+  Future<bool> Function(PairRequest request)? _onPairRequest;
+  int _codesShown = 0;
+
+  /// Set while the pairing screen is open; each opening allows
+  /// [maxPairCodes] codes.
+  Future<bool> Function(PairRequest request)? get onPairRequest => _onPairRequest;
+  set onPairRequest(Future<bool> Function(PairRequest request)? handler) {
+    _onPairRequest = handler;
+    _codesShown = 0;
+  }
 
   /// A device that asked to pair with this one is now paired.
   void Function(Peer peer)? onPaired;
@@ -132,9 +154,18 @@ class SyncNode {
     final from = req.connectionInfo?.remoteAddress;
     if (from == null || !isLocal(from)) return reply(HttpStatus.forbidden);
     if (req.method != 'POST') return reply(HttpStatus.notFound);
+    final pairing = req.uri.path.startsWith('/pair/');
+    // Only a paired device's sync is worth reading (up to 64 MB).
+    if (req.uri.path == '/sync') {
+      final id = req.headers.value(fromHeader);
+      final s = await store();
+      if (id == null || (await s.db.query('peers', columns: ['id'], where: 'id = ?', whereArgs: [id])).isEmpty) {
+        return reply(HttpStatus.unauthorized);
+      }
+    }
     final Object? body;
     try {
-      body = await _readJson(req);
+      body = await _readJson(req, max: pairing ? _maxPairBody : _maxBody);
     } catch (_) {
       return reply(HttpStatus.badRequest);
     }
@@ -143,7 +174,7 @@ class SyncNode {
     final Object? out;
     try {
       (status, out) = switch (req.uri.path) {
-        '/sync' => await _serveSync(body, from),
+        '/sync' => await _serveSync(body, req.headers.value(fromHeader)),
         '/pair/start' => await _pairStart(body),
         '/pair/nonce' => await _pairNonce(body),
         '/pair/confirm' => await _pairConfirm(body),
@@ -159,17 +190,18 @@ class SyncNode {
     return reply(status, out);
   }
 
-  static Future<Object?> _readJson(Stream<List<int>> body) async {
+  static Future<Object?> _readJson(Stream<List<int>> body, {int max = _maxBody}) async {
     final bytes = BytesBuilder(copy: false);
     await for (final chunk in body) {
       bytes.add(chunk);
-      if (bytes.length > _maxBody) throw const FormatException('too large');
+      if (bytes.length > max) throw const FormatException('too large');
     }
     return jsonDecode(utf8.decode(bytes.takeBytes()));
   }
 
-  Future<(int, Object?)> _serveSync(Map body, InternetAddress from) async {
+  Future<(int, Object?)> _serveSync(Map body, String? headerFrom) async {
     final s = await store();
+    if (body['from'] != headerFrom) return (HttpStatus.badRequest, null);
     final row = (await s.db.query('peers', where: 'id = ?', whereArgs: [body['from']])).firstOrNull;
     // Unknown devices learn nothing, not even whether pairing exists.
     if (row == null) return (HttpStatus.unauthorized, null);
@@ -180,16 +212,21 @@ class SyncNode {
     if (msg['v'] != protocol || msg['schema'] != LocalStore.schemaVersion) {
       return (HttpStatus.conflict, {'v': protocol, 'schema': LocalStore.schemaVersion});
     }
+    // Amounts only mean the same on both sides in the same currency. Older
+    // versions don't say: they only knew JOD.
+    if ((msg['currency'] ?? 'JOD') != currency().code) return (HttpStatus.conflict, {'currency': currency().code});
     final changes = msg['changes'];
     await Merge.apply(s, changes);
     final since = msg['since'] as int;
-    // What the peer asks for is what it already has of ours.
-    await s.db.rawUpdate(
-        'UPDATE peers SET received_seq = max(received_seq, ?), sent_seq = max(sent_seq, ?), last_sync = ?, last_addr = ? WHERE id = ?',
-        [(changes as Map)['up_to'] as int? ?? 0, since, LocalStore.nowIso(), from.address, peer.id]);
+    // What the peer asks for is what it already has of ours. Not its
+    // address: a request can be replayed from anywhere, so only the side that
+    // started a sync, once the answer checks out, records where the other was.
+    await s.db.rawUpdate('UPDATE peers SET received_seq = max(received_seq, ?), sent_seq = max(sent_seq, ?), last_sync = ? WHERE id = ?',
+        [(changes as Map)['up_to'] as int? ?? 0, since, LocalStore.nowIso(), peer.id]);
     final out = await Merge.changesSince(s, since);
     return (HttpStatus.ok, {
-      'sealed': await SyncIdentity.seal(key, 'sync:${identity.id}>${peer.id}', {'changes': out, 'challenge': msg['challenge']}),
+      'sealed': await SyncIdentity.seal(
+          key, 'sync:${identity.id}>${peer.id}', {'changes': out, 'challenge': msg['challenge'], 'currency': currency().code}),
     });
   }
 
@@ -224,6 +261,8 @@ class SyncNode {
     if (session == null || handler == null || session.peerId != body['id'] || session.request != null) {
       return (HttpStatus.forbidden, null);
     }
+    if (_codesShown >= maxPairCodes) return (HttpStatus.tooManyRequests, null);
+    _codesShown++;
     final na = base64.decode(body['nonce'] as String);
     final code = await SyncIdentity.pairingCode(session.peerKey, identity.publicKey, na, session.nonce);
     final request = session.request = PairRequest(session.peerName, code);
@@ -271,12 +310,13 @@ class SyncNode {
   // ── Client ───────────────────────────────────────────────────────────
 
   static Future<(int, Object?)> _post(InternetAddress address, int port, String path, Object body,
-      {Duration timeout = const Duration(seconds: 60)}) async {
+      {Duration timeout = const Duration(seconds: 60), Map<String, String> headers = const {}}) async {
     if (!isLocal(address)) throw SyncFailure(SyncProblem.unreachable, 'not a local address');
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
     try {
       final req = await client.post(address.address, port, path);
       req.headers.contentType = ContentType.json;
+      headers.forEach(req.headers.set);
       req.write(jsonEncode(body));
       final res = await req.close().timeout(timeout);
       final text = await _readJson(res).timeout(timeout).catchError((Object _) => null);
@@ -349,13 +389,20 @@ class SyncNode {
         'since': peer.receivedSeq,
         'changes': changes,
         'challenge': challenge,
+        'currency': currency().code,
       }),
-    });
+    }, headers: {fromHeader: identity.id});
     if (status == HttpStatus.unauthorized) throw SyncFailure(SyncProblem.notPaired);
-    if (status == HttpStatus.conflict) throw SyncFailure(SyncProblem.versionMismatch);
+    if (status == HttpStatus.conflict) {
+      final theirs = body is Map ? body['currency'] : null;
+      throw theirs is String ? SyncFailure(SyncProblem.otherCurrency, theirs) : SyncFailure(SyncProblem.versionMismatch);
+    }
     if (status != HttpStatus.ok || body is! Map) throw SyncFailure(SyncProblem.failed, '$status');
     final reply = await SyncIdentity.open(key, 'sync:${peer.id}>${identity.id}', body['sealed']);
     if (reply is! Map || reply['challenge'] != challenge) throw SyncAuthError();
+    // An older peer doesn't check our currency, so check its.
+    final theirCurrency = reply['currency'] as String? ?? 'JOD';
+    if (theirCurrency != currency().code) throw SyncFailure(SyncProblem.otherCurrency, theirCurrency);
     await s.db.rawUpdate('UPDATE peers SET sent_seq = max(sent_seq, ?) WHERE id = ?', [changes['up_to'], peer.id]);
     final theirs = reply['changes'];
     final n = await Merge.apply(s, theirs);

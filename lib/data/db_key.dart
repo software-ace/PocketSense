@@ -1,17 +1,55 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// The OS keystore, for every secret the app keeps (database key, PIN,
-/// backup password, sync key). One instance with one set of options: the
-/// Android plugin configures its store from whichever call comes first.
-///
-/// resetOnError off: by default, when Android's Keystore can't unwrap the
-/// plugin's key at startup, the plugin silently deletes everything it holds,
-/// which loses the database key (seen on a RedMagic 8S Pro). An error that
-/// can be retried is better than data that can never be opened again.
-const secureStorage = FlutterSecureStorage(aOptions: AndroidOptions(resetOnError: false));
+import 'passphrase_vault.dart';
+
+/// Where every secret the app keeps goes (database key, PIN, backup
+/// password, sync key): the OS keystore, or on Linux without one the
+/// [PassphraseVault] once it's unlocked.
+const secureStorage = SecureStore._();
+
+class SecureStore {
+  const SecureStore._();
+
+  // One instance with one set of options: the Android plugin configures its
+  // store from whichever call comes first.
+  //
+  // resetOnError off: by default, when Android's Keystore can't unwrap the
+  // plugin's key at startup, the plugin silently deletes everything it holds,
+  // which loses the database key (seen on a RedMagic 8S Pro). An error that
+  // can be retried is better than data that can never be opened again.
+  static const _os = FlutterSecureStorage(aOptions: AndroidOptions(resetOnError: false));
+
+  Future<String?> read({required String key}) async {
+    final v = PassphraseVault.current;
+    return v != null ? v.read(key) : _os.read(key: key);
+  }
+
+  Future<void> write({required String key, required String value}) {
+    final v = PassphraseVault.current;
+    return v != null ? v.write(key, value) : _os.write(key: key, value: value);
+  }
+
+  Future<void> delete({required String key}) {
+    final v = PassphraseVault.current;
+    return v != null ? v.delete(key) : _os.delete(key: key);
+  }
+
+  /// Linux: whether a Secret Service answers. Elsewhere the keystore is
+  /// part of the OS, so true.
+  static Future<bool> keyringAvailable() async {
+    if (!Platform.isLinux) return true;
+    try {
+      await _os.read(key: DbKey._name);
+      return true;
+    } on PlatformException {
+      return false;
+    }
+  }
+}
 
 /// The OS keystore couldn't be reached (Linux: no Secret Service running, or
 /// the keyring is locked). Without it the database can't be opened, and we

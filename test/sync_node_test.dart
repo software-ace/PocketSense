@@ -1,13 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/sync/identity.dart';
 import 'package:pocket_sense/sync/sync_node.dart';
+import 'package:pocket_sense/utils/format.dart';
 
-Future<SyncNode> node(String name, int seed) async {
+Future<SyncNode> node(String name, int seed, {String currency = 'JOD'}) async {
   final store = await LocalStore.openInMemoryForTest();
-  final n = SyncNode(identity: await SyncIdentity.fromSeed(List.filled(32, seed)), store: () async => store, name: name);
+  final n = SyncNode(
+      identity: await SyncIdentity.fromSeed(List.filled(32, seed)), store: () async => store, name: name, currency: () => Currency.byCode(currency)!);
   await n.start(port: 0);
   addTearDown(n.stop);
   return n;
@@ -40,13 +43,29 @@ void main() {
     await (await a.store()).insertRow('transactions', {'amount_fils': 1, 'type': 'expense', 'date': '2026-09-01', 'description': 'a'});
     await (await b.store()).insertRow('transactions', {'amount_fils': 2, 'type': 'expense', 'date': '2026-09-01', 'description': 'b'});
     final n = await a.syncWith(paired.peer, loopback, b.port);
-    expect(n, 1);
+    // The other's entry, and the two devices' Cash settling on one copy.
+    expect(n, greaterThan(0));
     expect(await count(a, 'transactions'), 2);
     expect(await count(b, 'transactions'), 2);
+    expect(await count(a, 'accounts'), 1, reason: 'one Cash on both devices, not one each');
+    expect(await count(b, 'accounts'), 1);
 
     // Nothing new: nothing changes, either way.
     final again = Peer((await (await a.store()).db.query('peers')).single);
     expect(await a.syncWith(again, loopback, b.port), 0);
+  });
+
+  test('devices with different currencies pair, but refuse to sync, and change nothing', () async {
+    final a = await node('Laptop', 1), b = await node('Phone', 2, currency: 'USD');
+    b.onPairRequest = (r) async => true;
+    final paired = await a.pair(loopback, b.port, confirm: (code, name) async => true);
+    await (await a.store()).insertRow('transactions', {'amount_fils': 1, 'type': 'expense', 'date': '2026-09-01', 'description': 'a'});
+    await (await b.store()).insertRow('transactions', {'amount_fils': 2, 'type': 'expense', 'date': '2026-09-01', 'description': 'b'});
+
+    await expectLater(a.syncWith(paired.peer, loopback, b.port),
+        throwsA(isA<SyncFailure>().having((e) => e.problem, 'problem', SyncProblem.otherCurrency).having((e) => e.detail, 'detail', 'USD')));
+    expect(await count(a, 'transactions'), 1);
+    expect(await count(b, 'transactions'), 1);
   });
 
   test('pairing fails when either user says the codes differ', () async {
@@ -87,6 +106,49 @@ void main() {
     final c = await node('C', 3);
     await expectLater(c.syncWith(Peer({...paired.peer.row}), loopback, b.port),
         throwsA(isA<SyncFailure>().having((e) => e.problem, 'problem', SyncProblem.notPaired)));
+  });
+
+  // A raw request, as anyone on the Wi-Fi could send.
+  Future<int> post(SyncNode to, String path, List<int> body, {Map<String, String> headers = const {}}) async {
+    final client = HttpClient();
+    try {
+      final req = await client.post(loopback.address, to.port, path);
+      headers.forEach(req.headers.set);
+      req.add(body);
+      final res = await req.close();
+      await res.drain<void>();
+      return res.statusCode;
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  test('a sync from a device that is not paired is refused before its body is read', () async {
+    final b = await node('B', 2);
+    final big = utf8.encode(jsonEncode({'from': 'x', 'pad': 'x' * (1 << 20)}));
+    expect(await post(b, '/sync', big), HttpStatus.unauthorized, reason: 'no header');
+    expect(await post(b, '/sync', big, headers: {SyncNode.fromHeader: 'stranger'}), HttpStatus.unauthorized);
+  });
+
+  test('a pairing message bigger than a few KB is refused', () async {
+    final b = await node('B', 2);
+    b.onPairRequest = (_) async => true;
+    expect(await post(b, '/pair/start', utf8.encode(jsonEncode({'v': SyncNode.protocol, 'name': 'x' * (64 << 10)}))), HttpStatus.badRequest);
+  });
+
+  test('one opening of the pairing screen shows at most 3 codes; opening it again allows more', () async {
+    final a = await node('A', 1), b = await node('B', 2);
+    b.onPairRequest = (_) async => false; // the user says the codes differ
+    for (var i = 0; i < SyncNode.maxPairCodes; i++) {
+      await expectLater(a.pair(loopback, b.port, confirm: (_, _) async => true),
+          throwsA(isA<SyncFailure>().having((e) => e.problem, 'problem', SyncProblem.declined)));
+    }
+    var asked = false;
+    await expectLater(a.pair(loopback, b.port, confirm: (_, _) async => asked = true), throwsA(isA<SyncFailure>()));
+    expect(asked, isFalse, reason: 'no fourth code to compare');
+
+    b.onPairRequest = (_) async => true; // the screen opened again
+    expect((await a.pair(loopback, b.port, confirm: (_, _) async => true)).peer.name, 'B');
   });
 
   test('a sealed message opens only with the same key and label', () async {

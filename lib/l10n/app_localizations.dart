@@ -164,6 +164,36 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get done;
 
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new in {version}'**
+  String whatsNewTitle(String version);
+
+  /// No description provided for @whatsNewFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'New features'**
+  String get whatsNewFeatures;
+
+  /// No description provided for @whatsNewImprovements.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhancements'**
+  String get whatsNewImprovements;
+
+  /// No description provided for @whatsNewChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes'**
+  String get whatsNewChanges;
+
+  /// No description provided for @whatsNewFixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixes'**
+  String get whatsNewFixes;
+
   /// No description provided for @all.
   ///
   /// In en, this message translates to:
@@ -229,6 +259,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Merchant (optional)'**
   String get merchantOptional;
+
+  /// No description provided for @merchantSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search or create merchants…'**
+  String get merchantSearchHint;
 
   /// No description provided for @notesOptional.
   ///
@@ -380,6 +416,12 @@ abstract class AppLocalizations {
   /// **'Dining Out'**
   String get catDining;
 
+  /// No description provided for @catCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee'**
+  String get catCoffee;
+
   /// No description provided for @catTransport.
   ///
   /// In en, this message translates to:
@@ -446,6 +488,18 @@ abstract class AppLocalizations {
   /// **'Other Income'**
   String get catOtherIncome;
 
+  /// No description provided for @catLoansPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans Paid'**
+  String get catLoansPaid;
+
+  /// No description provided for @catLoansReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans Received'**
+  String get catLoansReceived;
+
   /// No description provided for @statIncomeMonth.
   ///
   /// In en, this message translates to:
@@ -479,13 +533,13 @@ abstract class AppLocalizations {
   /// No description provided for @chartByCategory.
   ///
   /// In en, this message translates to:
-  /// **'By Category (30d)'**
+  /// **'By Category'**
   String get chartByCategory;
 
   /// No description provided for @chartByMerchant.
   ///
   /// In en, this message translates to:
-  /// **'By Merchant (30d)'**
+  /// **'By Merchant'**
   String get chartByMerchant;
 
   /// No description provided for @noMerchant.
@@ -505,6 +559,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Income vs Spending (6 months)'**
   String get chartMonthly;
+
+  /// No description provided for @nextYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Next year'**
+  String get nextYear;
+
+  /// No description provided for @previousYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous year'**
+  String get previousYear;
+
+  /// No description provided for @pickMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick month'**
+  String get pickMonth;
+
+  /// No description provided for @chartMonthTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Income vs Spending'**
+  String get chartMonthTotals;
 
   /// No description provided for @chartPace.
   ///
@@ -535,6 +613,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent Activity'**
   String get recentActivity;
+
+  /// No description provided for @homePage.
+  ///
+  /// In en, this message translates to:
+  /// **'Home page'**
+  String get homePage;
+
+  /// No description provided for @homePageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what Home shows, and in what order'**
+  String get homePageSubtitle;
+
+  /// No description provided for @homePageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a row by its handle to move it. Switch off what you don\'t need on Home.'**
+  String get homePageHint;
+
+  /// No description provided for @homeTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals (this month and year)'**
+  String get homeTotals;
+
+  /// No description provided for @homeLoansAlwaysShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown: it\'s the way into Loans'**
+  String get homeLoansAlwaysShown;
 
   /// No description provided for @noTransactionsYet.
   ///
@@ -635,8 +743,8 @@ abstract class AppLocalizations {
   /// No description provided for @enterPositiveAmount.
   ///
   /// In en, this message translates to:
-  /// **'Enter an amount above zero, with at most 3 decimals.'**
-  String get enterPositiveAmount;
+  /// **'{decimals, plural, =0{Enter a whole amount above zero.} =1{Enter an amount above zero, with at most 1 decimal.} other{Enter an amount above zero, with at most {decimals} decimals.}}'**
+  String enterPositiveAmount(int decimals);
 
   /// No description provided for @enterAmount.
   ///
@@ -974,6 +1082,72 @@ abstract class AppLocalizations {
   /// **'Create one to start tagging transactions.'**
   String get noCategoriesHint;
 
+  /// No description provided for @merchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchants'**
+  String get merchants;
+
+  /// No description provided for @merchantsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Names you transact with'**
+  String get merchantsSubtitle;
+
+  /// No description provided for @merchantsShown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} merchants'**
+  String merchantsShown(int count);
+
+  /// No description provided for @newMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'New merchant'**
+  String get newMerchant;
+
+  /// No description provided for @editMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit merchant'**
+  String get editMerchant;
+
+  /// No description provided for @noMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'No merchants yet'**
+  String get noMerchants;
+
+  /// No description provided for @noMerchantsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create one and it will show up in the transaction form\'s suggestions.'**
+  String get noMerchantsHint;
+
+  /// No description provided for @deleteMerchantBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This only removes the merchant from the list. Past transactions keep their name.'**
+  String get deleteMerchantBody;
+
+  /// No description provided for @merchantNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchant not found. Create it?'**
+  String get merchantNotFound;
+
+  /// No description provided for @createMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'Create it'**
+  String get createMerchant;
+
+  /// No description provided for @duplicateMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'This merchant already exists'**
+  String get duplicateMerchant;
+
   /// No description provided for @name.
   ///
   /// In en, this message translates to:
@@ -1003,6 +1177,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeName.
+  ///
+  /// In en, this message translates to:
+  /// **'{theme, select, system{System default} light{Light} dark{Dark} black{Black (AMOLED)} other{{theme}}}'**
+  String themeName(String theme);
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currency;
+
+  /// No description provided for @currencyName.
+  ///
+  /// In en, this message translates to:
+  /// **'{code, select, JOD{Jordanian dinar} SAR{Saudi riyal} AED{UAE dirham} KWD{Kuwaiti dinar} QAR{Qatari riyal} BHD{Bahraini dinar} OMR{Omani rial} EGP{Egyptian pound} IQD{Iraqi dinar} LBP{Lebanese pound} SYP{Syrian pound} MAD{Moroccan dirham} DZD{Algerian dinar} TND{Tunisian dinar} LYD{Libyan dinar} YER{Yemeni rial} SDG{Sudanese pound} USD{US dollar} EUR{Euro} GBP{British pound} TRY{Turkish lira} INR{Indian rupee} PKR{Pakistani rupee} CAD{Canadian dollar} AUD{Australian dollar} CHF{Swiss franc} JPY{Japanese yen} CNY{Chinese yuan} SEK{Swedish krona} HKD{Hong Kong dollar} IDR{Indonesian rupiah} MRU{Mauritanian ouguiya} DJF{Djiboutian franc} SOS{Somali shilling} KMF{Comorian franc} SGD{Singapore dollar} KRW{South Korean won} NOK{Norwegian krone} NZD{New Zealand dollar} MXN{Mexican peso} TWD{New Taiwan dollar} ZAR{South African rand} BRL{Brazilian real} DKK{Danish krone} PLN{Polish złoty} THB{Thai baht} CZK{Czech koruna} HUF{Hungarian forint} CLP{Chilean peso} PHP{Philippine peso} MYR{Malaysian ringgit} RON{Romanian leu} RUB{Russian ruble} COP{Colombian peso} PEN{Peruvian sol} ARS{Argentine peso} BGN{Bulgarian lev} NGN{Nigerian naira} ISK{Icelandic króna} VND{Vietnamese dong} BDT{Bangladeshi taka} UAH{Ukrainian hryvnia} KES{Kenyan shilling} RSD{Serbian dinar} ALL{Albanian lek} BAM{Bosnia-Herzegovina convertible mark} MKD{Macedonian denar} MDL{Moldovan leu} BYN{Belarusian ruble} other{{code}}}'**
+  String currencyName(String code);
+
+  /// No description provided for @noCurrencyMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No currency matches'**
+  String get noCurrencyMatches;
+
+  /// No description provided for @currencyChangeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts aren\'t converted: 12.5 stays 12.5 in the new currency.'**
+  String get currencyChangeNote;
 
   /// No description provided for @languageSystem.
   ///
@@ -1115,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportData.
   ///
   /// In en, this message translates to:
-  /// **'Export data'**
+  /// **'Export Backup'**
   String get exportData;
 
   /// No description provided for @exportDataSubtitle.
@@ -1127,7 +1337,7 @@ abstract class AppLocalizations {
   /// No description provided for @importData.
   ///
   /// In en, this message translates to:
-  /// **'Import data'**
+  /// **'Import Backup'**
   String get importData;
 
   /// No description provided for @importDataSubtitle.
@@ -1135,6 +1345,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replace everything with a backup file'**
   String get importDataSubtitle;
+
+  /// No description provided for @importTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Transactions'**
+  String get importTransactions;
+
+  /// No description provided for @importTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entries from a CSV file'**
+  String get importTransactionsSubtitle;
+
+  /// No description provided for @exportTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Transactions'**
+  String get exportTransactions;
+
+  /// No description provided for @exportTransactionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all entries as a CSV file for a spreadsheet. Transfers between accounts aren\'t included.'**
+  String get exportTransactionsSubtitle;
+
+  /// No description provided for @importCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Import CSV'**
+  String get importCsv;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get exportCsv;
+
+  /// No description provided for @csvSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV file saved.'**
+  String get csvSaved;
+
+  /// No description provided for @csvCantImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was imported'**
+  String get csvCantImportTitle;
+
+  /// No description provided for @csvMissingColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'The first row needs these columns: {columns}.'**
+  String csvMissingColumns(String columns);
+
+  /// No description provided for @csvLayoutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export a file first to see the layout: columns {columns}, dates like 2026-11-08, type income or expense, amounts like 12.5.'**
+  String csvLayoutHint(String columns);
+
+  /// No description provided for @csvNotUtf8.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t UTF-8 text. In Excel, save it as \"CSV UTF-8\".'**
+  String get csvNotUtf8;
+
+  /// No description provided for @csvRowsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'rows found'**
+  String get csvRowsFound;
+
+  /// No description provided for @csvWillImport.
+  ///
+  /// In en, this message translates to:
+  /// **'will import'**
+  String get csvWillImport;
+
+  /// No description provided for @csvDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'duplicate'**
+  String get csvDuplicate;
+
+  /// No description provided for @csvRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'rejected'**
+  String get csvRejected;
+
+  /// No description provided for @csvPreviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is saved until you import. Categories are matched by name; a category you don\'t have leaves the entry uncategorized. Tap a number to see just those rows.'**
+  String get csvPreviewNote;
+
+  /// No description provided for @csvColDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get csvColDate;
+
+  /// No description provided for @csvColAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get csvColAmount;
+
+  /// No description provided for @csvColDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get csvColDetails;
+
+  /// No description provided for @csvColStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get csvColStatus;
+
+  /// No description provided for @csvNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get csvNew;
+
+  /// No description provided for @csvDuplicateTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get csvDuplicateTag;
+
+  /// No description provided for @csvRejectedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get csvRejectedTag;
+
+  /// No description provided for @csvProblemDate.
+  ///
+  /// In en, this message translates to:
+  /// **'The date must look like 2026-11-08.'**
+  String get csvProblemDate;
+
+  /// No description provided for @csvProblemType.
+  ///
+  /// In en, this message translates to:
+  /// **'The type must be income or expense.'**
+  String get csvProblemType;
+
+  /// No description provided for @csvProblemNoAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'No amount in the amount column.'**
+  String get csvProblemNoAmount;
+
+  /// No description provided for @csvProblemAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount must be a number above 0.'**
+  String get csvProblemAmount;
+
+  /// No description provided for @csvProblemDecimalComma.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a decimal point: 12.5, not 12,5.'**
+  String get csvProblemDecimalComma;
+
+  /// No description provided for @csvLayoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'File layout'**
+  String get csvLayoutTitle;
+
+  /// No description provided for @csvRuleDate.
+  ///
+  /// In en, this message translates to:
+  /// **'date: year-month-day, like 2026-11-08.'**
+  String get csvRuleDate;
+
+  /// No description provided for @csvRuleType.
+  ///
+  /// In en, this message translates to:
+  /// **'type: income or expense.'**
+  String get csvRuleType;
+
+  /// No description provided for @csvRuleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.'**
+  String get csvRuleAmount;
+
+  /// No description provided for @csvRuleOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'category, merchant and account can be empty: an empty or unknown account means your default one. Columns can be in any order, and others are ignored.'**
+  String get csvRuleOptional;
+
+  /// No description provided for @csvExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get csvExample;
+
+  /// No description provided for @csvNoRowsHere.
+  ///
+  /// In en, this message translates to:
+  /// **'No rows here.'**
+  String get csvNoRowsHere;
+
+  /// No description provided for @csvImportN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 transaction} other{Import {count} transactions}}'**
+  String csvImportN(int count);
+
+  /// No description provided for @importCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Categories'**
+  String get importCategories;
+
+  /// No description provided for @importMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Merchants'**
+  String get importMerchants;
+
+  /// No description provided for @csvImportCategoriesN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 category} other{Import {count} categories}}'**
+  String csvImportCategoriesN(int count);
+
+  /// No description provided for @csvImportMerchantsN.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 merchant} other{Import {count} merchants}}'**
+  String csvImportMerchantsN(int count);
+
+  /// No description provided for @csvPreviewNoteNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is saved until you import. Names you already have, in any letter case, are skipped. Tap a number to see just those rows.'**
+  String get csvPreviewNoteNames;
+
+  /// No description provided for @csvColName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get csvColName;
+
+  /// No description provided for @csvColType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get csvColType;
+
+  /// No description provided for @csvColColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get csvColColor;
+
+  /// No description provided for @csvProblemName.
+  ///
+  /// In en, this message translates to:
+  /// **'The name is empty.'**
+  String get csvProblemName;
+
+  /// No description provided for @csvProblemColor.
+  ///
+  /// In en, this message translates to:
+  /// **'The color must look like #4f46e5.'**
+  String get csvProblemColor;
+
+  /// No description provided for @csvRuleName.
+  ///
+  /// In en, this message translates to:
+  /// **'name: the category, one per row.'**
+  String get csvRuleName;
+
+  /// No description provided for @csvRuleColor.
+  ///
+  /// In en, this message translates to:
+  /// **'color: optional, like #4f46e5. Without one, the category is gray.'**
+  String get csvRuleColor;
+
+  /// No description provided for @csvRuleMerchant.
+  ///
+  /// In en, this message translates to:
+  /// **'name: the merchant, one per row. Names with spaces stay whole.'**
+  String get csvRuleMerchant;
+
+  /// No description provided for @csvSumCategoriesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories added'**
+  String get csvSumCategoriesAdded;
+
+  /// No description provided for @csvSumMerchantsAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Merchants added'**
+  String get csvSumMerchantsAdded;
+
+  /// No description provided for @csvSumAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in your list'**
+  String get csvSumAlreadyThere;
+
+  /// No description provided for @csvImporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing…'**
+  String get csvImporting;
+
+  /// No description provided for @csvImportingDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row. Duplicates and rejected rows are skipped.} other{{count} rows. Duplicates and rejected rows are skipped.}}'**
+  String csvImportingDetail(int count);
+
+  /// No description provided for @csvImportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Import complete'**
+  String get csvImportComplete;
+
+  /// No description provided for @csvImportCompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your entries are saved and encrypted like everything else in Pocket Sense.'**
+  String get csvImportCompleteBody;
+
+  /// No description provided for @csvSumAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions added'**
+  String get csvSumAdded;
+
+  /// No description provided for @csvSumDuplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped as duplicate'**
+  String get csvSumDuplicates;
+
+  /// No description provided for @csvSumRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected rows'**
+  String get csvSumRejected;
+
+  /// No description provided for @csvSumCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories matched'**
+  String get csvSumCategories;
+
+  /// No description provided for @csvSumMerchants.
+  ///
+  /// In en, this message translates to:
+  /// **'New merchants saved'**
+  String get csvSumMerchants;
+
+  /// No description provided for @csvSumUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows without a category'**
+  String get csvSumUncategorized;
 
   /// No description provided for @exportDone.
   ///
@@ -1193,7 +1775,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupWrongCurrency.
   ///
   /// In en, this message translates to:
-  /// **'This backup uses another currency ({currency}), so nothing was changed.'**
+  /// **'This backup uses a currency Pocket Sense doesn\'t support ({currency}), so nothing was changed.'**
   String backupWrongCurrency(String currency);
 
   /// No description provided for @backupBadData.
@@ -1363,6 +1945,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock with fingerprint or face'**
   String get useBiometrics;
+
+  /// No description provided for @hideAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide amounts'**
+  String get hideAmounts;
+
+  /// No description provided for @hideAmountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show ••• for every amount until you tap the eye'**
+  String get hideAmountsSubtitle;
+
+  /// No description provided for @showAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts'**
+  String get showAmounts;
 
   /// No description provided for @privateScreen.
   ///
@@ -1574,6 +2174,18 @@ abstract class AppLocalizations {
   /// **'About'**
   String get about;
 
+  /// No description provided for @sponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'Sponsor Pocket Sense'**
+  String get sponsor;
+
+  /// No description provided for @sponsorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support its development on GitHub Sponsors'**
+  String get sponsorSubtitle;
+
   /// No description provided for @aboutDescription.
   ///
   /// In en, this message translates to:
@@ -1772,6 +2384,12 @@ abstract class AppLocalizations {
   /// **'Update Pocket Sense on both devices to the same version.'**
   String get syncErrVersion;
 
+  /// No description provided for @syncErrCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'The other device uses {currency}. Choose the same currency on both, in Settings → General.'**
+  String syncErrCurrency(String currency);
+
   /// No description provided for @syncErrCode.
   ///
   /// In en, this message translates to:
@@ -1813,6 +2431,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update Pocket Sense on both devices to the same version'**
   String get syncStateNeedsUpdate;
+
+  /// No description provided for @syncStateOtherCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses another currency: choose the same one on both devices'**
+  String get syncStateOtherCurrency;
 
   /// No description provided for @syncStateNotPaired.
   ///
@@ -1873,6 +2497,1086 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t start sync: {detail}'**
   String syncStartFailed(String detail);
+
+  /// No description provided for @loans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get loans;
+
+  /// No description provided for @owedToYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to you'**
+  String get owedToYou;
+
+  /// No description provided for @youOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe'**
+  String get youOwe;
+
+  /// No description provided for @owesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes you'**
+  String get owesYou;
+
+  /// No description provided for @loanEven.
+  ///
+  /// In en, this message translates to:
+  /// **'Even'**
+  String get loanEven;
+
+  /// No description provided for @loansUnsettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled'**
+  String get loansUnsettled;
+
+  /// No description provided for @loansSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get loansSettled;
+
+  /// No description provided for @newLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'New loan'**
+  String get newLoan;
+
+  /// No description provided for @editLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit loan'**
+  String get editLoan;
+
+  /// No description provided for @loanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan'**
+  String get loanTitle;
+
+  /// No description provided for @iLent.
+  ///
+  /// In en, this message translates to:
+  /// **'I lent'**
+  String get iLent;
+
+  /// No description provided for @iBorrowed.
+  ///
+  /// In en, this message translates to:
+  /// **'I borrowed'**
+  String get iBorrowed;
+
+  /// No description provided for @loanPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get loanPerson;
+
+  /// No description provided for @enterPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get enterPerson;
+
+  /// No description provided for @dueDateOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date (optional)'**
+  String get dueDateOptional;
+
+  /// No description provided for @clearDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear due date'**
+  String get clearDueDate;
+
+  /// No description provided for @dueOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String dueOn(String date);
+
+  /// No description provided for @overdueSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue · due {date}'**
+  String overdueSince(String date);
+
+  /// No description provided for @lentOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You lent · {date}'**
+  String lentOn(String date);
+
+  /// No description provided for @borrowedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You borrowed · {date}'**
+  String borrowedOn(String date);
+
+  /// No description provided for @youLentPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'You lent {name}'**
+  String youLentPerson(String name);
+
+  /// No description provided for @youBorrowedFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'You borrowed from {name}'**
+  String youBorrowedFrom(String name);
+
+  /// No description provided for @amountRepaid.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} repaid'**
+  String amountRepaid(String amount);
+
+  /// No description provided for @amountLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left'**
+  String amountLeft(String amount);
+
+  /// No description provided for @repayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Repayments'**
+  String get repayments;
+
+  /// No description provided for @noRepaymentsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No repayments yet'**
+  String get noRepaymentsYet;
+
+  /// No description provided for @recordRepayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record repayment'**
+  String get recordRepayment;
+
+  /// No description provided for @settleLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle'**
+  String get settleLoan;
+
+  /// No description provided for @settleLoanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle this loan?'**
+  String get settleLoanTitle;
+
+  /// No description provided for @settleLentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This records that {person} paid back the remaining {amount} today, adds it to Activity, and closes the loan.'**
+  String settleLentBody(String person, String amount);
+
+  /// No description provided for @settleBorrowedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This records that you paid {person} the remaining {amount} today, adds it to Activity, and closes the loan.'**
+  String settleBorrowedBody(String person, String amount);
+
+  /// No description provided for @repayUpTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String repayUpTo(String amount);
+
+  /// No description provided for @amountAtMost.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {amount}, what\'s left'**
+  String amountAtMost(String amount);
+
+  /// No description provided for @amountAtLeastRepaid.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {amount}, already repaid'**
+  String amountAtLeastRepaid(String amount);
+
+  /// No description provided for @deleteLoanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this loan?'**
+  String get deleteLoanTitle;
+
+  /// No description provided for @deleteLoanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{It has no entries in Activity.} =1{Its entry in Activity is deleted too.} other{Its {count} entries in Activity are deleted too.}}'**
+  String deleteLoanBody(int count);
+
+  /// No description provided for @noLoansYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No loans yet'**
+  String get noLoansYet;
+
+  /// No description provided for @noLoansHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Money you lend or borrow shows here, with what\'s still owed.'**
+  String get noLoansHint;
+
+  /// No description provided for @noSettledLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'No settled loans'**
+  String get noSettledLoans;
+
+  /// No description provided for @noOpenLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is owed either way'**
+  String get noOpenLoans;
+
+  /// No description provided for @loanPaymentFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment for {person}'**
+  String loanPaymentFor(String person);
+
+  /// No description provided for @loanPaymentFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment from {person}'**
+  String loanPaymentFrom(String person);
+
+  /// No description provided for @reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminder;
+
+  /// No description provided for @reminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get reminderOff;
+
+  /// No description provided for @reminderSameDayDueTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Same day on due time'**
+  String get reminderSameDayDueTime;
+
+  /// No description provided for @reminderDaysBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day before} other{{days} days before}}'**
+  String reminderDaysBefore(int days);
+
+  /// No description provided for @reminderWeekBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week before'**
+  String get reminderWeekBefore;
+
+  /// No description provided for @dueTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Due time'**
+  String get dueTime;
+
+  /// No description provided for @reminderPermissionOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off for Pocket Sense, so reminders won\'t show. Allow them in Android Settings → Apps → Pocket Sense → Notifications.'**
+  String get reminderPermissionOff;
+
+  /// No description provided for @reminderBackgroundNote.
+  ///
+  /// In en, this message translates to:
+  /// **'So reminders arrive, allow Pocket Sense to start on its own (Autostart) and to run without battery limits.'**
+  String get reminderBackgroundNote;
+
+  /// No description provided for @reminderOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get reminderOpenSettings;
+
+  /// No description provided for @reminderDesktopNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders show while Pocket Sense is open, and any missed ones when you open it.'**
+  String get reminderDesktopNote;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment reminder'**
+  String get reminderTitle;
+
+  /// No description provided for @reminderChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminderChannel;
+
+  /// No description provided for @reminderOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get reminderOpen;
+
+  /// No description provided for @reminderCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction'**
+  String get reminderCreate;
+
+  /// No description provided for @reminderDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get reminderDismiss;
+
+  /// No description provided for @reminderWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{due today} =1{due tomorrow} other{due in {days} days}}'**
+  String reminderWhen(int days);
+
+  /// No description provided for @reminderLate.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day overdue} other{{days} days overdue}}'**
+  String reminderLate(int days);
+
+  /// No description provided for @reminderRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} is {when}. Check Recurring.'**
+  String reminderRecurring(String name, String when);
+
+  /// No description provided for @reminderRecurringAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} ({amount}) is {when}. Check Recurring.'**
+  String reminderRecurringAmount(String name, String amount, String when);
+
+  /// No description provided for @reminderLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your loan with {person} is {when}.'**
+  String reminderLoan(String person, String when);
+
+  /// No description provided for @reminderLent.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} owes you {amount}, {when}.'**
+  String reminderLent(String person, String amount, String when);
+
+  /// No description provided for @reminderBorrowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe {person} {amount}, {when}.'**
+  String reminderBorrowed(String person, String amount, String when);
+
+  /// No description provided for @reminderAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts in reminders'**
+  String get reminderAmounts;
+
+  /// No description provided for @reminderAmountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts in recurring and loan reminder notifications'**
+  String get reminderAmountsSubtitle;
+
+  /// No description provided for @cashAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cashAccount;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accounts;
+
+  /// No description provided for @accountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add, rename, close or delete your cash, bank, savings and card accounts'**
+  String get accountsSubtitle;
+
+  /// No description provided for @accountClosedName.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (closed)'**
+  String accountClosedName(String name);
+
+  /// No description provided for @accountKind.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, bank{Bank} savings{Savings} card{Card} other{Cash}}'**
+  String accountKind(String kind);
+
+  /// No description provided for @accountEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No entries} =1{1 entry} other{{count} entries}}'**
+  String accountEntries(int count);
+
+  /// No description provided for @totalBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get totalBalance;
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// No description provided for @transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transfer;
+
+  /// No description provided for @editTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit transfer'**
+  String get editTransfer;
+
+  /// No description provided for @transferFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get transferFrom;
+
+  /// No description provided for @transferTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get transferTo;
+
+  /// No description provided for @transferSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap From and To'**
+  String get transferSwap;
+
+  /// No description provided for @transferSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick two different accounts.'**
+  String get transferSame;
+
+  /// No description provided for @transferAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After this transfer'**
+  String get transferAfter;
+
+  /// No description provided for @transferNotIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers between your accounts aren\'t income or spending: totals, charts and budgets stay the same.'**
+  String get transferNotIncome;
+
+  /// No description provided for @transferBelowZero.
+  ///
+  /// In en, this message translates to:
+  /// **'This takes {name} below zero. You can still go ahead.'**
+  String transferBelowZero(String name);
+
+  /// No description provided for @transferToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'To {name}'**
+  String transferToAccount(String name);
+
+  /// No description provided for @transferFromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String transferFromAccount(String name);
+
+  /// No description provided for @deleteTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transfer'**
+  String get deleteTransfer;
+
+  /// No description provided for @manageAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manageAccounts;
+
+  /// No description provided for @accountGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This account was deleted.'**
+  String get accountGone;
+
+  /// No description provided for @incomeThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'In this month'**
+  String get incomeThisMonth;
+
+  /// No description provided for @spentThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Out this month'**
+  String get spentThisMonth;
+
+  /// No description provided for @addEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get addEntry;
+
+  /// No description provided for @openingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get openingBalance;
+
+  /// No description provided for @openingBalanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s in it today; it isn\'t counted as income. For a card you owe, start with a minus: -120.'**
+  String get openingBalanceHint;
+
+  /// No description provided for @defaultBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultBadge;
+
+  /// No description provided for @newAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'New account'**
+  String get newAccount;
+
+  /// No description provided for @editAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get editAccount;
+
+  /// No description provided for @accountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get accountName;
+
+  /// No description provided for @accountKindLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get accountKindLabel;
+
+  /// No description provided for @useForNewEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Use for new entries'**
+  String get useForNewEntries;
+
+  /// No description provided for @useForNewEntriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'To change it, turn it on for another account'**
+  String get useForNewEntriesHint;
+
+  /// No description provided for @closedAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed · {count}'**
+  String closedAccounts(int count);
+
+  /// No description provided for @reopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get reopen;
+
+  /// No description provided for @closedAccountsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed accounts keep their history, so past charts and totals don\'t change. They\'re hidden from Home, the account pickers and Transfer.'**
+  String get closedAccountsNote;
+
+  /// No description provided for @lastAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You need at least one open account, so this one stays.'**
+  String get lastAccountNote;
+
+  /// No description provided for @closeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Close account'**
+  String get closeAccount;
+
+  /// No description provided for @closeAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps its history. Hides it from Home, pickers and Transfer.'**
+  String get closeAccountHint;
+
+  /// No description provided for @closeAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close {name}?'**
+  String closeAccountTitle(String name);
+
+  /// No description provided for @closeAccountMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} still holds {amount}. It moves, as a transfer, to:'**
+  String closeAccountMoney(String name, String amount);
+
+  /// No description provided for @closeAccountOwes.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} owes {amount}. Pay it off, as a transfer, from:'**
+  String closeAccountOwes(String name, String amount);
+
+  /// No description provided for @closeAccountRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Its recurring item moves there too.} other{Its {count} recurring items move there too.}}'**
+  String closeAccountRecurring(int count);
+
+  /// No description provided for @closeAccountKeeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Its entries stay in your history and charts. You can reopen it in Settings → Accounts.'**
+  String get closeAccountKeeps;
+
+  /// No description provided for @closeAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeAccountConfirm;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String deleteAccountTitle(String name);
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing in it is deleted: its transfers and opening balance move to:} =1{Nothing in it is deleted: its entry, transfers and opening balance move to:} other{Nothing in it is deleted: its {count} entries, transfers and opening balance move to:}}'**
+  String deleteAccountBody(int count);
+
+  /// No description provided for @deleteAccountNoUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone, here or on your paired devices. Just stopped using it? Close it instead.'**
+  String get deleteAccountNoUndo;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Move and delete'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @becomesDefaultIfDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'If this was your default account, {name} becomes the default.'**
+  String becomesDefaultIfDefault(String name);
+
+  /// No description provided for @csvSumUnknownAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows put in your default account (account not found)'**
+  String get csvSumUnknownAccounts;
+
+  /// No description provided for @catCirclePayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle Payments'**
+  String get catCirclePayments;
+
+  /// No description provided for @catCirclePayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle Payouts'**
+  String get catCirclePayouts;
+
+  /// No description provided for @circles.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings circles'**
+  String get circles;
+
+  /// No description provided for @circleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings circle'**
+  String get circleTitle;
+
+  /// No description provided for @newCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'New circle'**
+  String get newCircle;
+
+  /// No description provided for @editCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit circle'**
+  String get editCircle;
+
+  /// No description provided for @circleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get circleName;
+
+  /// No description provided for @enterCircleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get enterCircleName;
+
+  /// No description provided for @circleContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment each round'**
+  String get circleContribution;
+
+  /// No description provided for @circleRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of participants'**
+  String get circleRounds;
+
+  /// No description provided for @circleYourTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn (round)'**
+  String get circleYourTurn;
+
+  /// No description provided for @circleFirstPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'First payment'**
+  String get circleFirstPayment;
+
+  /// No description provided for @circleRoundsRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From 2 to {max}'**
+  String circleRoundsRange(int max);
+
+  /// No description provided for @circleTurnRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From 1 to {rounds}'**
+  String circleTurnRange(int rounds);
+
+  /// No description provided for @noCirclesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No savings circles yet'**
+  String get noCirclesYet;
+
+  /// No description provided for @noCirclesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Track the circles you\'re in: what you pay each round, when your turn comes, and where you stand.'**
+  String get noCirclesHint;
+
+  /// No description provided for @noActiveCircles.
+  ///
+  /// In en, this message translates to:
+  /// **'No circles in progress'**
+  String get noActiveCircles;
+
+  /// No description provided for @noFinishedCircles.
+  ///
+  /// In en, this message translates to:
+  /// **'No finished circles'**
+  String get noFinishedCircles;
+
+  /// No description provided for @circlesActive.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get circlesActive;
+
+  /// No description provided for @circlesFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get circlesFinished;
+
+  /// No description provided for @circlesOweYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Circles owe you'**
+  String get circlesOweYou;
+
+  /// No description provided for @youOweCircles.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe circles'**
+  String get youOweCircles;
+
+  /// No description provided for @circleOwesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'The circle owes you'**
+  String get circleOwesYou;
+
+  /// No description provided for @youOweCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'You owe the circle'**
+  String get youOweCircle;
+
+  /// No description provided for @circleRoundOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round} of {rounds}'**
+  String circleRoundOf(int round, int rounds);
+
+  /// No description provided for @circleTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} × {rounds} · {frequency}'**
+  String circleTerms(String amount, int rounds, String frequency);
+
+  /// No description provided for @circleTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn: {date}'**
+  String circleTurnOn(String date);
+
+  /// No description provided for @circlePayoutOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout of {amount}'**
+  String circlePayoutOf(String amount);
+
+  /// No description provided for @circleUpToTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'You pay up to your turn'**
+  String get circleUpToTurn;
+
+  /// No description provided for @circleAfterTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'You pay after your turn'**
+  String get circleAfterTurn;
+
+  /// No description provided for @circlePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} paid'**
+  String circlePaid(String amount);
+
+  /// No description provided for @circleSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get circleSchedule;
+
+  /// No description provided for @recordCirclePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payment'**
+  String get recordCirclePayment;
+
+  /// No description provided for @recordCirclePayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Record payout'**
+  String get recordCirclePayout;
+
+  /// No description provided for @circlePayoutReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout received: {amount}'**
+  String circlePayoutReceived(String amount);
+
+  /// No description provided for @deleteCircleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this circle?'**
+  String get deleteCircleTitle;
+
+  /// No description provided for @circlePaymentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment to {name}'**
+  String circlePaymentTo(String name);
+
+  /// No description provided for @circlePayoutFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Payout from {name}'**
+  String circlePayoutFrom(String name);
+
+  /// No description provided for @reminderCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} payment is {when}.'**
+  String reminderCircle(String name, String when);
+
+  /// No description provided for @reminderCircleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {name} payment of {amount} is {when}.'**
+  String reminderCircleAmount(String name, String amount, String when);
+
+  /// No description provided for @homeCirclesAlwaysShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shown: it\'s the way into Savings circles'**
+  String get homeCirclesAlwaysShown;
+
+  /// No description provided for @vaultCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a passphrase'**
+  String get vaultCreateTitle;
+
+  /// No description provided for @vaultCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No system keyring (such as GNOME Keyring or KWallet) is running, so Pocket Sense keeps its encryption keys in a file locked with this passphrase. You\'ll type it each time you open the app. If you forget it, your data can\'t be recovered.'**
+  String get vaultCreateBody;
+
+  /// No description provided for @vaultUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your passphrase'**
+  String get vaultUnlockTitle;
+
+  /// No description provided for @vaultUnlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pocket Sense keeps its encryption keys in a file locked with your passphrase, because no system keyring was running when you set it up.'**
+  String get vaultUnlockBody;
+
+  /// No description provided for @vaultPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get vaultPassphrase;
+
+  /// No description provided for @vaultRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat passphrase'**
+  String get vaultRepeat;
+
+  /// No description provided for @vaultMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The passphrases don\'t match'**
+  String get vaultMismatch;
+
+  /// No description provided for @vaultWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong passphrase'**
+  String get vaultWrong;
+
+  /// No description provided for @vaultForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot passphrase?'**
+  String get vaultForgot;
+
+  /// No description provided for @vaultForgotBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Without the passphrase your data can\'t be opened. Erase it and start over with a new passphrase? You can still import a backup afterwards.'**
+  String get vaultForgotBody;
+
+  /// No description provided for @circleNextReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next payment reminder in: {time}'**
+  String circleNextReminder(String time);
+
+  /// No description provided for @countdownDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String countdownDays(int count);
+
+  /// No description provided for @countdownHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hour} other{{count} hours}}'**
+  String countdownHours(int count);
+
+  /// No description provided for @countdownMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String countdownMinutes(int count);
+
+  /// No description provided for @countdownSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 second} other{{count} seconds}}'**
+  String countdownSeconds(int count);
+
+  /// No description provided for @countdownSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get countdownSeparator;
+
+  /// No description provided for @nextReminderIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next reminder in: {time}'**
+  String nextReminderIn(String time);
+
+  /// No description provided for @deleteTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this transfer?'**
+  String get deleteTransferTitle;
+
+  /// No description provided for @showOlderEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Show older entries'**
+  String get showOlderEntries;
 }
 
 class _AppLocalizationsDelegate

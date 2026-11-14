@@ -24,8 +24,12 @@ jobs:
       # in pubspec.yaml, the pub cache inside the source tree, and the jni
       # patch below. Change one side, change the other.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        # No write token left in .git/config for the build's third-party code
+        # (pub packages, Gradle and CMake plugins); gh gets it as GH_TOKEN.
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: 21
@@ -153,6 +157,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        # No write token left in .git/config for the build's third-party code
+        # (pub packages, Gradle and CMake plugins); gh gets it as GH_TOKEN.
+        with:
+          persist-credentials: false
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
@@ -183,7 +191,8 @@ jobs:
       # - tarball: unpacks to PocketSense/; the user installs GTK 3 etc.
       # - .deb / .rpm: install to /opt/pocket-sense with a menu entry, and
       #   pull in GTK 3, libsecret and the GL libraries (linux/packaging/nfpm.yaml).
-      # - AppImage: one executable file, using the system's GTK 3 and keyring.
+      # - AppImage: one executable file, using the system's GTK 3 and keyring;
+      #   named …-x86_64, as appimage.github.io asks (not …-linux-…).
       # Package versions come from pubspec.yaml, so manual runs from a branch work too.
       - name: Package
         run: |
@@ -194,8 +203,7 @@ jobs:
             --transform 's,^bundle,PocketSense,' bundle
           VERSION="$version" nfpm package -f linux/packaging/nfpm.yaml -p deb -t "dist/${name}.deb"
           VERSION="$version" nfpm package -f linux/packaging/nfpm.yaml -p rpm -t "dist/${name}.rpm"
-          linux/packaging/build-appimage.sh "$version" "dist/${name}.AppImage"
-          (cd dist && sha256sum * > SHA256SUMS-linux.txt)
+          linux/packaging/build-appimage.sh "$version" "dist/PocketSense-${GITHUB_REF_NAME}-x86_64.AppImage"
           ls -lh dist
 
       - name: Attach to GitHub Release
@@ -210,3 +218,8 @@ jobs:
         with:
           name: PocketSense-linux
           path: dist/*
+
+  # Defined in windows.yml, which also builds on its own for testing.
+  build-windows:
+    needs: build-apk
+    uses: ./.github/workflows/windows.yml

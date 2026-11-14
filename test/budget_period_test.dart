@@ -16,6 +16,16 @@ void main() {
       expect(w.end, DateTime(2026, 10, 4));
     });
 
+    // Egypt's clocks change on Apr 24 and Oct 30, 2026. These catch 24-hour
+    // steps only where clocks change (run with TZ=Africa/Cairo); elsewhere
+    // they still pin the dates.
+    test('a week with a clock change still runs midnight Monday to Sunday', () {
+      for (final (now, monday) in [(DateTime(2026, 4, 25, 12), DateTime(2026, 4, 20)), (DateTime(2026, 10, 31, 12), DateTime(2026, 10, 26))]) {
+        final w = budgetPeriod('weekly', now);
+        expect((w.start, w.end), (monday, DateTime(monday.year, monday.month, monday.day + 6)));
+      }
+    });
+
     test('spans a year boundary', () {
       final w = budgetPeriod('weekly', DateTime(2027, 1, 1));
       expect(w.start, DateTime(2026, 12, 28));

@@ -25,6 +25,8 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // flutter_local_notifications uses java.time, which needs this below Android 8.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -102,6 +104,7 @@ dependencies {
     // Theme.AppCompat parents for LaunchTheme/NormalTheme: local_auth's
     // biometric prompt crashes on Android 8 and older without them.
     implementation("androidx.appcompat:appcompat:1.7.1")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 // F-Droid's version code scheme for per-ABI APKs: build number × 10 + ABI,

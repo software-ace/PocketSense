@@ -12,8 +12,10 @@ class SyncDataException implements Exception {
 }
 
 /// What sync sends between devices, and how it's merged in. Rows travel
-/// with their uid instead of the local integer id, and category_uid instead
-/// of category_id. Each row is last-writer-wins by its hlc.
+/// with their uid instead of the local integer id, and with the uids of the
+/// rows they point at (category_uid, loan_uid, circle_uid, account_uid and a transfer's
+/// from_ and to_account_uid) instead of local ids. Each row is
+/// last-writer-wins by its hlc.
 ///
 /// ponytail: last-writer-wins per row, not per field: two devices editing
 /// different fields of the same entry while apart keep only the later edit.
@@ -29,14 +31,21 @@ class Merge {
   /// by table if it ever gets near the request size limit.
   static Future<Map<String, Object?>> changesSince(LocalStore store, int since) => store.db.transaction((txn) async {
         final catUid = {for (final r in await txn.query('categories', columns: ['id', 'uid'])) r['id']: r['uid']};
+        final loanUid = {for (final r in await txn.query('loans', columns: ['id', 'uid'])) r['id']: r['uid']};
+        final circleUid = {for (final r in await txn.query('circles', columns: ['id', 'uid'])) r['id']: r['uid']};
+        final accountUid = {for (final r in await txn.query('accounts', columns: ['id', 'uid'])) r['id']: r['uid']};
         final tables = <String, Object>{};
         for (final t in LocalStore.syncedTables) {
           tables[t] = [
             for (final r in await txn.query(t, where: 'seq > ?', whereArgs: [since]))
               {
                 for (final e in r.entries)
-                  if (e.key != 'id' && e.key != 'seq' && e.key != 'category_id') e.key: e.value,
+                  if (!_localColumns.contains(e.key)) e.key: e.value,
                 if (r.containsKey('category_id')) 'category_uid': catUid[r['category_id']],
+                if (r.containsKey('loan_id')) 'loan_uid': loanUid[r['loan_id']],
+                if (r.containsKey('circle_id')) 'circle_uid': circleUid[r['circle_id']],
+                for (final c in _accountColumns)
+                  if (r.containsKey(c)) '${c.substring(0, c.length - 3)}_uid': accountUid[r[c]],
               },
           ];
         }
@@ -46,15 +55,30 @@ class Merge {
         return {'tables': tables, 'tombstones': tombstones, 'up_to': top > since ? top : since};
       });
 
+  // Meaningful on this device only; the uid columns above stand in for them.
+  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id', 'circle_id', ..._accountColumns};
+
+  // Columns that point at an account, sent as <name>_uid (account_uid…).
+  static const _accountColumns = {'account_id', 'from_account_id', 'to_account_id'};
+  static const _uidColumns = {'category_uid', 'loan_uid', 'circle_uid', 'account_uid', 'from_account_uid', 'to_account_uid'};
+
   // Columns that must be present (and not null) in every row from a peer.
   static const _required = {
     'categories': ['name', 'type', 'color'],
+    'merchants': ['name'],
+    'loans': ['direction', 'person'],
+    'circles': ['name', 'contribution_fils', 'rounds', 'frequency', 'start_date', 'payout_round'],
     'transactions': ['amount_fils', 'type', 'date', 'description'],
     'budgets': ['category_uid', 'limit_fils'],
     'recurring_expenses': ['description', 'amount_fils', 'frequency', 'anchor_date'],
+    'accounts': ['name', 'kind'],
+    'transfers': ['amount_fils', 'date', 'from_account_uid', 'to_account_uid'],
   };
-  static const _intColumns = {'amount_fils', 'limit_fils', 'active'};
-  static const _dateColumns = {'date', 'anchor_date'};
+  static const _intColumns = {
+    'amount_fils', 'limit_fils', 'active', 'due_time', 'reminder_days', 'opening_fils', 'closed', //
+    'contribution_fils', 'rounds', 'payout_round',
+  };
+  static const _dateColumns = {'date', 'anchor_date', 'due_date', 'start_date'};
 
   static bool _isUid(Object? v) => v is String && v.isNotEmpty && v.length <= 64;
   static bool _isHlc(Object? v) => v is String && LocalStore.hlcPattern.hasMatch(v);
@@ -71,8 +95,8 @@ class Merge {
       // Only known columns: a newer app's extra fields are dropped.
       final columns = {
         for (final c in await store.db.rawQuery('PRAGMA table_info($t)')) c['name'] as String,
-        'category_uid',
-      }..removeAll(['id', 'seq', 'category_id']);
+        ..._uidColumns,
+      }..removeAll(_localColumns);
       rows[t] = [
         for (final r in list)
           () {
@@ -88,7 +112,11 @@ class Merge {
             }
             final type = r['type'];
             if (type != null && type != 'income' && type != 'expense') throw SyncDataException('$t: type');
-            if (r['category_uid'] != null && !_isUid(r['category_uid'])) throw SyncDataException('$t: category_uid');
+            final direction = r['direction'];
+            if (direction != null && direction != 'lent' && direction != 'borrowed') throw SyncDataException('$t: direction');
+            for (final c in _uidColumns) {
+              if (r[c] != null && !_isUid(r[c])) throw SyncDataException('$t: $c');
+            }
             return {for (final e in r.entries) if (columns.contains(e.key)) e.key as String: e.value};
           }(),
       ];
@@ -143,6 +171,17 @@ class Merge {
         return (await txn.query('categories', columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
       }
 
+      Future<int?> accountId(String? uid) async =>
+          uid == null ? null : (await txn.query('accounts', columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
+
+      // Where rows go when their account is gone: Cash, else the first open
+      // account, else any, other than [except].
+      Future<int?> fallbackAccount(int? except) async {
+        final rows = await txn.query('accounts',
+            columns: ['id', 'uid'], where: except == null ? null : 'id != ?', whereArgs: except == null ? null : [except], orderBy: 'closed, id');
+        return (rows.where((a) => a['uid'] == LocalStore.cashUid).firstOrNull ?? rows.firstOrNull)?['id'] as int?;
+      }
+
       // Rows go first, then tombstones (except a category's, when one with
       // its name arrives: see below). Uncategorizing a deleted category's
       // entries is then a fresh change only for entries this batch didn't
@@ -153,6 +192,12 @@ class Merge {
         final id = (await txn.query(table, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
         if (id != null) {
           if (table == 'categories') await store.releaseCategory(txn, id, incoming: incomingRows);
+          // The device that deleted it already moved its rows and opening
+          // balance; this catches entries added here since.
+          if (table == 'accounts') {
+            final into = await fallbackAccount(id);
+            if (into != null) await store.moveAccountIn(txn, id, into, addOpening: false);
+          }
           await txn.delete(table, where: 'id = ?', whereArgs: [id]);
         }
         await tombstone(table, uid, {'hlc': hlc, 'seq': store.nextSeq()});
@@ -166,7 +211,32 @@ class Merge {
         for (final r in v.rows[t]!) {
           final uid = r['uid'] as String;
           if ((await newest(t, uid)).compareTo(r['hlc'] as String) >= 0) continue;
-          final values = {for (final e in r.entries) if (e.key != 'category_uid') e.key: e.value, 'seq': store.nextSeq()};
+          final values = {
+            for (final e in r.entries)
+              if (!_uidColumns.contains(e.key)) e.key: e.value,
+            'seq': store.nextSeq(),
+          };
+          // Accounts by uid. One deleted here meanwhile: the fallback
+          // account, as a fresh change so every device agrees.
+          for (final c in _accountColumns) {
+            final key = '${c.substring(0, c.length - 3)}_uid';
+            if (!r.containsKey(key)) continue;
+            final aUid = r[key] as String?;
+            var id = await accountId(aUid);
+            if (id == null) {
+              id = await fallbackAccount(null);
+              values.addAll(store.stamp());
+            }
+            values[c] = id;
+          }
+          // Both ends of a transfer landed on one account: it can't be one.
+          if (t == 'transfers' && values['from_account_id'] == values['to_account_id']) {
+            final local = (await txn.query(t, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
+            if (local != null) await txn.delete(t, where: 'id = ?', whereArgs: [local]);
+            await tombstone(t, uid, store.stamp());
+            changed++;
+            continue;
+          }
           if (r.containsKey('category_uid')) {
             final catUid = r['category_uid'] as String?;
             final cid = await categoryId(catUid);
@@ -186,6 +256,17 @@ class Merge {
             // Moved to the category that won a clash: a fresh edit, so it
             // overrides the copy the sender is about to uncategorize.
             if (alias.containsKey(catUid)) values.addAll(store.stamp());
+          }
+          // Its loan or circle was deleted here: the entry keeps its money
+          // and loses the link, as a fresh change so every device agrees.
+          for (final (parent, column) in const [('loans', 'loan'), ('circles', 'circle')]) {
+            if (!r.containsKey('${column}_uid')) continue;
+            final pUid = r['${column}_uid'] as String?;
+            final pid = pUid == null
+                ? null
+                : (await txn.query(parent, columns: ['id'], where: 'uid = ?', whereArgs: [pUid])).firstOrNull?['id'] as int?;
+            if (pid == null && pUid != null) values.addAll(store.stamp());
+            values['${column}_id'] = pid;
           }
           final local = (await txn.query(t, columns: ['id'], where: 'uid = ?', whereArgs: [uid])).firstOrNull?['id'] as int?;
           await txn.delete('tombstones', where: 'tbl = ? AND uid = ?', whereArgs: [t, uid]);
@@ -227,6 +308,32 @@ class Merge {
                 await repoint(otherId, otherId);
                 continue;
               }
+            }
+          }
+          if (t == 'merchants') {
+            // Names are unique here too. Two devices that each typed the same
+            // merchant have two uids for one name: both keep the lower uid,
+            // so they agree. Merchants have no children, so the loser just
+            // dies; past transactions keep their text either way.
+            var other = (await txn.query('merchants',
+                    columns: ['id', 'uid'], where: 'name = ? AND uid != ?', whereArgs: [r['name'], uid]))
+                .firstOrNull;
+            // Deleted in this same batch, then re-created under its name: no clash.
+            final deleted = incomingTombstones['merchants/${other?['uid']}'];
+            if (other != null && deleted != null && await applyTombstone('merchants', other['uid'] as String, deleted)) {
+              other = null;
+            }
+            if (other != null) {
+              final otherUid = other['uid'] as String;
+              if (uid.compareTo(otherUid) > 0) {
+                // Ours wins: the incoming one is merged into it.
+                if (local != null) await txn.delete('merchants', where: 'id = ?', whereArgs: [local]);
+                await tombstone(t, uid, store.stamp());
+                continue;
+              }
+              // Theirs wins: ours is merged into it.
+              await tombstone(t, otherUid, store.stamp());
+              await txn.delete('merchants', where: 'id = ?', whereArgs: [other['id'] as int]);
             }
           }
           if (local != null) {

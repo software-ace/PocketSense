@@ -6,6 +6,8 @@ import '../models/models.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../utils/format.dart';
+import 'csv_actions.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -73,17 +75,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     }
   }
 
-  Color hex(String h) {
-    final s = h.startsWith('#') ? h.substring(1) : h;
-    return Color(int.parse('FF$s', radix: 16));
-  }
-
   Future<void> _edit(Category? existing) async {
-    final saved = await showDialog<bool>(context: context, builder: (_) => _CategoryDialog(existing: existing));
-    if (saved == true) await _load();
+    await showDialog<bool>(context: context, builder: (_) => _CategoryDialog(existing: existing));
   }
 
-  Future<void> _delete(Category c) async {
+  Future<bool> _confirmDelete(Category c) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -95,13 +91,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
         ],
       ),
     );
-    if (ok != true) return;
+    return ok == true;
+  }
+
+  /// [confirmed]: a swipe already asked (in confirmDismiss).
+  Future<void> _delete(Category c, {bool confirmed = false}) async {
+    if (!confirmed && !await _confirmDelete(c)) return;
     try {
       await _repo.deleteCategory(c.id);
-      await _load();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
+      await _load(); // brings back a row a swipe took away
     }
   }
 
@@ -113,7 +114,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
     final l = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.categories)),
+      appBar: AppBar(title: Text(l.categories), actions: [const CsvMenu(kind: CsvKind.categories)]),
       floatingActionButton: desktop ? null : FloatingActionButton.extended(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(l.newItem)),
       body: RefreshIndicator(
         onRefresh: () => _load(),
@@ -166,7 +167,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
       itemCount: _filtered.length,
       itemBuilder: (_, i) {
         final c = _filtered[i];
-        final color = hex(c.color);
+        final color = parseHex(c.color) ?? Theme.of(context).colorScheme.primary;
         return Card(
           margin: EdgeInsets.zero,
           child: InkWell(
@@ -209,12 +210,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
       itemCount: _filtered.length,
       itemBuilder: (_, i) {
         final c = _filtered[i];
-        final color = hex(c.color);
+        final color = parseHex(c.color) ?? Theme.of(context).colorScheme.primary;
         return Dismissible(
           key: ValueKey(c.id),
           direction: DismissDirection.endToStart,
           background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
-          onDismissed: (_) => _delete(c),
+          // Asked before the row leaves: Cancel keeps it in place.
+          confirmDismiss: (_) => _confirmDelete(c),
+          onDismissed: (_) {
+            setState(() => _cats.remove(c));
+            _delete(c, confirmed: true);
+          },
           child: ListTile(
             onTap: () => _edit(c),
             leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.2), child: Icon(Icons.tag, color: color)),
@@ -314,7 +320,7 @@ class _CategoryDialogState extends State<_CategoryDialog> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Color(int.parse(sw.substring(1), radix: 16) | 0xFF000000),
+                    color: parseHex(sw),
                     shape: BoxShape.circle,
                     border: Border.all(color: _color == sw ? theme.colorScheme.onSurface : Colors.transparent, width: 2.5),
                   ),

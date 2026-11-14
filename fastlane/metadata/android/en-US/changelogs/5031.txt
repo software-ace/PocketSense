@@ -1,2 +1,2 @@
 • Fixed: on some phones, reopening the app after closing it could lose the encryption key, so your data couldn't be opened. If Android's keystore has a problem, the app now shows an error with "Try again" and never deletes anything.
-• With a PIN set, the app now stays locked if the keystore can't be read.
+• Fixed: with a PIN set, the app now stays locked if the keystore can't be read.

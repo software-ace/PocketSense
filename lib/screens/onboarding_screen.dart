@@ -5,7 +5,10 @@ import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
 import '../settings/app_settings.dart';
+import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
+import '../utils/format.dart';
+import '../widgets/whats_new.dart';
 import 'backup_actions.dart';
 
 /// First run: 1) import a backup or start fresh, 2) set a PIN, then offer
@@ -67,6 +70,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _finish() async {
     await AppSettings.setOnboardingStep(AppSettings.onboardingDone);
+    // A new install has nothing to catch up on.
+    if (currentBuild case final build?) await AppSettings.setWhatsNewSeen(build);
     widget.onDone();
   }
 
@@ -81,14 +86,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           body: l.welcomeBody,
           hint: l.backupLaterHint,
           // First, so the rest of the setup (and the starter categories'
-          // names) is in the right language.
-          top: Center(
-            child: OutlinedButton.icon(
+          // names) is in the right language, and amounts in the right
+          // currency. Importing a backup brings its own currency.
+          top: Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
+            OutlinedButton.icon(
               onPressed: _busy ? null : () => pickLanguage(context),
               icon: const Icon(Icons.translate, size: 18),
               label: Text(languageNames[Localizations.localeOf(context).languageCode] ?? l.language),
             ),
-          ),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : () async {
+                if (await pickCurrency(context)) setState(() {});
+              },
+              icon: const Icon(Icons.payments_outlined, size: 18),
+              label: Text(appCurrency.code),
+            ),
+          ]),
           children: [
             _Choice(
               icon: Icons.restore_page_outlined,

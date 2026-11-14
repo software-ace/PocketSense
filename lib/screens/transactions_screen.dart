@@ -4,13 +4,19 @@ import 'package:intl/intl.dart';
 import '../data/repo.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
+import '../security/amount_privacy.dart';
+import '../security/lock_gate.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
+import '../utils/quick_add.dart';
+import '../widgets/account_field.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
+import '../widgets/merchant_field.dart';
 import '../utils/voice_parser.dart';
 import '../widgets/voice_entry_sheet.dart';
+import 'loans_screen.dart' show DateField;
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -35,22 +41,70 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   void initState() {
     super.initState();
     _load();
+    // A request from launch is already waiting; later ones arrive while running.
+    QuickAddRequests.pending.addListener(_onQuickAdd);
+    LockGate.unlocked.addListener(_onQuickAdd);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onQuickAdd());
   }
 
+  @override
+  void dispose() {
+    QuickAddRequests.pending.removeListener(_onQuickAdd);
+    LockGate.unlocked.removeListener(_onQuickAdd);
+    super.dispose();
+  }
+
+  /// The home-screen widget or an app-icon shortcut: open the form over
+  /// whichever tab is showing, once unlocked (voice would listen under the
+  /// lock screen otherwise).
+  void _onQuickAdd() {
+    final request = QuickAddRequests.pending.value;
+    if (request == null || !LockGate.unlocked.value || !mounted) return;
+    QuickAddRequests.pending.value = null;
+    switch (request) {
+      case QuickAdd.voice when voiceEntrySupported:
+        _addByVoice();
+      case QuickAdd.income:
+        _addTransaction(type: 'income');
+      case QuickAdd.expense || QuickAdd.voice:
+        _addTransaction();
+    }
+  }
+
+  // Bumped by every load: an older search that answers late is dropped.
+  int _loads = 0;
+
+  // How many entries to show; "Show older entries" raises it.
+  static const _page = 200;
+  int _limit = _page;
+
+  // A full page: there may be older ones.
+  bool get _more => _items.length >= _limit;
+
+  void _showOlder() {
+    _limit += _page;
+    _load();
+  }
+
+  Widget _olderButton() => Center(
+      child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: TextButton.icon(onPressed: _showOlder, icon: const Icon(Icons.expand_more), label: Text(context.l10n.showOlderEntries))));
+
+  /// Loads with the type filter and whatever is typed in search.
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    final load = ++_loads;
+    // No spinner here: it shows only before the first load, not per keystroke.
+    if (_error != null) setState(() => _error = null);
     try {
-      final items = await _repo.transactions(type: _typeFilter);
-      if (!mounted) return;
+      final items = await _repo.transactions(type: _typeFilter, q: _searchCtrl.text.trim(), limit: _limit);
+      if (!mounted || load != _loads) return;
       setState(() {
         _items = items;
         _loading = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || load != _loads) return;
       setState(() {
         _error = e;
         _loading = false;
@@ -58,23 +112,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     }
   }
 
-  Future<void> _addTransaction() async {
-    final draft = await _showForm(context, null);
-    if (draft == null || !mounted) return;
-    try {
-      await _repo.insertTransaction(
-        amountFils: draft.amountFils,
-        type: draft.type,
-        date: draft.date,
-        description: draft.description,
-        merchant: draft.merchant,
-        categoryId: draft.categoryId,
-      );
-      await _load();
-    } catch (e) {
-      if (mounted) _toast(context.l10n.addFailed('$e'));
-    }
-  }
+  Future<void> _addTransaction({String type = 'expense'}) => addTransaction(context, type: type);
 
   /// Speak → parse → the normal form, pre-filled, so nothing is saved
   /// without the user checking it.
@@ -98,8 +136,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         description: draft.description,
         merchant: draft.merchant,
         categoryId: draft.categoryId,
+        accountId: draft.accountId,
       );
-      await _load();
     } catch (e) {
       if (mounted) _toast(context.l10n.addFailed('$e'));
     }
@@ -117,14 +155,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         description: draft.description,
         merchant: draft.merchant,
         categoryId: draft.categoryId,
+        accountId: draft.accountId,
       );
-      await _load();
     } catch (e) {
       if (mounted) _toast(context.l10n.updateFailed('$e'));
     }
   }
 
-  Future<void> _delete(Transaction t) async {
+  Future<bool> _confirmDelete(Transaction t) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
@@ -136,9 +174,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         ],
       ),
     );
-    if (ok != true) return;
-    await _repo.deleteTransaction(t.id);
-    await _load();
+    return ok == true;
+  }
+
+  /// [confirmed]: a swipe already asked (in confirmDismiss).
+  Future<void> _delete(Transaction t, {bool confirmed = false}) async {
+    if (!confirmed && !await _confirmDelete(t)) return;
+    try {
+      await _repo.deleteTransaction(t.id);
+    } catch (e) {
+      if (!mounted) return;
+      _toast(context.l10n.deleteFailed('$e'));
+      await _load(); // brings back a row a swipe took away
+    }
   }
 
   void _toast(String msg) {
@@ -169,6 +217,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         actions: [
           if (voiceEntrySupported) IconButton(icon: const Icon(Icons.mic_none), tooltip: l.addByVoice, onPressed: _addByVoice),
           IconButton(icon: const Icon(Icons.add), tooltip: l.addTransaction, onPressed: _addTransaction),
+          const AmountsButton(),
           const SyncButton(),
           const SettingsButton(),
         ],
@@ -182,7 +231,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(hintText: l.searchTransactions, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), isDense: true, prefixIcon: const Icon(Icons.search)),
-                onChanged: (_) => _applyFilters(),
+                onChanged: (_) => _load(),
               ),
             ),
             const SizedBox(width: 12),
@@ -207,7 +256,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     return Scaffold(
       appBar: AppBar(
         title: Text(l.navActivity),
-        actions: const [SyncButton(), SettingsButton()],
+        actions: const [AmountsButton(), SyncButton(), SettingsButton()],
       ),
       // Both ways to add sit in thumb reach; the app bar keeps only status.
       floatingActionButton: voiceEntrySupported
@@ -219,7 +268,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
           child: TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(hintText: l.search, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true, prefixIcon: const Icon(Icons.search)),
-            onChanged: (_) => _applyFilters(),
+            onChanged: (_) => _load(),
           ),
         ),
         Padding(
@@ -253,7 +302,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       margin: EdgeInsets.zero,
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: DataTable(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          DataTable(
           headingRowHeight: 44,
           dataRowMinHeight: 48,
           dataRowMaxHeight: 56,
@@ -281,7 +331,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               ])),
             ]);
           }).toList(),
-        ),
+          ),
+          if (_more) _olderButton(),
+        ]),
       ),
     );
   }
@@ -290,14 +342,20 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     return ListView.builder(
       // Room below the last row so the floating add button never covers it.
       padding: const EdgeInsets.only(bottom: 88),
-      itemCount: _items.length,
+      itemCount: _items.length + (_more ? 1 : 0),
       itemBuilder: (_, i) {
+        if (i == _items.length) return _olderButton();
         final t = _items[i];
         return Dismissible(
           key: ValueKey(t.id),
           direction: DismissDirection.endToStart,
           background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
-          onDismissed: (_) => _delete(t),
+          // Asked before the row leaves: Cancel keeps it in place.
+          confirmDismiss: (_) => _confirmDelete(t),
+          onDismissed: (_) {
+            setState(() => _items.remove(t));
+            _delete(t, confirmed: true);
+          },
           child: ListTile(
             onTap: () => _editTransaction(t),
             onLongPress: () => _mobileActionSheet(t),
@@ -323,33 +381,41 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     );
   }
 
-  Color _catColor(Transaction t) {
-    if (t.categoryColor != null && t.categoryColor!.startsWith('#') && t.categoryColor!.length >= 7) {
-      return Color(int.parse('FF${t.categoryColor!.substring(1, 7)}', radix: 16));
-    }
-    return Theme.of(context).colorScheme.primary;
-  }
+  Color _catColor(Transaction t) => parseHex(t.categoryColor) ?? Theme.of(context).colorScheme.primary;
 
-  void _applyFilters() {
-    // Client-side search filter over already-loaded rows for responsiveness.
-    final q = _searchCtrl.text.trim().toLowerCase();
-    if (q.isEmpty) {
-      setState(() {});
-      return;
-    }
-    // Re-query server for accuracy when searching.
-    _repo.transactions(type: _typeFilter, q: q).then((items) {
-      if (mounted) setState(() => _items = items);
-    }).catchError((_) {});
-  }
-
-  Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing) async {
+  Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing, {String? type}) async {
     final result = await showModalBottomSheet<_TxDraft>(
       context: context,
       isScrollControlled: true,
-      builder: (c) => _TxFormSheet(existing: existing),
+      builder: (c) => _TxFormSheet(existing: existing, type: type),
     );
     return result;
+  }
+}
+
+/// Opens the new-entry form and saves what it returns; open tabs reload by
+/// themselves. [accountId]: the account it starts in (an account's own
+/// screen); null is the default.
+Future<void> addTransaction(BuildContext context, {String type = 'expense', int? accountId}) async {
+  final draft = await showModalBottomSheet<_TxDraft>(
+    context: context,
+    isScrollControlled: true,
+    builder: (c) => _TxFormSheet(type: type, accountId: accountId),
+  );
+  if (draft == null || !context.mounted) return;
+  final l = context.l10n;
+  try {
+    await FinanceRepo().insertTransaction(
+      amountFils: draft.amountFils,
+      type: draft.type,
+      date: draft.date,
+      description: draft.description,
+      merchant: draft.merchant,
+      categoryId: draft.categoryId,
+      accountId: draft.accountId,
+    );
+  } catch (e) {
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.addFailed('$e'))));
   }
 }
 
@@ -405,15 +471,18 @@ class _TxDraft {
   final String description;
   final String? merchant;
   final int? categoryId;
+  final int? accountId;
   final DateTime date;
-  _TxDraft(this.amountFils, this.type, this.description, {required this.date, this.merchant, this.categoryId});
+  _TxDraft(this.amountFils, this.type, this.description, {required this.date, this.merchant, this.categoryId, this.accountId});
 }
 
 class _TxFormSheet extends StatefulWidget {
   final Transaction? existing;
   final VoiceDraft? voice; // pre-fill from a spoken sentence
   final String? heard;
-  const _TxFormSheet({this.existing, this.voice, this.heard});
+  final String? type; // a new one's starting type
+  final int? accountId; // a new one's account; null is the default
+  const _TxFormSheet({this.existing, this.voice, this.heard, this.type, this.accountId});
   @override
   State<_TxFormSheet> createState() => _TxFormSheetState();
 }
@@ -423,37 +492,14 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   late final _amtCtrl = TextEditingController(text: _initialFils != null ? amountToInput(_initialFils) : '');
   late final _descCtrl = TextEditingController(text: widget.existing?.description ?? widget.voice?.description ?? '');
   late final _merchCtrl = TextEditingController(text: widget.existing?.merchant ?? widget.voice?.merchant ?? '');
-  late String _type = widget.existing?.type ?? widget.voice?.type ?? 'expense';
+  late String _type = widget.existing?.type ?? widget.voice?.type ?? widget.type ?? 'expense';
   late int? _catId = widget.existing?.categoryId ?? widget.voice?.categoryId;
-  late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? _today();
+  late int? _accountId = widget.existing?.accountId ?? widget.accountId;
+  late DateTime _date = widget.existing?.date ?? widget.voice?.date ?? todayDate();
   List<dynamic> _cats = [];
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
   var _autovalidate = AutovalidateMode.disabled;
-
-  static DateTime _today() {
-    final n = DateTime.now();
-    return DateTime(n.year, n.month, n.day);
-  }
-
-  Future<void> _pickDate() async {
-    final today = _today();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2000),
-      // A little ahead, for bills you already know are coming.
-      lastDate: DateTime(today.year + 1, today.month, today.day),
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  String _dateLabel() {
-    final diff = _date.difference(_today()).inDays;
-    final day = DateFormat.yMMMEd().format(_date);
-    final l = context.l10n;
-    return switch (diff) { 0 => l.dateToday(day), -1 => l.dateYesterday(day), _ => day };
-  }
 
   @override
   void initState() {
@@ -509,18 +555,20 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 16),
           AmountField(controller: _amtCtrl, label: l.amount),
           const SizedBox(height: 12),
-          InkWell(
-            onTap: _pickDate,
-            borderRadius: BorderRadius.circular(4),
-            child: InputDecorator(
-              decoration: InputDecoration(labelText: l.date, suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18)),
-              child: Text(_dateLabel()),
-            ),
+          DateField(
+            label: l.date,
+            value: _date,
+            onPicked: (d) => setState(() => _date = d),
+            // A little ahead, for bills you already know are coming.
+            lastDate: () {
+              final t = todayDate();
+              return DateTime(t.year + 1, t.month, t.day);
+            }(),
           ),
           const SizedBox(height: 12),
           TextField(controller: _descCtrl, decoration: InputDecoration(labelText: l.descriptionOptional)),
           const SizedBox(height: 12),
-          TextField(controller: _merchCtrl, decoration: InputDecoration(labelText: l.merchantOptional)),
+          MerchantField(controller: _merchCtrl),
           const SizedBox(height: 12),
           DropdownButtonFormField<int>(
             // Categories load async; only select once the item exists.
@@ -531,6 +579,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
             items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
             onChanged: (v) => setState(() => _catId = v),
           ),
+          AccountField(value: _accountId, onChanged: (v) => setState(() => _accountId = v)),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () {
@@ -543,7 +592,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
               final merch = _merchCtrl.text.trim();
               // Saved as typed (maybe empty): the fallback title is filled in when
               // shown, so it follows the UI language instead of the one at save time.
-              Navigator.pop(context, _TxDraft(fils, _type, desc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId));
+              Navigator.pop(context, _TxDraft(fils, _type, desc, date: _date, merchant: merch.isEmpty ? null : merch, categoryId: _catId, accountId: _accountId));
             },
             child: Text(l.save),
           ),

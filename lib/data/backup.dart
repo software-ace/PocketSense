@@ -6,6 +6,8 @@ import 'package:cryptography/cryptography.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart' show ConflictAlgorithm;
 
 import '../security/pbkdf2.dart';
+import '../utils/format.dart';
+import 'csv_files.dart';
 import 'db_key.dart';
 import 'local_store.dart';
 
@@ -22,7 +24,8 @@ class BackupException implements Exception {
   String toString() => 'BackupException(${problem.name}${detail == null ? '' : ': $detail'})';
 }
 
-typedef ImportSummary = ({int categories, int transactions, int budgets, int recurring});
+/// [currency]: the backup's, which the imported amounts are in.
+typedef ImportSummary = ({int categories, int merchants, int loans, int circles, int transactions, int budgets, int recurring, Currency currency});
 
 /// JSON backup of everything in the database. [export] gives the plain JSON;
 /// [encrypt] wraps it for writing to a file, and [import] reads either.
@@ -95,22 +98,34 @@ class Backup {
   static Future<List<int>> _key(String password, List<int> salt, int iterations) =>
       Isolate.run(() => pbkdf2Sha256(utf8.encode(password), salt, iterations, 32));
 
-  static const version = 1;
-  static const currency = 'JOD';
+  /// 2 added loans, 3 accounts and transfers, 4 savings circles. An older
+  /// file still imports (its entries go into one Cash account, as on
+  /// upgrade); an older app refuses a newer file rather than drop what it
+  /// can't hold.
+  static const version = 4;
 
   // Parents first: this is the insert order, and reversed the delete order.
-  static const _tables = ['categories', 'transactions', 'budgets', 'recurring_expenses'];
+  static const _tables = ['categories', 'merchants', 'loans', 'circles', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
 
   // Columns that must be present (and not null) in every row.
   static const _required = {
     'categories': ['id', 'name', 'type', 'color'],
+    'merchants': ['id', 'name'],
+    'loans': ['id', 'direction', 'person'],
+    'circles': ['id', 'name', 'contribution_fils', 'rounds', 'frequency', 'start_date', 'payout_round'],
     'transactions': ['id', 'amount_fils', 'type', 'date', 'description'],
     'budgets': ['id', 'category_id', 'limit_fils'],
     'recurring_expenses': ['id', 'description', 'amount_fils', 'frequency', 'anchor_date'],
+    'accounts': ['id', 'name', 'kind'],
+    'transfers': ['id', 'from_account_id', 'to_account_id', 'amount_fils', 'date'],
   };
 
   // SQLite would store "abc" in an INTEGER column, so check types up front.
-  static const _intColumns = {'id', 'amount_fils', 'limit_fils', 'category_id', 'active'};
+  static const _intColumns = {
+    'id', 'amount_fils', 'limit_fils', 'category_id', 'loan_id', 'active', 'due_time', 'reminder_days', //
+    'account_id', 'from_account_id', 'to_account_id', 'opening_fils', 'closed', //
+    'circle_id', 'contribution_fils', 'rounds', 'payout_round',
+  };
 
   static Map<String, Object?> _row(String table, Object? r, Set<String> columns) {
     if (r is! Map) throw BackupException(BackupProblem.badData, table);
@@ -120,8 +135,18 @@ class Backup {
     for (final c in _intColumns) {
       if (r[c] != null && r[c] is! int) throw BackupException(BackupProblem.badData, '$table: $c is not a whole number');
     }
+    // As the app writes them. A hand-edited "1/9/2026" would import, then
+    // make every list of entries fail to load.
+    for (final c in const ['date', 'anchor_date', 'due_date', 'start_date']) {
+      final v = r[c];
+      if (v != null && (v is! String || CsvFiles.parseDate(v) == null)) {
+        throw BackupException(BackupProblem.badData, '$table: $c $v is not a yyyy-MM-dd date');
+      }
+    }
     final type = r['type'];
     if (type != null && type != 'income' && type != 'expense') throw BackupException(BackupProblem.badData, '$table: type $type');
+    final direction = r['direction'];
+    if (direction != null && direction != 'lent' && direction != 'borrowed') throw BackupException(BackupProblem.badData, '$table: direction $direction');
     if (r['uid'] != null && r['uid'] is! String) throw BackupException(BackupProblem.badData, '$table: uid');
     // Only known columns: a newer app's extra fields are dropped rather than
     // failing the insert.
@@ -141,7 +166,7 @@ class Backup {
       'format': format,
       'version': version,
       'exported_at': (now ?? DateTime.now()).toUtc().toIso8601String(),
-      'currency': currency,
+      'currency': appCurrency.code,
       'tables': tables,
     });
   }
@@ -163,7 +188,8 @@ class Backup {
     final v = doc['version'];
     if (v is! int || v < 1) throw BackupException(BackupProblem.notABackup);
     if (v > version) throw BackupException(BackupProblem.tooNew, '$v');
-    if (doc['currency'] != currency) throw BackupException(BackupProblem.wrongCurrency, '${doc['currency']}');
+    final currency = Currency.byCode(doc['currency']);
+    if (currency == null) throw BackupException(BackupProblem.wrongCurrency, '${doc['currency']}');
 
     final rows = <String, List<Map<String, Object?>>>{};
     for (final t in _tables) {
@@ -171,6 +197,33 @@ class Backup {
       if (list is! List) throw BackupException(BackupProblem.badData, t);
       final columns = {for (final c in await store.db.rawQuery('PRAGMA table_info($t)')) c['name'] as String};
       rows[t] = [for (final r in list) _row(t, r, columns)];
+    }
+    // Starter categories newer than the file (loans: v2, circles: v4) are
+    // missing from it because it predates them, not because they were
+    // deleted: they stay, as on upgrade. One deleted here stays deleted.
+    final newer = [if (v < 2) ...LocalStore.loanCategoryKeys, if (v < 4) ...LocalStore.circleCategoryKeys];
+    if (newer.isNotEmpty) {
+      final cats = rows['categories']!;
+      final uids = {for (final c in cats) c['uid']};
+      final names = {for (final c in cats) (c['name'] as String).toLowerCase()};
+      var id = cats.fold<int>(0, (m, c) => max(m, c['id'] as int));
+      for (final c in await store.db.query('categories',
+          where: 'uid IN (${List.filled(newer.length, '?').join(', ')})', whereArgs: [for (final k in newer) 'default:$k'])) {
+        // Skipped like on upgrade if the file has a category of that name.
+        if (uids.contains(c['uid']) || names.contains((c['name'] as String).toLowerCase())) continue;
+        cats.add({'id': ++id, 'name': c['name'], 'type': c['type'], 'color': c['color'], 'uid': c['uid']});
+      }
+    }
+    // Before accounts: everything goes into one Cash account (keeping the
+    // name it has here), as on upgrade.
+    if (rows['accounts']!.isEmpty) {
+      final cash = (await store.db.query('accounts', columns: ['name'], where: 'uid = ?', whereArgs: [LocalStore.cashUid])).firstOrNull;
+      rows['accounts'] = [
+        {'id': 1, 'name': cash?['name'] ?? 'Cash', 'kind': 'cash', 'uid': LocalStore.cashUid},
+      ];
+      for (final t in ['transactions', 'recurring_expenses']) {
+        rows[t] = [for (final r in rows[t]!) {...r, 'account_id': r['account_id'] ?? 1}];
+      }
     }
 
     try {
@@ -202,9 +255,13 @@ class Backup {
     store.notifyChanged();
     return (
       categories: rows['categories']!.length,
+      merchants: rows['merchants']!.length,
+      loans: rows['loans']!.length,
+      circles: rows['circles']!.length,
       transactions: rows['transactions']!.length,
       budgets: rows['budgets']!.length,
       recurring: rows['recurring_expenses']!.length,
+      currency: currency,
     );
   }
 }

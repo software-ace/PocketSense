@@ -1,0 +1,4 @@
+• New: Loans. Track money you lent or borrowed, per person, from the Loans card on Home. Lending and repayments are ordinary entries in two new categories, Loans Paid and Loans Received, so your totals follow the cash.
+• New: Settings → General → Theme: System, Light, Dark or Black (AMOLED).
+• New: a Sponsor link in Settings → About.
+• Changed: update all your synced devices; this version can't sync with older ones.

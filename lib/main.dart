@@ -8,10 +8,13 @@ import 'data/local_store.dart';
 import 'data/repo.dart';
 import 'l10n/l10n.dart';
 import 'screens/onboarding_screen.dart';
+import 'security/amount_privacy.dart';
 import 'security/lock_gate.dart';
+import 'security/vault_gate.dart';
 import 'settings/app_settings.dart';
 import 'shell.dart';
 import 'sync/sync_service.dart';
+import 'utils/quick_add.dart';
 import 'widgets/startup_error.dart';
 
 Future<void> main() async {
@@ -21,18 +24,33 @@ Future<void> main() async {
     yield LicenseEntryWithLineBreaks(['Noto Sans Arabic'], await rootBundle.loadString('assets/fonts/OFL.txt'));
   });
   await AppSettings.load();
+  QuickAddRequests.listen();
+  AmountPrivacy.init();
   runApp(const PocketSenseApp());
 }
 
-ThemeData appTheme(Brightness brightness) => ThemeData(
-      brightness: brightness,
-      colorSchemeSeed: brightness == Brightness.light ? const Color(0xFF4F46E5) : const Color(0xFF818CF8),
-      useMaterial3: true,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      // Arabic glyphs come from the bundled font; Latin text keeps the
-      // platform font.
-      fontFamilyFallback: const ['NotoSansArabic'],
-    );
+ThemeData appTheme(Brightness brightness, {bool black = false}) {
+  final scheme = ColorScheme.fromSeed(
+    seedColor: brightness == Brightness.light ? const Color(0xFF4F46E5) : const Color(0xFF818CF8),
+    brightness: brightness,
+    // Only the background goes black; cards, sheets and dialogs keep their
+    // lifted surfaces so they still stand out against it.
+    surface: black ? Colors.black : null,
+  );
+  return ThemeData(
+    colorScheme: scheme,
+    // Dropdown menus paint with canvasColor, which is the background by
+    // default: on black they'd vanish into it, so they get the menu colour.
+    // The bottom bar paints with it too, and stays black.
+    canvasColor: black ? scheme.surfaceContainer : null,
+    bottomNavigationBarTheme: black ? BottomNavigationBarThemeData(backgroundColor: scheme.surface) : null,
+    useMaterial3: true,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    // Arabic glyphs come from the bundled font; Latin text keeps the
+    // platform font.
+    fontFamilyFallback: const ['NotoSansArabic'],
+  );
+}
 
 /// Bumped to start over from an empty database (after "erase all data"):
 /// Boot is keyed by it, so it opens again from scratch.
@@ -54,12 +72,12 @@ class PocketSenseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale?>(
-      valueListenable: AppSettings.locale,
-      builder: (context, locale, _) => MaterialApp(
+    return ListenableBuilder(
+      listenable: Listenable.merge([AppSettings.locale, AppSettings.theme]),
+      builder: (context, _) => MaterialApp(
         onGenerateTitle: (c) => c.l10n.appTitle,
         debugShowCheckedModeBanner: false,
-        locale: locale,
+        locale: AppSettings.locale.value,
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -68,14 +86,20 @@ class PocketSenseApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         localeResolutionCallback: (device, _) {
-          final resolved = resolveAppLocale(locale, device);
+          final resolved = resolveAppLocale(AppSettings.locale.value, device);
           AppSettings.applyToIntl(resolved);
           return resolved;
         },
+        themeMode: switch (AppSettings.theme.value) {
+          AppTheme.system => ThemeMode.system,
+          AppTheme.light => ThemeMode.light,
+          AppTheme.dark || AppTheme.black => ThemeMode.dark,
+        },
         theme: appTheme(Brightness.light),
-        darkTheme: appTheme(Brightness.dark),
-        // Above the Navigator, so the lock covers every route and dialog.
-        builder: (context, child) => LockGate(onEraseAll: _eraseAndRestart, child: child!),
+        darkTheme: appTheme(Brightness.dark, black: AppSettings.theme.value == AppTheme.black),
+        // Above the Navigator, so the lock covers every route and dialog. The
+        // vault (Linux without a keyring) opens first: the lock's PIN is in it.
+        builder: (context, child) => VaultGate(onErase: _eraseAndRestart, child: LockGate(onEraseAll: _eraseAndRestart, child: child!)),
         home: ValueListenableBuilder<int>(
           valueListenable: _generation,
           builder: (_, generation, _) => Boot(key: ValueKey(generation)),
@@ -106,17 +130,20 @@ class _BootState extends State<Boot> {
     if (_opening == null) {
       _opening = _open();
     } else {
-      final names = starterCategoryNames(context.l10n);
+      final names = _starterNames(context.l10n);
       _opening!.then((_) => _localizeCategories(names)).ignore();
     }
   }
 
   Future<void> _open() async {
-    final names = starterCategoryNames(context.l10n);
+    final names = _starterNames(context.l10n);
     await LocalStore.open(categoryNames: names, starterNames: starterCategoryDefaultNames());
     // The system language may have changed since they were created.
     await _localizeCategories(names);
   }
+
+  // The starter categories' names and the first account's, in the UI language.
+  static Map<String, String> _starterNames(AppLocalizations l) => {...starterCategoryNames(l), LocalStore.cashNameKey: l.cashAccount};
 
   static Future<void> _localizeCategories(Map<String, String> names) =>
       FinanceRepo().localizeStarterCategories(names, starterCategoryDefaultNames());

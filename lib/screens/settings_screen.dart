@@ -3,15 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/backup.dart';
+import '../data/local_store.dart';
 import '../l10n/l10n.dart';
+import '../security/amount_privacy.dart';
 import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
+import '../settings/home_layout_screen.dart';
+import '../settings/manage_accounts_screen.dart';
 import '../settings/app_settings.dart';
+import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
 import '../utils/format.dart';
 import 'backup_actions.dart';
+import 'csv_actions.dart';
 import 'categories_screen.dart';
+import 'merchants_screen.dart';
 import 'sync_screen.dart';
 
 /// Home for app configuration. Categories live here rather than in the main
@@ -41,15 +48,69 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => pickLanguage(context),
             ),
           ),
+          ValueListenableBuilder<AppTheme>(
+            valueListenable: AppSettings.theme,
+            builder: (context, theme, _) => ListTile(
+              leading: const Icon(Icons.dark_mode_outlined),
+              title: Text(l.theme),
+              subtitle: Text(l.themeName(theme.name)),
+              onTap: () => _pickTheme(context),
+            ),
+          ),
+          ValueListenableBuilder<Currency>(
+            valueListenable: AppSettings.currency,
+            builder: (context, currency, _) => ListTile(
+              leading: const Icon(Icons.payments_outlined),
+              title: Text(l.currency),
+              subtitle: Text('${l.currencyName(currency.code)} (${currency.code})'),
+              onTap: () async {
+                // Open tabs reload, so their amounts show the new currency.
+                if (await pickCurrency(context, existingData: true)) (await LocalStore.instance()).notifyChanged();
+              },
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.dashboard_customize_outlined),
+            title: Text(l.homePage),
+            subtitle: Text(l.homePageSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeLayoutScreen())),
+          ),
           header(l.security),
           const _SecuritySection(),
           header(l.settingsData),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined),
+            title: Text(l.accounts),
+            subtitle: Text(l.accountsSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ManageAccountsScreen())),
+          ),
           ListTile(
             leading: const Icon(Icons.category_rounded),
             title: Text(l.categories),
             subtitle: Text(l.categoriesSubtitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.storefront),
+            title: Text(l.merchants),
+            subtitle: Text(l.merchantsSubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MerchantsScreen())),
+          ),
+          ListTile(
+            leading: const Icon(Icons.restore_page_outlined),
+            title: Text(l.importTransactions),
+            subtitle: Text(l.importTransactionsSubtitle),
+            onTap: () => importCsv(context, CsvKind.transactions),
+          ),
+          ListTile(
+            leading: const Icon(Icons.upload_file_outlined),
+            title: Text(l.exportTransactions),
+            subtitle: Text(l.exportTransactionsSubtitle),
+            onTap: () => exportCsv(context, CsvKind.transactions),
           ),
           header(l.syncSection),
           const SyncSection(),
@@ -91,6 +152,12 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           header(l.about),
+          ListTile(
+            leading: const Icon(Icons.favorite_border),
+            title: Text(l.sponsor),
+            subtitle: Text(l.sponsorSubtitle),
+            onTap: () => launchUrl(Uri.parse('https://github.com/sponsors/software-ace'), mode: LaunchMode.externalApplication),
+          ),
           AboutListTile(
             icon: const Icon(Icons.info_outline),
             applicationName: l.appTitle,
@@ -124,6 +191,26 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _pickTheme(BuildContext context) async {
+  final l = context.l10n;
+  final picked = await showDialog<AppTheme>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: Text(l.theme),
+      children: [
+        RadioGroup<AppTheme>(
+          groupValue: AppSettings.theme.value,
+          onChanged: (v) => Navigator.pop(ctx, v),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (final t in AppTheme.values) RadioListTile<AppTheme>(value: t, title: Text(l.themeName(t.name))),
+          ]),
+        ),
+      ],
+    ),
+  );
+  if (picked != null) await AppSettings.setTheme(picked);
 }
 
 /// App lock on/off, change PIN, and (Android) biometric unlock. Changes to
@@ -186,6 +273,11 @@ class _SecuritySectionState extends State<_SecuritySection> {
     await _refresh();
   }
 
+  Future<void> _toggleHideAmounts(bool on) async {
+    AmountPrivacy.revealed.value = false;
+    await AppSettings.setHideAmounts(on);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -209,6 +301,16 @@ class _SecuritySectionState extends State<_SecuritySection> {
             onChanged: _toggleBiometrics,
           ),
       ],
+      ValueListenableBuilder(
+        valueListenable: AppSettings.hideAmounts,
+        builder: (context, on, _) => SwitchListTile(
+          secondary: const Icon(Icons.remove_red_eye_outlined),
+          title: Text(l.hideAmounts),
+          subtitle: Text(l.hideAmountsSubtitle),
+          value: on,
+          onChanged: _toggleHideAmounts,
+        ),
+      ),
       if (defaultTargetPlatform == TargetPlatform.android)
         ValueListenableBuilder(
           valueListenable: AppSettings.privateScreen,
@@ -220,6 +322,16 @@ class _SecuritySectionState extends State<_SecuritySection> {
             onChanged: AppSettings.setPrivateScreen,
           ),
         ),
+      ValueListenableBuilder(
+        valueListenable: AppSettings.reminderAmounts,
+        builder: (context, on, _) => SwitchListTile(
+          secondary: const Icon(Icons.notifications_outlined),
+          title: Text(l.reminderAmounts),
+          subtitle: Text(l.reminderAmountsSubtitle),
+          value: on,
+          onChanged: AppSettings.setReminderAmounts,
+        ),
+      ),
     ]);
   }
 }

@@ -1,14 +1,17 @@
 # Pocket Sense
 
+![Pocket Sense: a private, offline money tracker for Android and Linux, in English and Arabic](fastlane/metadata/android/en-US/images/featureGraphic.png)
+
+[![Sponsor](https://img.shields.io/github/sponsors/software-ace?label=Sponsor&logo=GitHub%20Sponsors&color=ea4aaa)](https://github.com/sponsors/software-ace)
 [![Latest release](https://img.shields.io/github/v/release/software-ace/PocketSense)](../../releases/latest)
 [![Release build](https://github.com/software-ace/PocketSense/actions/workflows/release.yml/badge.svg)](../../actions/workflows/release.yml)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-![Platforms: Android, Linux](https://img.shields.io/badge/platforms-Android%20%7C%20Linux-green)
+![Platforms: Android, Linux, Windows](https://img.shields.io/badge/platforms-Android%20%7C%20Linux%20%7C%20Windows-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
-A private personal finance tracker for Android and Linux. It works fully offline, in Jordanian dinars, in English and Arabic.
+A private personal finance tracker for Android, Linux and Windows. It works fully offline, in English and Arabic, in any of 69 currencies.
 
-There are no accounts and no servers. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
+There is no sign-up and no server. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
 ## Screenshots
 
@@ -16,22 +19,30 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 
 ![Further down Home: income vs spending over 6 months, this month against last, and spending by weekday](docs/screenshots/desktop-charts.png)
 
-| Home | Charts | Activity | New entry | Budgets | Recurring |
-|---|---|---|---|---|---|
-| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
+| Home | Accounts | Charts | Loans | Savings circles | Activity | New entry | Budgets | Recurring |
+|---|---|---|---|---|---|---|---|---|
+| ![Home](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home.png) | ![Accounts: cash, bank, savings and a card, with the total](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_accounts.png) | ![Income vs spending, and this month against last](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_charts.png) | ![Loans: what's owed to you and what you owe, per person](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_loans.png) | ![A savings circle: the payout, where you stand, the countdown to its reminder and the schedule](fastlane/metadata/android/en-US/images/phoneScreenshots/1_home_circle.png) | ![Activity](fastlane/metadata/android/en-US/images/phoneScreenshots/2_activity.png) | ![New entry](fastlane/metadata/android/en-US/images/phoneScreenshots/3_add.png) | ![Budgets](fastlane/metadata/android/en-US/images/phoneScreenshots/4_budgets.png) | ![Recurring](fastlane/metadata/android/en-US/images/phoneScreenshots/5_recurring.png) |
 
 <details>
-<summary>More: sync, Arabic, and the desktop layout</summary>
+<summary>More: sync, the quick add widget, Arabic, and the desktop layout</summary>
 
 | Settings → Sync | Pairing |
 |---|---|
 | ![Sync settings with two paired devices](fastlane/metadata/android/en-US/images/phoneScreenshots/7_sync.png) | ![Pairing: both devices show the same 6-digit code](fastlane/metadata/android/en-US/images/phoneScreenshots/8_pair.png) |
 
-| الرئيسية | المخططات | الحركات | الميزانيات | الإعدادات |
-|---|---|---|---|---|
-| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
+| Quick add widget | Long-press the app icon |
+|---|---|
+| ![The quick add widget on the home screen: Expense, Income and voice buttons](fastlane/metadata/android/en-US/images/phoneScreenshots/9_widget.png) | ![The app icon's shortcuts: add expense, add income, add by voice](fastlane/metadata/android/en-US/images/phoneScreenshots/9_widget_shortcuts.png) |
+
+| الرئيسية | المخططات | الديون | الجمعيات | الحركات | الميزانيات | الإعدادات |
+|---|---|---|---|---|---|---|
+| ![Home in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home.png) | ![Charts in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_charts.png) | ![Loans in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_loans.png) | ![Savings circles in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/1_home_circles.png) | ![Activity in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/2_activity.png) | ![Budgets in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/4_budgets.png) | ![Settings in Arabic](fastlane/metadata/android/ar/images/phoneScreenshots/6_settings.png) |
 
 ![Home on the desktop, in Arabic](docs/screenshots/desktop-home-ar.png)
+![Accounts on the desktop](docs/screenshots/desktop-accounts.png)
+![Loans on the desktop](docs/screenshots/desktop-loans.png)
+![Savings circles on the desktop](docs/screenshots/desktop-circles.png)
+![A savings circle on the desktop](docs/screenshots/desktop-circle.png)
 ![Activity on the desktop](docs/screenshots/desktop-activity.png)
 ![Budgets on the desktop](docs/screenshots/desktop-budgets.png)
 ![Recurring on the desktop](docs/screenshots/desktop-recurring.png)
@@ -39,28 +50,38 @@ There are no accounts and no servers. Your data stays in an encrypted database o
 
 </details>
 
-The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import data** to try the app with three months of entries.
+The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.json). Import it from **Settings → Backup → Import Backup** to try the app with a year of entries.
 
 ## Features
 
 **Tracking money**
-- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other), income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries.
+- **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other) and the income and spending of a month, each for a month you pick, income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries. **Settings → Home page** puts them in the order you want and hides what you don't need, except the Loans and Savings circles cards, which are the way into them on a phone. On the desktop, Loans, Savings circles and Accounts are tabs in the side rail instead of cards on Home.
 - **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
   - On Linux it runs an offline model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), about 45 MB, downloaded once on first use).
+- **Quick add widget (Android):** a home-screen widget with Expense, Income and 🎤 buttons; the same three are on the app icon when you long-press it. Each opens the form (or voice entry) straight away, after the app lock if it's on. The widget shows no amounts.
 - **Budgets:** a weekly (Monday to Sunday) or monthly limit per expense category, with progress, what's left, and a warning when you go over.
 - **Recurring:** bills, subscriptions and salary, repeating weekly, every two weeks, monthly, quarterly or yearly from a first due date. Each shows when it's next due. **Post as transaction** records it in one tap, and an item can be paused instead of deleted.
-- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 13 common ones (groceries, dining out, rent, salary…). Deleting a category keeps its entries, uncategorized, and removes its budget.
+- **Reminders:** a recurring item, a loan with a due date or a savings circle's next payment can remind you on the day, or 1, 3 or 7 days before. It rings at the item's due time (9:00 unless you change it), and a loan still open on its due date reminds you again that day. Each one with a reminder shows a live countdown to it: on a recurring item's row, and on a loan's or a savings circle's page. Reminders sync with the item. They're local notifications, with no server involved. Notifications show no amounts unless **Settings → Amounts in reminders** is on, and a locked phone hides their text. On Linux they show while the app is open, and any you missed when you open it.
+- **Loans:** money you lent or borrowed, per person. Lending, borrowing and each repayment are ordinary entries (*Payment for Ahmad*, *Payment from Ahmad*) in the **Loans Paid** and **Loans Received** categories, so your totals follow the cash. The **Loans** card on Home, under the four totals, shows what's owed to you and what you owe. Each loan shows what's left, with partial repayments, a due date that turns red when it's passed, and **Settle** to close it. Editing an entry in Activity updates its loan; deleting a loan deletes its entries.
+- **Savings circles (جمعيات):** the rotating savings circles you're in. Give each one its payment, number of participants, how often it's due (weekly, every two weeks or monthly), the first payment's date and your turn, and it lays out the schedule, the payout and its date, what you pay up to your turn and after it, and the next payment due (red when it's late). Payments and the payout are ordinary entries (*Payment to Family*, *Payout from Family*) in the **Circle Payments** and **Circle Payouts** categories, so they count in your totals like the cash. Each circle shows where you stand: an early turn means you owe the circle, a late one that it owes you. Part payments count toward the next round.
+- **Accounts:** everyone starts with one account, **Cash**, and adds the ones they need (bank, savings, a card) in **Settings → Data → Accounts**, each with an opening balance. Home's **Accounts** card shows the total and each balance. **Transfer** moves money between accounts; it's neither income nor spending, so totals, charts and budgets stay the same. Every entry and recurring item belongs to an account (the account field only appears once you have more than one), and new ones go into your default account. **Close** an account you stopped using: its money moves to another account first, its history stays, and you can reopen it. **Delete** is for mistakes: nothing in it is lost, its entries, transfers and opening balance move to the account you pick.
+- **Categories:** **Settings → Categories** adds, renames, recolors and deletes income and expense categories. It starts with 18 common ones (groceries, dining out, coffee, rent, salary, loans and circle payments…). Deleting a category keeps its entries, uncategorized, and removes its budget.
+- **Merchants:** **Settings → Merchants** adds, renames and deletes the places you pay or get paid by. In the transaction and recurring forms, the merchant field searches them as you type and offers to create one it doesn't find. Renaming a merchant updates past entries too; deleting one leaves them as they are.
+- **CSV files:** **Settings → Data → Export Transactions** saves every entry as a spreadsheet file (date, type, amount, description, category, merchant, account), and **Import Transactions** adds entries from one in the same layout. Before anything is saved, a preview shows each row as new, duplicate (already there, so skipped) or rejected (with the reason), and the counts at the top filter the list. A **File layout** card explains the columns with an example; it opens by itself when rows were rejected. Amounts use a decimal point: `12,5` is rejected rather than read as 125. Categories and Merchants have **Import CSV** and **Export CSV** in their ⋮ menu, with the same preview: a name you already have, in any letter case, is a duplicate. Importing only ever adds; nothing is replaced.
 
-**Made for Jordan, in two languages**
-- **Dinars:** amounts have three decimals, shown as **JOD 12.500** in English and **12.500 د.أ** in Arabic, with Latin digits in both. Amount fields also accept Arabic-Indic digits.
+**Your currency, in English or Arabic**
+- **Currency:** any of 69, picked on the welcome screen or in **Settings → General → Currency**, with a search by name or code: Arab currencies first (JOD, SAR, AED, EGP…), then USD, EUR, INR, MXN and more. Each keeps its usual decimals: **JOD 12.500**, **USD 12.50**, **JPY 1,250**. In Arabic the symbol follows the amount (**12.500 د.أ**), with Latin digits in both languages. Amount fields also accept Arabic-Indic digits.
+  - It's one currency for all your data, with no exchange rates, so the app stays offline. Switching relabels amounts; it doesn't convert them.
+  - Backups carry the currency, and importing one switches to it. Two devices sync only when they use the same currency.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.
 
 **Fits the device**
-- **Layout:** a bottom tab bar on phones, and a side rail with wider layouts, including tables, on windows 900 px or wider.
-- **Light and dark:** follows the system theme.
+- **Layout:** a bottom tab bar on phones, and a side rail, with Loans, Savings circles and Accounts as tabs too, and wider layouts, including tables, on windows 900 px or wider.
+- **Light, dark and black:** follows the system theme, or **Settings → General → Theme** picks Light, Dark or Black (AMOLED), whose pure-black background leaves those pixels off.
 - **First run:** a short welcome lets you start fresh or import a backup, then offers to set a PIN (and fingerprint or face on Android). Both can be changed later in Settings.
+- **What's new:** the first time the app opens after an update, a short list of what changed since the version you last used, grouped into new features, enhancements, changes and fixes.
 - **About:** version, license, a link to the source code, and the licenses of everything bundled.
 
 **Sync between your devices**
@@ -75,24 +96,27 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 ## Privacy and security
 
-- **No internet:** no account, no servers, no analytics, no update checks. The app makes no network connections at all unless you turn on sync, which only talks to your own devices on the local network. On Linux it also downloads the voice model once, when you first use voice entry. Android requires the internet permission for any network use, even local, so the app requests it.
+- **No internet:** no sign-up, no servers, no analytics, no update checks. The app makes no network connections at all unless you turn on sync, which only talks to your own devices on the local network. On Linux it also downloads the voice model once, when you first use voice entry. Android requires the internet permission for any network use, even local, so the app requests it.
   - On Android, voice entry uses the phone's own speech recognizer. Depending on the phone, that recognizer may go online; that's the recognizer app's traffic, not Pocket Sense's.
 - **Sync:** only while it's on and the app is open does the app listen for other devices, on port 47823 (TCP and UDP). It talks only to private network addresses (192.168.x.x, 10.x.x.x and similar).
-  - **Your data is end-to-end encrypted.** Each device has its own X25519 key in the Android Keystore or your keyring, and two paired devices derive a shared key from theirs (HKDF-SHA256). Every entry, category, budget and recurring item they exchange is encrypted and authenticated with AES-256-GCM. Each message is bound to its sender, receiver and request, so it can't be replayed elsewhere.
+  - **Your data is end-to-end encrypted.** Each device has its own X25519 key in the Android Keystore or your keyring, and two paired devices derive a shared key from theirs (HKDF-SHA256). Every entry, category, budget, recurring item, loan and savings circle they exchange is encrypted and authenticated with AES-256-GCM. Each message is bound to its sender, receiver and request, so it can't be replayed elsewhere.
   - A device you haven't paired gets no data. It can only ask to pair while you have **Pair a device** open, and you then approve it by comparing codes.
   - **What others on your Wi-Fi can see:** discovery announcements (UDP multicast to 224.0.0.167) are unencrypted. They carry the app's name, a device ID (a hash of its public key) and, only while **Pair a device** is open, the device's name. Sync messages travel over plain HTTP with encrypted bodies, so the devices' addresses, the timing and size of messages, and the sender's device ID are visible, but never their contents.
   - **Pairing** exchanges public keys in the open and has both screens show a 6-digit code, the way Bluetooth pairing does. Checking the codes match is what stops a device in the middle from passing itself off as yours: it would have a one-in-a-million chance of getting the same code on both.
   - Unpairing stops sharing; the data stays on both devices. Erasing all data unpairs this device from all the others.
-- **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet).
+- **Encrypted:** the database uses SQLCipher with a random 256-bit key. The key is kept in the Android Keystore, or on Linux in your keyring (GNOME Keyring or KWallet). On Linux without a keyring, a fresh install asks for a passphrase instead and keeps the key in a file locked with it, which it asks for each time it opens.
   - If the keystore doesn't respond, the app says so and offers **Try again**. It never deletes anything to get past the error, and with a PIN set it stays locked until the PIN can be checked.
+- **Hide amounts:** every amount shows as `•••`, the same for any value and with no sign, so a glance at the screen gives nothing away. The 👁 in the top bar shows them; they hide again after 30 seconds in the background and at every launch. It's on by default; **Settings → Security → Hide amounts** turns it off. Forms show the real number, including when you edit an entry, and chart shapes still show proportions.
 - **Private screen:** on Android the app is hidden in the recent-apps preview and can't be captured in screenshots or screen recordings. It's on by default; **Settings → Security → Private screen** turns it off, e.g. to take a screenshot.
 - **App lock:** **Settings → Security** sets a 4–6 digit PIN. It's asked for at launch and after 30 seconds in the background, and on Android you can also use a fingerprint or face. After 5 wrong PINs you have to wait, 30 seconds at first and then longer.
+  - The quick add widget and the app-icon shortcuts open the app through the lock like any launch, and the form waits until it's unlocked. The widget itself shows no amounts.
 - **A forgotten PIN can't be recovered.** The lock screen offers to erase everything, after which you can import a backup with your backup password.
 - **Backups:** **Settings → Backup** exports everything to a file encrypted with a backup password (AES-256-GCM, key from PBKDF2), and imports it back. **Automatic backup** writes one a day to a folder you pick (on Android, inside Documents or Download) and keeps the last 10.
   - The app remembers the backup password on the device, so automatic backups need no input. You'll need it to restore anywhere else; **if you forget it, your backups can't be opened.**
   - Import also reads older, unencrypted backup files. Every import is fully checked first, and a bad file or wrong password changes nothing.
   - Erasing all data also forgets the backup password and turns automatic backup off.
   - Android's own system backup is off, because a restored database can't be opened without its Keystore key.
+- **Found a security problem?** Please report it privately, not in an issue: see [SECURITY.md](SECURITY.md).
 
 ## Install
 
@@ -116,25 +140,36 @@ Installed the APK from GitHub? [Obtainium](https://github.com/ImranR98/Obtainium
 |---|---|
 | `PocketSense-<version>-linux-x64.deb` | Debian, Ubuntu, Mint: `sudo apt install ./PocketSense-<version>-linux-x64.deb` |
 | `PocketSense-<version>-linux-x64.rpm` | Fedora: `sudo dnf install ./…rpm`; openSUSE: `sudo zypper install ./…rpm` |
-| `PocketSense-<version>-linux-x64.AppImage` | Any distro: make it executable and run it |
+| `PocketSense-<version>-x86_64.AppImage` | Any distro: make it executable and run it. Update it in place with [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) or [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) |
 | `PocketSense-<version>-linux-x64.tar.gz` | Any distro: unpack it and run `./PocketSense/pocket_sense` |
+| [`linux/packaging/aur/PKGBUILD`](linux/packaging/aur/PKGBUILD) | Arch, CachyOS, Manjaro: in that folder, run `makepkg -si` |
 
 The .deb and .rpm add Pocket Sense to your app menu and the `pocket-sense` command, and install what it needs. With the AppImage or the tarball, you need:
 - GTK 3 and EGL/GLES, which almost every desktop already has.
-- A running keyring (GNOME Keyring or KWallet). Without one, the app explains the problem instead of opening.
+- A running keyring (GNOME Keyring or KWallet), or a passphrase you type each time it opens: a fresh install without a keyring asks for one.
 - `parecord` for voice entry: `pulseaudio-utils` on Debian, Ubuntu and Fedora, `libpulse` on Arch.
 
-Each release also has `SHA256SUMS-linux.txt`. Check a download with `sha256sum -c --ignore-missing SHA256SUMS-linux.txt`.
+**Windows 10 or 11, x64:**
 
-Updating keeps your data: the database lives in `~/.local/share/pocket_sense/` on Linux, not inside the app.
+| File | Install |
+|---|---|
+| `PocketSense-<version>-windows-x64-setup.exe` | Run it. It installs just for you without admin rights, or for everyone if you choose, and adds Pocket Sense to the Start menu |
+| `PocketSense-<version>-windows-x64.msi` | Installs for everyone on the PC, for example when deploying it across an organization |
+| `PocketSense-<version>-windows-x64.zip` | Unpack it anywhere and run `pocket_sense.exe` |
+
+The installers aren't code-signed yet, so Windows SmartScreen may warn about an unknown publisher. Choose **More info → Run anyway**. Voice entry isn't on Windows yet.
+
+To check a download, compare its SHA-256 with the one shown next to it on the release page: `sha256sum <file>` on Linux, `Get-FileHash <file>` in PowerShell on Windows.
+
+Updating keeps your data: the database lives in `~/.local/share/pocket_sense/` on Linux and `%LOCALAPPDATA%\pocket_sense\` on Windows, not inside the app. Uninstalling keeps it too.
 
 ## Building from source
 
-You need Flutter (stable, Dart `^3.13.4`), plus the Android SDK for Android, or for Linux the Flutter desktop toolchain and `libsecret-1-dev`.
+You need Flutter (stable, Dart `^3.13.4`), plus the Android SDK for Android, for Linux the Flutter desktop toolchain and `libsecret-1-dev`, or for Windows Visual Studio 2022 with **Desktop development with C++** (Windows builds only on Windows).
 
 ```sh
 flutter pub get
-flutter run        # pick an Android device or Linux
+flutter run        # pick an Android device, Linux or Windows
 flutter analyze
 flutter test
 ```
@@ -143,9 +178,9 @@ flutter test
 
 ### Screenshots and demo data
 
-`docs/demo-backup.json` is an unencrypted backup with three months of made-up entries, budgets and recurring items (dated up to October 2026). `test/backup_test.dart` checks it still imports.
+`docs/demo-backup.json` is an unencrypted backup with a year of made-up entries, budgets, recurring items, merchants and loans (November 1, 2025 to October 26, 2026). `test/backup_test.dart` checks it still imports.
 
-`integration_test/take_screenshots.sh` retakes every screenshot from the real app, filled with that file:
+`integration_test/take_screenshots.sh` retakes the app's screenshots from the real app, filled with that file:
 
 ```sh
 integration_test/take_screenshots.sh           # Linux, then a running Android emulator
@@ -154,6 +189,7 @@ integration_test/take_screenshots.sh android   # just fastlane/…/phoneScreensh
 ```
 
 - On Linux it uses an in-memory database and settings, so your own data is never touched.
+- `9_widget.png` and `9_widget_shortcuts.png` show the launcher, not the app, so they're taken by hand on the emulator (light mode, `adb exec-out screencap -p`).
 - On Android it installs a debug build on the emulator, and the demo data replaces that install's data.
 - It saves the app's own pixels, so there's no status bar or window frame. The desktop shots are 1280×800 at 1.5×.
 - The sync shots fake the paired and nearby devices on screen; sync itself never starts, so nothing is sent and no sync key is created.
@@ -169,10 +205,11 @@ lib/
   l10n/        English and Arabic strings (ARB) and the generated code
   voice/       speech engines: Android recognizer, Linux offline model
   models/      row models and the starter categories
-  screens/     Home, Activity, Budgets, Recurring, Categories, Settings, Sync
-  utils/       money and date formatting, recurring dates, voice parsing
+  screens/     Home, Activity, Budgets, Recurring, Loans, Categories, Settings, Sync
+  utils/       money and date formatting, recurring dates, reminders, voice parsing, widget requests
   widgets/     shared widgets: amount field, empty/error states, voice sheet
-linux/packaging/  .desktop file, nfpm config (.deb/.rpm), AppImage script
+linux/packaging/  .desktop file, AppStream metainfo, nfpm config (.deb/.rpm), AppImage script, AUR PKGBUILD
+windows/packaging/  Inno Setup (setup.exe) and WiX (.msi) installer scripts
 fdroid/           F-Droid build recipe
 fastlane/         store listing: descriptions, changelogs, phone screenshots
 integration_test/ the screenshot run (see above)
@@ -189,12 +226,12 @@ docs/             demo backup and desktop screenshots
 
 **Strings and money**
 - Strings live in `lib/l10n/app_en.arb` (the template) and `app_ar.arb`. `flutter gen-l10n` regenerates `app_localizations*.dart`, which are committed. In widgets, use `context.l10n.someKey`.
-- Money is integer fils (1 JOD = 1000 fils) everywhere, never doubles. `lib/utils/format.dart` has `formatMoney`, `parseAmount` and `amountToInput`.
+- Money is integer fils everywhere, never doubles: thousandths of the main unit (1 JOD = 1000 fils), whatever the currency. `lib/utils/format.dart` has the currencies (`currencies`, `appCurrency`, with decimals from intl), `formatMoney`, `parseAmount` and `amountToInput`.
 
 ### Releasing
 
 1. Bump `version:` in `pubspec.yaml`, always raising the number after `+`.
-2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`, where `N` is that number (one per APK: versionCode is `N × 10 + ABI`).
+2. Add the F-Droid changelogs `fastlane/metadata/android/{en-US,ar}/changelogs/<N>1.txt`, `<N>2.txt` and `<N>3.txt`, where `N` is that number (one per APK: versionCode is `N × 10 + ABI`). Start each line with `New:`, `Improved:`, `Changed:` or `Fixed:` (in Arabic `جديد:`, `تحسين:`, `تغيير:`, `إصلاح:`): the app shows the same text in **What's new** after an update, grouped under those headings.
 3. Write the release notes in `.github/release-notes/v<version>.md`.
 4. Update this README for anything the release changes that users or contributors would notice: features, settings, privacy, install, build steps.
 5. Commit, then push a `v<version>` tag.
@@ -205,6 +242,7 @@ The tag runs `.github/workflows/release.yml`, which:
 - builds and signs one APK per CPU type and checks each signature against the release key;
 - publishes the GitHub Release;
 - builds the Linux tarball, .deb, .rpm and AppImage on Ubuntu 22.04 and attaches them.
+- builds the Windows zip, setup.exe and .msi on Windows Server 2022 and attaches them, with the Visual C++ runtime next to the exe.
 
 Running the workflow by hand (Actions → Release → Run workflow) builds everything as downloadable artifacts without publishing a release.
 
@@ -216,12 +254,16 @@ Running the workflow by hand (Actions → Release → Run workflow) builds every
 
 ## Limitations
 
-- One currency: Jordanian dinars.
-- Android and Linux only, and biometric unlock is Android-only.
+- One currency at a time, with no conversion between currencies.
+- Android, Linux and Windows. Biometric unlock is Android-only, and voice entry isn't on Windows yet.
+- On Linux and Windows, reminders show only while the app is open, and any you missed when you open it.
 - Voice entry understands English sentences only.
+- The quick add widget and the app-icon shortcuts are Android-only, and their labels follow the phone's language, not the one chosen in the app.
 - Arabic month names are the standard ones (سبتمبر), not the Levantine ones (أيلول).
 - Sync works only on the same local network, and only while the app is open on both devices.
 - On Linux, a firewall that blocks incoming connections (ufw on some distros, firewalld on Fedora) stops sync until port 47823 is allowed: `sudo ufw allow 47823` or `sudo firewall-cmd --permanent --add-port=47823/tcp --add-port=47823/udp && sudo firewall-cmd --reload`.
+- On Windows, the first time sync starts, Windows Defender Firewall asks whether to allow Pocket Sense on private networks. Allow it, or sync can't reach your other devices.
+- Transfers between accounts show in each account's screen, not in Activity, and aren't in CSV exports.
 - Sync keeps the later of two changes to the same entry, even if they changed different fields.
 
 ## License

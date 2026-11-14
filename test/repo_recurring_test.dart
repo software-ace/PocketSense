@@ -31,6 +31,15 @@ void main() {
       expect((await repo.recurring()).single.type, 'income');
     });
 
+    test('update can clear the category, merchant and notes', () async {
+      final cat = await repo.insertCategory(name: 'Bills', type: 'expense', color: '#64748b');
+      final id = await repo.insertRecurring(
+          description: 'Internet', amountFils: 2500, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1), categoryId: cat, merchant: 'Orange', notes: 'Fiber');
+      await repo.updateRecurring(id, description: 'Internet', amountFils: 2500, frequency: 'monthly', anchorDate: DateTime(2026, 9, 1));
+      final r = (await repo.recurring()).single;
+      expect([r.categoryId, r.merchant, r.notes], [null, null, null]);
+    });
+
     test('posting an income item records an income transaction', () async {
       await repo.insertRecurring(description: 'Salary', amountFils: 300000, type: 'income', frequency: 'monthly', anchorDate: DateTime(2026, 9, 25));
       await repo.postRecurring((await repo.recurring()).single, description: 'x (recurring)');
@@ -100,5 +109,13 @@ void main() {
     expect(days.map((d) => d.day),
         [DateTime(2026, 9, 27), DateTime(2026, 9, 28), DateTime(2026, 9, 29), DateTime(2026, 9, 30), DateTime(2026, 10, 1)]);
     expect(days.map((d) => d.fils), [0, 0, 350, 0, 40]);
+  });
+
+  test('daily spending: 30 calendar days even across a clock change (TZ=Africa/Cairo)', () async {
+    final days = await repo.dailySpending(end: DateTime(2026, 5, 10, 0, 30), days: 30);
+    expect(days.length, 30);
+    expect((days.first.day, days.last.day), (DateTime(2026, 4, 11), DateTime(2026, 5, 10)));
+    // Apr 24 has no midnight in Cairo (00:00 jumps to 01:00), so compare dates.
+    expect({for (final d in days) (d.day.month, d.day.day)}.length, 30);
   });
 }

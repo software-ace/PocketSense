@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/transactions_screen.dart';
+import 'package:pocket_sense/security/lock_gate.dart';
+import 'package:pocket_sense/utils/format.dart';
+import 'package:pocket_sense/utils/quick_add.dart';
 
 import 'helpers/screen_with_db.dart';
+
+TextField _merchantField(WidgetTester tester) =>
+    tester.widget<TextField>(find.widgetWithText(TextField, 'Merchant (optional)'));
 
 void main() {
   setUp(useSeededTestDb);
@@ -18,6 +25,41 @@ void main() {
     await tester.tap(find.text('Category (optional)'));
     await tester.pumpAndSettle();
   }
+
+  Set<String> sheetType(WidgetTester tester) => tester.widget<SegmentedButton<String>>(find.byType(SegmentedButton<String>).last).selected; // the sheet's, not the list filter's
+
+  testWidgets('the home-screen widget opens the form with its type chosen, from launch or while running', (tester) async {
+    addTearDown(() => QuickAddRequests.pending.value = null);
+    // Waiting from launch: opened once the screen is up.
+    QuickAddRequests.pending.value = QuickAdd.income;
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    expect(find.text('New transaction'), findsOneWidget);
+    expect(sheetType(tester), {'income'});
+    expect(QuickAddRequests.pending.value, isNull, reason: 'acted on once');
+
+    await tester.tapAt(const Offset(10, 10)); // dismiss
+    await tester.pumpAndSettle();
+    expect(find.text('New transaction'), findsNothing);
+
+    // Tapped while locked: waits for the unlock (voice would listen under the lock screen).
+    addTearDown(() => LockGate.unlocked.value = true);
+    LockGate.unlocked.value = false;
+    QuickAddRequests.pending.value = QuickAdd.expense;
+    await settleWithDb(tester);
+    expect(find.text('New transaction'), findsNothing);
+    LockGate.unlocked.value = true;
+    await settleWithDb(tester);
+    expect(find.text('New transaction'), findsOneWidget);
+    expect(sheetType(tester), {'expense'});
+  });
+
+  test('quick add actions from Android', () {
+    expect(QuickAddRequests.parse('expense'), QuickAdd.expense);
+    expect(QuickAddRequests.parse('income'), QuickAdd.income);
+    expect(QuickAddRequests.parse('voice'), QuickAdd.voice);
+    expect(QuickAddRequests.parse(null), isNull);
+    expect(QuickAddRequests.parse('other'), isNull);
+  });
 
   testWidgets('category list only offers categories of the chosen type', (tester) async {
     await openAddSheet(tester);
@@ -57,5 +99,165 @@ void main() {
     // Not the word "Transaction" in whatever language was on at the time.
     expect(saved.description, isEmpty);
     expect(find.text('Transaction'), findsOneWidget);
+  });
+
+  testWidgets('the amount field only takes digits and separators', (tester) async {
+    await openAddSheet(tester);
+    final amount = find.widgetWithText(TextField, 'Amount');
+    String text() => tester.widget<TextField>(amount).controller!.text;
+
+    await tester.enterText(amount, '3.5Lunch6 R-');
+    expect(text(), '3.56');
+
+    await tester.enterText(amount, '١٬٢٠٠٫٥');
+    expect(text(), '١٬٢٠٠٫٥', reason: 'Arabic digits and separators still go in');
+  });
+
+  for (final (code, message) in [
+    ('QAR', 'Enter an amount above zero, with at most 2 decimals.'),
+    ('JPY', 'Enter a whole amount above zero.'),
+    ('JOD', 'Enter an amount above zero, with at most 3 decimals.'),
+  ]) {
+    testWidgets('too many decimals in $code says how many it takes', (tester) async {
+      appCurrency = Currency.byCode(code)!;
+      addTearDown(() => appCurrency = currencies.first);
+      await openAddSheet(tester);
+
+      await tester.enterText(find.widgetWithText(TextField, 'Amount'), '44444.444444');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(find.text(message), findsOneWidget);
+    });
+  }
+
+  testWidgets('typing an unknown merchant offers to create it, and creating keeps it in the field', (tester) async {
+    await openAddSheet(tester);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Merchant (optional)'), 'Zaid');
+    await tester.pump();
+    expect(find.text('Merchant not found. Create it?'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Create it'));
+    await settleWithDb(tester);
+
+    // Created and selected: the field keeps the name and the prompt is gone.
+    expect(_merchantField(tester).controller!.text, 'Zaid');
+    expect(find.text('Merchant not found. Create it?'), findsNothing);
+
+    final merchants = (await tester.runAsync(() => FinanceRepo().merchants()))!;
+    expect(merchants.single.name, 'Zaid');
+
+    await tester.enterText(find.widgetWithText(TextField, 'Amount'), '5');
+    await tester.tap(find.text('Save'));
+    await settleWithDb(tester);
+
+    final saved = (await tester.runAsync(() => FinanceRepo().transactions()))!.single;
+    expect(saved.merchant, 'Zaid');
+  });
+
+  testWidgets('editing can clear the merchant, even one deleted from the list, and the category', (tester) async {
+    await tester.runAsync(() async {
+      final repo = FinanceRepo();
+      final cat = (await repo.categories()).firstWhere((c) => c.type == 'expense').id;
+      await repo.insertTransaction(amountFils: 3560, type: 'expense', date: DateTime.now(), description: 'Lunch', merchant: 'Zaid', categoryId: cat);
+    });
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    await tester.tap(find.text('Lunch'));
+    await settleWithDb(tester);
+    expect(find.text('Merchant not found. Create it?'), findsOneWidget, reason: 'Zaid is not in the list');
+
+    await tester.enterText(find.widgetWithText(TextField, 'Merchant (optional)'), '');
+    // The form's type switch (the list's filter is under it); clears the expense category.
+    await tester.tap(find.text('Income').last);
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await settleWithDb(tester);
+
+    final saved = (await tester.runAsync(() => FinanceRepo().transactions()))!.single;
+    expect(saved.merchant, isNull);
+    expect(saved.categoryId, isNull);
+  });
+
+  testWidgets('typing a partial name suggests merchants and picking one fills the field', (tester) async {
+    await tester.runAsync(() => FinanceRepo().insertMerchant('Amazon'));
+    await openAddSheet(tester);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Merchant (optional)'), 'Ama');
+    await tester.pump();
+    expect(find.text('Amazon'), findsOneWidget);
+    expect(find.text('Merchant not found. Create it?'), findsNothing);
+
+    await tester.tap(find.text('Amazon'));
+    await tester.pump();
+    expect(_merchantField(tester).controller!.text, 'Amazon');
+  });
+
+  testWidgets('swiping an entry away asks first: Cancel keeps it, Delete deletes it', (tester) async {
+    final repo = FinanceRepo();
+    await tester.runAsync(() => repo.insertTransaction(amountFils: 2500, type: 'expense', date: DateTime.now(), description: 'Lunch'));
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+
+    await tester.drag(find.text('Lunch'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await settleWithDb(tester);
+    expect(find.text('Lunch'), findsOneWidget, reason: 'still listed after Cancel');
+    expect(tester.getSize(find.widgetWithText(ListTile, 'Lunch')).height, greaterThan(0));
+
+    await tester.drag(find.text('Lunch'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await settleWithDb(tester);
+    expect(find.text('Lunch'), findsNothing);
+    expect(await tester.runAsync(() => repo.transactions()), isEmpty);
+    await settleWithDb(tester); // the reload after the delete
+  });
+
+  testWidgets('search: clearing it shows everything again, and a change while searching keeps the search', (tester) async {
+    final repo = FinanceRepo();
+    await tester.runAsync(() async {
+      await repo.insertTransaction(amountFils: 1500, type: 'expense', date: DateTime.now(), description: 'Coffee');
+      await repo.insertTransaction(amountFils: 2500, type: 'expense', date: DateTime.now(), description: 'Lunch');
+    });
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    final search = find.byType(TextField).first;
+
+    await tester.enterText(search, 'coff');
+    await settleWithDb(tester);
+    expect((find.text('Coffee').evaluate().length, find.text('Lunch').evaluate().length), (1, 0));
+
+    // A new entry (or a sync) reloads the list: the search still applies.
+    await tester.runAsync(() => repo.insertTransaction(amountFils: 900, type: 'expense', date: DateTime.now(), description: 'Taxi'));
+    await settleWithDb(tester);
+    expect((find.text('Coffee').evaluate().length, find.text('Taxi').evaluate().length), (1, 0));
+
+    await tester.enterText(search, '');
+    await settleWithDb(tester);
+    expect(['Coffee', 'Lunch', 'Taxi'].every((d) => find.text(d).evaluate().isNotEmpty), isTrue);
+  });
+
+  testWidgets('past the newest 200, "Show older entries" reaches the rest', (tester) async {
+    await tester.runAsync(() async {
+      final store = await LocalStore.instance();
+      await store.write((txn) async {
+        for (var i = 0; i < 205; i++) {
+          final day = DateTime(2026, 1, 1).add(Duration(days: i));
+          await store.insertIn(txn, 'transactions',
+              {'amount_fils': 100, 'type': 'expense', 'date': day.toIso8601String().substring(0, 10), 'description': i == 0 ? 'Oldest' : 'e$i'});
+        }
+      });
+    });
+    await pumpScreenWithDb(tester, const TransactionsScreen());
+    final older = find.text('Show older entries');
+    final list = find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(older, 500, scrollable: list);
+    expect(find.text('Oldest'), findsNothing);
+
+    await tester.tap(older);
+    await settleWithDb(tester);
+    await tester.scrollUntilVisible(find.text('Oldest'), 500, scrollable: list);
+    expect(find.text('Oldest'), findsOneWidget);
+    expect(older, findsNothing, reason: 'all 205 shown: nothing older');
   });
 }

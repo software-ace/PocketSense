@@ -43,6 +43,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get done => 'Done';
 
   @override
+  String whatsNewTitle(String version) {
+    return 'What\'s new in $version';
+  }
+
+  @override
+  String get whatsNewFeatures => 'New features';
+
+  @override
+  String get whatsNewImprovements => 'Enhancements';
+
+  @override
+  String get whatsNewChanges => 'Changes';
+
+  @override
+  String get whatsNewFixes => 'Fixes';
+
+  @override
   String get all => 'All';
 
   @override
@@ -74,6 +91,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get merchantOptional => 'Merchant (optional)';
+
+  @override
+  String get merchantSearchHint => 'Search or create merchants…';
 
   @override
   String get notesOptional => 'Notes (optional)';
@@ -163,6 +183,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catDining => 'Dining Out';
 
   @override
+  String get catCoffee => 'Coffee';
+
+  @override
   String get catTransport => 'Transport';
 
   @override
@@ -196,6 +219,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catOtherIncome => 'Other Income';
 
   @override
+  String get catLoansPaid => 'Loans Paid';
+
+  @override
+  String get catLoansReceived => 'Loans Received';
+
+  @override
   String get statIncomeMonth => 'Income (mo)';
 
   @override
@@ -211,10 +240,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartDaily => 'Daily Spending (30d)';
 
   @override
-  String get chartByCategory => 'By Category (30d)';
+  String get chartByCategory => 'By Category';
 
   @override
-  String get chartByMerchant => 'By Merchant (30d)';
+  String get chartByMerchant => 'By Merchant';
 
   @override
   String get noMerchant => 'No merchant';
@@ -224,6 +253,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chartMonthly => 'Income vs Spending (6 months)';
+
+  @override
+  String get nextYear => 'Next year';
+
+  @override
+  String get previousYear => 'Previous year';
+
+  @override
+  String get pickMonth => 'Pick month';
+
+  @override
+  String get chartMonthTotals => 'Monthly Income vs Spending';
 
   @override
   String get chartPace => 'This Month vs Last Month';
@@ -239,6 +280,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recentActivity => 'Recent Activity';
+
+  @override
+  String get homePage => 'Home page';
+
+  @override
+  String get homePageSubtitle => 'Choose what Home shows, and in what order';
+
+  @override
+  String get homePageHint =>
+      'Drag a row by its handle to move it. Switch off what you don\'t need on Home.';
+
+  @override
+  String get homeTotals => 'Totals (this month and year)';
+
+  @override
+  String get homeLoansAlwaysShown => 'Always shown: it\'s the way into Loans';
 
   @override
   String get noTransactionsYet => 'No transactions yet';
@@ -297,8 +354,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get enterPositiveAmount =>
-      'Enter an amount above zero, with at most 3 decimals.';
+  String enterPositiveAmount(int decimals) {
+    String _temp0 = intl.Intl.pluralLogic(
+      decimals,
+      locale: localeName,
+      other: 'Enter an amount above zero, with at most $decimals decimals.',
+      one: 'Enter an amount above zero, with at most 1 decimal.',
+      zero: 'Enter a whole amount above zero.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get enterAmount => 'Enter an amount';
@@ -526,6 +591,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noCategoriesHint => 'Create one to start tagging transactions.';
 
   @override
+  String get merchants => 'Merchants';
+
+  @override
+  String get merchantsSubtitle => 'Names you transact with';
+
+  @override
+  String merchantsShown(int count) {
+    return '$count merchants';
+  }
+
+  @override
+  String get newMerchant => 'New merchant';
+
+  @override
+  String get editMerchant => 'Edit merchant';
+
+  @override
+  String get noMerchants => 'No merchants yet';
+
+  @override
+  String get noMerchantsHint =>
+      'Create one and it will show up in the transaction form\'s suggestions.';
+
+  @override
+  String get deleteMerchantBody =>
+      'This only removes the merchant from the list. Past transactions keep their name.';
+
+  @override
+  String get merchantNotFound => 'Merchant not found. Create it?';
+
+  @override
+  String get createMerchant => 'Create it';
+
+  @override
+  String get duplicateMerchant => 'This merchant already exists';
+
+  @override
   String get name => 'Name';
 
   @override
@@ -539,6 +641,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String themeName(String theme) {
+    String _temp0 = intl.Intl.selectLogic(theme, {
+      'system': 'System default',
+      'light': 'Light',
+      'dark': 'Dark',
+      'black': 'Black (AMOLED)',
+      'other': '$theme',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String currencyName(String code) {
+    String _temp0 = intl.Intl.selectLogic(code, {
+      'JOD': 'Jordanian dinar',
+      'SAR': 'Saudi riyal',
+      'AED': 'UAE dirham',
+      'KWD': 'Kuwaiti dinar',
+      'QAR': 'Qatari riyal',
+      'BHD': 'Bahraini dinar',
+      'OMR': 'Omani rial',
+      'EGP': 'Egyptian pound',
+      'IQD': 'Iraqi dinar',
+      'LBP': 'Lebanese pound',
+      'SYP': 'Syrian pound',
+      'MAD': 'Moroccan dirham',
+      'DZD': 'Algerian dinar',
+      'TND': 'Tunisian dinar',
+      'LYD': 'Libyan dinar',
+      'YER': 'Yemeni rial',
+      'SDG': 'Sudanese pound',
+      'USD': 'US dollar',
+      'EUR': 'Euro',
+      'GBP': 'British pound',
+      'TRY': 'Turkish lira',
+      'INR': 'Indian rupee',
+      'PKR': 'Pakistani rupee',
+      'CAD': 'Canadian dollar',
+      'AUD': 'Australian dollar',
+      'CHF': 'Swiss franc',
+      'JPY': 'Japanese yen',
+      'CNY': 'Chinese yuan',
+      'SEK': 'Swedish krona',
+      'HKD': 'Hong Kong dollar',
+      'IDR': 'Indonesian rupiah',
+      'MRU': 'Mauritanian ouguiya',
+      'DJF': 'Djiboutian franc',
+      'SOS': 'Somali shilling',
+      'KMF': 'Comorian franc',
+      'SGD': 'Singapore dollar',
+      'KRW': 'South Korean won',
+      'NOK': 'Norwegian krone',
+      'NZD': 'New Zealand dollar',
+      'MXN': 'Mexican peso',
+      'TWD': 'New Taiwan dollar',
+      'ZAR': 'South African rand',
+      'BRL': 'Brazilian real',
+      'DKK': 'Danish krone',
+      'PLN': 'Polish złoty',
+      'THB': 'Thai baht',
+      'CZK': 'Czech koruna',
+      'HUF': 'Hungarian forint',
+      'CLP': 'Chilean peso',
+      'PHP': 'Philippine peso',
+      'MYR': 'Malaysian ringgit',
+      'RON': 'Romanian leu',
+      'RUB': 'Russian ruble',
+      'COP': 'Colombian peso',
+      'PEN': 'Peruvian sol',
+      'ARS': 'Argentine peso',
+      'BGN': 'Bulgarian lev',
+      'NGN': 'Nigerian naira',
+      'ISK': 'Icelandic króna',
+      'VND': 'Vietnamese dong',
+      'BDT': 'Bangladeshi taka',
+      'UAH': 'Ukrainian hryvnia',
+      'KES': 'Kenyan shilling',
+      'RSD': 'Serbian dinar',
+      'ALL': 'Albanian lek',
+      'BAM': 'Bosnia-Herzegovina convertible mark',
+      'MKD': 'Macedonian denar',
+      'MDL': 'Moldovan leu',
+      'BYN': 'Belarusian ruble',
+      'other': '$code',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get noCurrencyMatches => 'No currency matches';
+
+  @override
+  String get currencyChangeNote =>
+      'Amounts aren\'t converted: 12.5 stays 12.5 in the new currency.';
 
   @override
   String get languageSystem => 'System default';
@@ -612,16 +816,250 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup => 'Backup';
 
   @override
-  String get exportData => 'Export data';
+  String get exportData => 'Export Backup';
 
   @override
   String get exportDataSubtitle => 'Save everything to an encrypted file';
 
   @override
-  String get importData => 'Import data';
+  String get importData => 'Import Backup';
 
   @override
   String get importDataSubtitle => 'Replace everything with a backup file';
+
+  @override
+  String get importTransactions => 'Import Transactions';
+
+  @override
+  String get importTransactionsSubtitle => 'Add entries from a CSV file';
+
+  @override
+  String get exportTransactions => 'Export Transactions';
+
+  @override
+  String get exportTransactionsSubtitle =>
+      'Save all entries as a CSV file for a spreadsheet. Transfers between accounts aren\'t included.';
+
+  @override
+  String get importCsv => 'Import CSV';
+
+  @override
+  String get exportCsv => 'Export CSV';
+
+  @override
+  String get csvSaved => 'CSV file saved.';
+
+  @override
+  String get csvCantImportTitle => 'Nothing was imported';
+
+  @override
+  String csvMissingColumns(String columns) {
+    return 'The first row needs these columns: $columns.';
+  }
+
+  @override
+  String csvLayoutHint(String columns) {
+    return 'Export a file first to see the layout: columns $columns, dates like 2026-11-08, type income or expense, amounts like 12.5.';
+  }
+
+  @override
+  String get csvNotUtf8 =>
+      'This file isn\'t UTF-8 text. In Excel, save it as \"CSV UTF-8\".';
+
+  @override
+  String get csvRowsFound => 'rows found';
+
+  @override
+  String get csvWillImport => 'will import';
+
+  @override
+  String get csvDuplicate => 'duplicate';
+
+  @override
+  String get csvRejected => 'rejected';
+
+  @override
+  String get csvPreviewNote =>
+      'Nothing is saved until you import. Categories are matched by name; a category you don\'t have leaves the entry uncategorized. Tap a number to see just those rows.';
+
+  @override
+  String get csvColDate => 'Date';
+
+  @override
+  String get csvColAmount => 'Amount';
+
+  @override
+  String get csvColDetails => 'Details';
+
+  @override
+  String get csvColStatus => 'Status';
+
+  @override
+  String get csvNew => 'New';
+
+  @override
+  String get csvDuplicateTag => 'Duplicate';
+
+  @override
+  String get csvRejectedTag => 'Rejected';
+
+  @override
+  String get csvProblemDate => 'The date must look like 2026-11-08.';
+
+  @override
+  String get csvProblemType => 'The type must be income or expense.';
+
+  @override
+  String get csvProblemNoAmount => 'No amount in the amount column.';
+
+  @override
+  String get csvProblemAmount => 'The amount must be a number above 0.';
+
+  @override
+  String get csvProblemDecimalComma => 'Use a decimal point: 12.5, not 12,5.';
+
+  @override
+  String get csvLayoutTitle => 'File layout';
+
+  @override
+  String get csvRuleDate => 'date: year-month-day, like 2026-11-08.';
+
+  @override
+  String get csvRuleType => 'type: income or expense.';
+
+  @override
+  String get csvRuleAmount =>
+      'amount: above 0, with a decimal point (12.75). Commas only separate thousands (1,250). No minus sign: the type says whether it is spending.';
+
+  @override
+  String get csvRuleOptional =>
+      'category, merchant and account can be empty: an empty or unknown account means your default one. Columns can be in any order, and others are ignored.';
+
+  @override
+  String get csvExample => 'Example';
+
+  @override
+  String get csvNoRowsHere => 'No rows here.';
+
+  @override
+  String csvImportN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count transactions',
+      one: 'Import 1 transaction',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importCategories => 'Import Categories';
+
+  @override
+  String get importMerchants => 'Import Merchants';
+
+  @override
+  String csvImportCategoriesN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count categories',
+      one: 'Import 1 category',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String csvImportMerchantsN(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count merchants',
+      one: 'Import 1 merchant',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get csvPreviewNoteNames =>
+      'Nothing is saved until you import. Names you already have, in any letter case, are skipped. Tap a number to see just those rows.';
+
+  @override
+  String get csvColName => 'Name';
+
+  @override
+  String get csvColType => 'Type';
+
+  @override
+  String get csvColColor => 'Color';
+
+  @override
+  String get csvProblemName => 'The name is empty.';
+
+  @override
+  String get csvProblemColor => 'The color must look like #4f46e5.';
+
+  @override
+  String get csvRuleName => 'name: the category, one per row.';
+
+  @override
+  String get csvRuleColor =>
+      'color: optional, like #4f46e5. Without one, the category is gray.';
+
+  @override
+  String get csvRuleMerchant =>
+      'name: the merchant, one per row. Names with spaces stay whole.';
+
+  @override
+  String get csvSumCategoriesAdded => 'Categories added';
+
+  @override
+  String get csvSumMerchantsAdded => 'Merchants added';
+
+  @override
+  String get csvSumAlreadyThere => 'Already in your list';
+
+  @override
+  String get csvImporting => 'Importing…';
+
+  @override
+  String csvImportingDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows. Duplicates and rejected rows are skipped.',
+      one: '1 row. Duplicates and rejected rows are skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get csvImportComplete => 'Import complete';
+
+  @override
+  String get csvImportCompleteBody =>
+      'Your entries are saved and encrypted like everything else in Pocket Sense.';
+
+  @override
+  String get csvSumAdded => 'Transactions added';
+
+  @override
+  String get csvSumDuplicates => 'Skipped as duplicate';
+
+  @override
+  String get csvSumRejected => 'Rejected rows';
+
+  @override
+  String get csvSumCategories => 'Categories matched';
+
+  @override
+  String get csvSumMerchants => 'New merchants saved';
+
+  @override
+  String get csvSumUncategorized => 'Rows without a category';
 
   @override
   String get exportDone => 'Backup saved.';
@@ -666,7 +1104,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String backupWrongCurrency(String currency) {
-    return 'This backup uses another currency ($currency), so nothing was changed.';
+    return 'This backup uses a currency Pocket Sense doesn\'t support ($currency), so nothing was changed.';
   }
 
   @override
@@ -768,6 +1206,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get useBiometrics => 'Unlock with fingerprint or face';
+
+  @override
+  String get hideAmounts => 'Hide amounts';
+
+  @override
+  String get hideAmountsSubtitle =>
+      'Show ••• for every amount until you tap the eye';
+
+  @override
+  String get showAmounts => 'Show amounts';
 
   @override
   String get privateScreen => 'Private screen';
@@ -902,6 +1350,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
+  String get sponsor => 'Sponsor Pocket Sense';
+
+  @override
+  String get sponsorSubtitle => 'Support its development on GitHub Sponsors';
+
+  @override
   String get aboutDescription =>
       'A private, offline personal finance tracker. Your data stays encrypted on your device.';
 
@@ -1025,6 +1479,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Update Pocket Sense on both devices to the same version.';
 
   @override
+  String syncErrCurrency(String currency) {
+    return 'The other device uses $currency. Choose the same currency on both, in Settings → General.';
+  }
+
+  @override
   String get syncErrCode => 'Pairing cancelled.';
 
   @override
@@ -1049,6 +1508,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syncStateNeedsUpdate =>
       'Update Pocket Sense on both devices to the same version';
+
+  @override
+  String get syncStateOtherCurrency =>
+      'Uses another currency: choose the same one on both devices';
 
   @override
   String get syncStateNotPaired =>
@@ -1096,4 +1559,753 @@ class AppLocalizationsEn extends AppLocalizations {
   String syncStartFailed(String detail) {
     return 'Couldn\'t start sync: $detail';
   }
+
+  @override
+  String get loans => 'Loans';
+
+  @override
+  String get owedToYou => 'Owed to you';
+
+  @override
+  String get youOwe => 'You owe';
+
+  @override
+  String get owesYou => 'Owes you';
+
+  @override
+  String get loanEven => 'Even';
+
+  @override
+  String get loansUnsettled => 'Unsettled';
+
+  @override
+  String get loansSettled => 'Settled';
+
+  @override
+  String get newLoan => 'New loan';
+
+  @override
+  String get editLoan => 'Edit loan';
+
+  @override
+  String get loanTitle => 'Loan';
+
+  @override
+  String get iLent => 'I lent';
+
+  @override
+  String get iBorrowed => 'I borrowed';
+
+  @override
+  String get loanPerson => 'Person';
+
+  @override
+  String get enterPerson => 'Enter a name';
+
+  @override
+  String get dueDateOptional => 'Due date (optional)';
+
+  @override
+  String get clearDueDate => 'Clear due date';
+
+  @override
+  String dueOn(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String overdueSince(String date) {
+    return 'Overdue · due $date';
+  }
+
+  @override
+  String lentOn(String date) {
+    return 'You lent · $date';
+  }
+
+  @override
+  String borrowedOn(String date) {
+    return 'You borrowed · $date';
+  }
+
+  @override
+  String youLentPerson(String name) {
+    return 'You lent $name';
+  }
+
+  @override
+  String youBorrowedFrom(String name) {
+    return 'You borrowed from $name';
+  }
+
+  @override
+  String amountRepaid(String amount) {
+    return '$amount repaid';
+  }
+
+  @override
+  String amountLeft(String amount) {
+    return '$amount left';
+  }
+
+  @override
+  String get repayments => 'Repayments';
+
+  @override
+  String get noRepaymentsYet => 'No repayments yet';
+
+  @override
+  String get recordRepayment => 'Record repayment';
+
+  @override
+  String get settleLoan => 'Settle';
+
+  @override
+  String get settleLoanTitle => 'Settle this loan?';
+
+  @override
+  String settleLentBody(String person, String amount) {
+    return 'This records that $person paid back the remaining $amount today, adds it to Activity, and closes the loan.';
+  }
+
+  @override
+  String settleBorrowedBody(String person, String amount) {
+    return 'This records that you paid $person the remaining $amount today, adds it to Activity, and closes the loan.';
+  }
+
+  @override
+  String repayUpTo(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String amountAtMost(String amount) {
+    return 'At most $amount, what\'s left';
+  }
+
+  @override
+  String amountAtLeastRepaid(String amount) {
+    return 'At least $amount, already repaid';
+  }
+
+  @override
+  String get deleteLoanTitle => 'Delete this loan?';
+
+  @override
+  String deleteLoanBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count entries in Activity are deleted too.',
+      one: 'Its entry in Activity is deleted too.',
+      zero: 'It has no entries in Activity.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noLoansYet => 'No loans yet';
+
+  @override
+  String get noLoansHint =>
+      'Money you lend or borrow shows here, with what\'s still owed.';
+
+  @override
+  String get noSettledLoans => 'No settled loans';
+
+  @override
+  String get noOpenLoans => 'Nothing is owed either way';
+
+  @override
+  String loanPaymentFor(String person) {
+    return 'Payment for $person';
+  }
+
+  @override
+  String loanPaymentFrom(String person) {
+    return 'Payment from $person';
+  }
+
+  @override
+  String get reminder => 'Reminder';
+
+  @override
+  String get reminderOff => 'Off';
+
+  @override
+  String get reminderSameDayDueTime => 'Same day on due time';
+
+  @override
+  String reminderDaysBefore(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days before',
+      one: '1 day before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderWeekBefore => '1 week before';
+
+  @override
+  String get dueTime => 'Due time';
+
+  @override
+  String get reminderPermissionOff =>
+      'Notifications are off for Pocket Sense, so reminders won\'t show. Allow them in Android Settings → Apps → Pocket Sense → Notifications.';
+
+  @override
+  String get reminderBackgroundNote =>
+      'So reminders arrive, allow Pocket Sense to start on its own (Autostart) and to run without battery limits.';
+
+  @override
+  String get reminderOpenSettings => 'Open settings';
+
+  @override
+  String get reminderDesktopNote =>
+      'Reminders show while Pocket Sense is open, and any missed ones when you open it.';
+
+  @override
+  String get reminderTitle => 'Payment reminder';
+
+  @override
+  String get reminderChannel => 'Reminders';
+
+  @override
+  String get reminderOpen => 'Open';
+
+  @override
+  String get reminderCreate => 'Create Transaction';
+
+  @override
+  String get reminderDismiss => 'Dismiss';
+
+  @override
+  String reminderWhen(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'due in $days days',
+      one: 'due tomorrow',
+      zero: 'due today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderLate(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days overdue',
+      one: '1 day overdue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderRecurring(String name, String when) {
+    return 'Your $name is $when. Check Recurring.';
+  }
+
+  @override
+  String reminderRecurringAmount(String name, String amount, String when) {
+    return 'Your $name ($amount) is $when. Check Recurring.';
+  }
+
+  @override
+  String reminderLoan(String person, String when) {
+    return 'Your loan with $person is $when.';
+  }
+
+  @override
+  String reminderLent(String person, String amount, String when) {
+    return '$person owes you $amount, $when.';
+  }
+
+  @override
+  String reminderBorrowed(String person, String amount, String when) {
+    return 'You owe $person $amount, $when.';
+  }
+
+  @override
+  String get reminderAmounts => 'Amounts in reminders';
+
+  @override
+  String get reminderAmountsSubtitle =>
+      'Show amounts in recurring and loan reminder notifications';
+
+  @override
+  String get cashAccount => 'Cash';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get accounts => 'Accounts';
+
+  @override
+  String get accountsSubtitle =>
+      'Add, rename, close or delete your cash, bank, savings and card accounts';
+
+  @override
+  String accountClosedName(String name) {
+    return '$name (closed)';
+  }
+
+  @override
+  String accountKind(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'bank': 'Bank',
+      'savings': 'Savings',
+      'card': 'Card',
+      'other': 'Cash',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String accountEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+      zero: 'No entries',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get totalBalance => 'Total balance';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
+  String get transfer => 'Transfer';
+
+  @override
+  String get editTransfer => 'Edit transfer';
+
+  @override
+  String get transferFrom => 'From';
+
+  @override
+  String get transferTo => 'To';
+
+  @override
+  String get transferSwap => 'Swap From and To';
+
+  @override
+  String get transferSame => 'Pick two different accounts.';
+
+  @override
+  String get transferAfter => 'After this transfer';
+
+  @override
+  String get transferNotIncome =>
+      'Transfers between your accounts aren\'t income or spending: totals, charts and budgets stay the same.';
+
+  @override
+  String transferBelowZero(String name) {
+    return 'This takes $name below zero. You can still go ahead.';
+  }
+
+  @override
+  String transferToAccount(String name) {
+    return 'To $name';
+  }
+
+  @override
+  String transferFromAccount(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get deleteTransfer => 'Delete transfer';
+
+  @override
+  String get manageAccounts => 'Manage';
+
+  @override
+  String get accountGone => 'This account was deleted.';
+
+  @override
+  String get incomeThisMonth => 'In this month';
+
+  @override
+  String get spentThisMonth => 'Out this month';
+
+  @override
+  String get addEntry => 'Add entry';
+
+  @override
+  String get openingBalance => 'Opening balance';
+
+  @override
+  String get openingBalanceHint =>
+      'What\'s in it today; it isn\'t counted as income. For a card you owe, start with a minus: -120.';
+
+  @override
+  String get defaultBadge => 'Default';
+
+  @override
+  String get newAccount => 'New account';
+
+  @override
+  String get editAccount => 'Edit account';
+
+  @override
+  String get accountName => 'Name';
+
+  @override
+  String get accountKindLabel => 'Kind';
+
+  @override
+  String get useForNewEntries => 'Use for new entries';
+
+  @override
+  String get useForNewEntriesHint =>
+      'To change it, turn it on for another account';
+
+  @override
+  String closedAccounts(int count) {
+    return 'Closed · $count';
+  }
+
+  @override
+  String get reopen => 'Reopen';
+
+  @override
+  String get closedAccountsNote =>
+      'Closed accounts keep their history, so past charts and totals don\'t change. They\'re hidden from Home, the account pickers and Transfer.';
+
+  @override
+  String get lastAccountNote =>
+      'You need at least one open account, so this one stays.';
+
+  @override
+  String get closeAccount => 'Close account';
+
+  @override
+  String get closeAccountHint =>
+      'Keeps its history. Hides it from Home, pickers and Transfer.';
+
+  @override
+  String closeAccountTitle(String name) {
+    return 'Close $name?';
+  }
+
+  @override
+  String closeAccountMoney(String name, String amount) {
+    return '$name still holds $amount. It moves, as a transfer, to:';
+  }
+
+  @override
+  String closeAccountOwes(String name, String amount) {
+    return '$name owes $amount. Pay it off, as a transfer, from:';
+  }
+
+  @override
+  String closeAccountRecurring(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count recurring items move there too.',
+      one: 'Its recurring item moves there too.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get closeAccountKeeps =>
+      'Its entries stay in your history and charts. You can reopen it in Settings → Accounts.';
+
+  @override
+  String get closeAccountConfirm => 'Close';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String deleteAccountTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String deleteAccountBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nothing in it is deleted: its $count entries, transfers and opening balance move to:',
+      one: 'Nothing in it is deleted: its entry, transfers and opening balance move to:',
+      zero: 'Nothing in it is deleted: its transfers and opening balance move to:',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAccountNoUndo =>
+      'This can\'t be undone, here or on your paired devices. Just stopped using it? Close it instead.';
+
+  @override
+  String get deleteAccountConfirm => 'Move and delete';
+
+  @override
+  String becomesDefaultIfDefault(String name) {
+    return 'If this was your default account, $name becomes the default.';
+  }
+
+  @override
+  String get csvSumUnknownAccounts =>
+      'Rows put in your default account (account not found)';
+
+  @override
+  String get catCirclePayments => 'Circle Payments';
+
+  @override
+  String get catCirclePayouts => 'Circle Payouts';
+
+  @override
+  String get circles => 'Savings circles';
+
+  @override
+  String get circleTitle => 'Savings circle';
+
+  @override
+  String get newCircle => 'New circle';
+
+  @override
+  String get editCircle => 'Edit circle';
+
+  @override
+  String get circleName => 'Name';
+
+  @override
+  String get enterCircleName => 'Enter a name';
+
+  @override
+  String get circleContribution => 'Payment each round';
+
+  @override
+  String get circleRounds => 'Number of participants';
+
+  @override
+  String get circleYourTurn => 'Your turn (round)';
+
+  @override
+  String get circleFirstPayment => 'First payment';
+
+  @override
+  String circleRoundsRange(int max) {
+    return 'From 2 to $max';
+  }
+
+  @override
+  String circleTurnRange(int rounds) {
+    return 'From 1 to $rounds';
+  }
+
+  @override
+  String get noCirclesYet => 'No savings circles yet';
+
+  @override
+  String get noCirclesHint =>
+      'Track the circles you\'re in: what you pay each round, when your turn comes, and where you stand.';
+
+  @override
+  String get noActiveCircles => 'No circles in progress';
+
+  @override
+  String get noFinishedCircles => 'No finished circles';
+
+  @override
+  String get circlesActive => 'In progress';
+
+  @override
+  String get circlesFinished => 'Finished';
+
+  @override
+  String get circlesOweYou => 'Circles owe you';
+
+  @override
+  String get youOweCircles => 'You owe circles';
+
+  @override
+  String get circleOwesYou => 'The circle owes you';
+
+  @override
+  String get youOweCircle => 'You owe the circle';
+
+  @override
+  String circleRoundOf(int round, int rounds) {
+    return 'Round $round of $rounds';
+  }
+
+  @override
+  String circleTerms(String amount, int rounds, String frequency) {
+    return '$amount × $rounds · $frequency';
+  }
+
+  @override
+  String circleTurnOn(String date) {
+    return 'Your turn: $date';
+  }
+
+  @override
+  String circlePayoutOf(String amount) {
+    return 'Payout of $amount';
+  }
+
+  @override
+  String get circleUpToTurn => 'You pay up to your turn';
+
+  @override
+  String get circleAfterTurn => 'You pay after your turn';
+
+  @override
+  String circlePaid(String amount) {
+    return '$amount paid';
+  }
+
+  @override
+  String get circleSchedule => 'Schedule';
+
+  @override
+  String get recordCirclePayment => 'Record payment';
+
+  @override
+  String get recordCirclePayout => 'Record payout';
+
+  @override
+  String circlePayoutReceived(String amount) {
+    return 'Payout received: $amount';
+  }
+
+  @override
+  String get deleteCircleTitle => 'Delete this circle?';
+
+  @override
+  String circlePaymentTo(String name) {
+    return 'Payment to $name';
+  }
+
+  @override
+  String circlePayoutFrom(String name) {
+    return 'Payout from $name';
+  }
+
+  @override
+  String reminderCircle(String name, String when) {
+    return 'Your $name payment is $when.';
+  }
+
+  @override
+  String reminderCircleAmount(String name, String amount, String when) {
+    return 'Your $name payment of $amount is $when.';
+  }
+
+  @override
+  String get homeCirclesAlwaysShown =>
+      'Always shown: it\'s the way into Savings circles';
+
+  @override
+  String get vaultCreateTitle => 'Set a passphrase';
+
+  @override
+  String get vaultCreateBody =>
+      'No system keyring (such as GNOME Keyring or KWallet) is running, so Pocket Sense keeps its encryption keys in a file locked with this passphrase. You\'ll type it each time you open the app. If you forget it, your data can\'t be recovered.';
+
+  @override
+  String get vaultUnlockTitle => 'Enter your passphrase';
+
+  @override
+  String get vaultUnlockBody =>
+      'Pocket Sense keeps its encryption keys in a file locked with your passphrase, because no system keyring was running when you set it up.';
+
+  @override
+  String get vaultPassphrase => 'Passphrase';
+
+  @override
+  String get vaultRepeat => 'Repeat passphrase';
+
+  @override
+  String get vaultMismatch => 'The passphrases don\'t match';
+
+  @override
+  String get vaultWrong => 'Wrong passphrase';
+
+  @override
+  String get vaultForgot => 'Forgot passphrase?';
+
+  @override
+  String get vaultForgotBody =>
+      'Without the passphrase your data can\'t be opened. Erase it and start over with a new passphrase? You can still import a backup afterwards.';
+
+  @override
+  String circleNextReminder(String time) {
+    return 'Your next payment reminder in: $time';
+  }
+
+  @override
+  String countdownDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get countdownSeparator => ', ';
+
+  @override
+  String nextReminderIn(String time) {
+    return 'Your next reminder in: $time';
+  }
+
+  @override
+  String get deleteTransferTitle => 'Delete this transfer?';
+
+  @override
+  String get showOlderEntries => 'Show older entries';
 }
