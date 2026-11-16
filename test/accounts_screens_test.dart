@@ -136,4 +136,22 @@ void main() {
     final names = [for (final a in (await tester.runAsync(() => repo.accounts()))!) a.name];
     expect(names.where((n) => n == 'Wallet'), hasLength(1));
   });
+
+  testWidgets('a new account can be an e-wallet, and stays one', (tester) async {
+    await pumpScreenWithDb(tester, const ManageAccountsScreen());
+    await tester.tap(find.text('New account'));
+    await settleWithDb(tester);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Zain Cash');
+    await tester.tap(find.text('Bank'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('E-Wallet').last);
+    await tester.pumpAndSettle();
+    final save = find.widgetWithText(FilledButton, 'Save');
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await settleWithDb(tester);
+    // Read back through the repo, which shows an unknown type as cash.
+    final accounts = (await tester.runAsync(() => repo.accounts()))!;
+    expect(accounts.firstWhere((a) => a.name == 'Zain Cash').kind, 'ewallet');
+  });
 }

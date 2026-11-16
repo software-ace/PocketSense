@@ -19,6 +19,7 @@ import 'transactions_screen.dart';
       'bank' => (Icons.account_balance_outlined, Colors.indigo),
       'savings' => (Icons.lock_outline, Colors.amber.shade800),
       'card' => (Icons.credit_card, Colors.pink),
+      'ewallet' => (Icons.account_balance_wallet_outlined, Colors.teal),
       _ => (Icons.payments_outlined, Colors.green),
     };
 

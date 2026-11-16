@@ -1908,7 +1908,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountsSubtitle =>
-      'أضف حساباتك النقدية والبنكية والادخارية وبطاقاتك، أو أعد تسميتها أو أغلقها أو احذفها';
+      'أضف حساباتك النقدية والبنكية والادخارية وبطاقاتك ومحافظك الإلكترونية، أو أعد تسميتها أو أغلقها أو احذفها';
 
   @override
   String accountClosedName(String name) {
@@ -1921,6 +1921,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'bank': 'بنك',
       'savings': 'ادخار',
       'card': 'بطاقة',
+      'ewallet': 'محفظة إلكترونية',
       'other': 'نقد',
     });
     return '$_temp0';

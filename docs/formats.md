@@ -85,7 +85,7 @@ Tables and their columns. **Bold** columns are required.
 |---|---|
 | `categories` | **`id`**, **`name`** (unique, in any letter case), **`type`** (`income`/`expense`), **`color`** (`#rrggbb`) |
 | `merchants` | **`id`**, **`name`** (unique, in any letter case) |
-| `accounts` | **`id`**, **`name`**, **`kind`** (`cash`/`bank`/`savings`/`card`), `opening_fils`, `closed` (`0`/`1`) |
+| `accounts` | **`id`**, **`name`**, **`kind`** (`cash`/`bank`/`savings`/`card`/`ewallet`), `opening_fils`, `closed` (`0`/`1`) |
 | `loans` | **`id`**, **`direction`** (`lent`/`borrowed`), **`person`**, `due_date`, `note`, `due_time`, `reminder_days` |
 | `circles` | **`id`**, **`name`**, **`contribution_fils`**, **`rounds`**, **`frequency`** (`weekly`/`biweekly`/`monthly`), **`start_date`**, **`payout_round`**, `note`, `due_time`, `reminder_days` |
 | `transactions` | **`id`**, **`amount_fils`** (positive), **`type`**, **`date`**, **`description`**, `merchant`, `category_id`, `account_id`, `loan_id`, `circle_id`, `created_at` |

@@ -320,7 +320,7 @@ class Circle {
       youOwe: circles.fold(0, (sum, c) => sum + (c.positionFils > 0 ? c.positionFils : 0)),
     );
 
-/// Somewhere money is kept: cash, a bank account, savings or a card.
+/// Somewhere money is kept: cash, a bank account, savings, a card or an e-wallet.
 class Account {
   Account({
     required this.id,
@@ -353,7 +353,7 @@ class Account {
   /// How many entries are in it (transfers not counted).
   final int entries;
 
-  static const kinds = ['cash', 'bank', 'savings', 'card'];
+  static const kinds = ['cash', 'bank', 'savings', 'card', 'ewallet'];
 }
 
 /// Money moved between two of your accounts: neither income nor spending.

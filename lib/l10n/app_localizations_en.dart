@@ -1861,7 +1861,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountsSubtitle =>
-      'Add, rename, close or delete your cash, bank, savings and card accounts';
+      'Add, rename, close or delete your cash, bank, savings, card and e-wallet accounts';
 
   @override
   String accountClosedName(String name) {
@@ -1874,6 +1874,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'bank': 'Bank',
       'savings': 'Savings',
       'card': 'Card',
+      'ewallet': 'E-Wallet',
       'other': 'Cash',
     });
     return '$_temp0';

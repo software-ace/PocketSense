@@ -1131,7 +1131,7 @@
   "cashAccount": "Cash",
   "account": "Account",
   "accounts": "Accounts",
-  "accountsSubtitle": "Add, rename, close or delete your cash, bank, savings and card accounts",
+  "accountsSubtitle": "Add, rename, close or delete your cash, bank, savings, card and e-wallet accounts",
   "accountClosedName": "{name} (closed)",
   "@accountClosedName": {
     "placeholders": {
@@ -1140,7 +1140,7 @@
       }
     }
   },
-  "accountKind": "{kind, select, bank{Bank} savings{Savings} card{Card} other{Cash}}",
+  "accountKind": "{kind, select, bank{Bank} savings{Savings} card{Card} ewallet{E-Wallet} other{Cash}}",
   "@accountKind": {
     "placeholders": {
       "kind": {

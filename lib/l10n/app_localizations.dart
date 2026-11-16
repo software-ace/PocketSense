@@ -2939,7 +2939,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Add, rename, close or delete your cash, bank, savings and card accounts'**
+  /// **'Add, rename, close or delete your cash, bank, savings, card and e-wallet accounts'**
   String get accountsSubtitle;
 
   /// No description provided for @accountClosedName.
@@ -2951,7 +2951,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountKind.
   ///
   /// In en, this message translates to:
-  /// **'{kind, select, bank{Bank} savings{Savings} card{Card} other{Cash}}'**
+  /// **'{kind, select, bank{Bank} savings{Savings} card{Card} ewallet{E-Wallet} other{Cash}}'**
   String accountKind(String kind);
 
   /// No description provided for @accountEntries.

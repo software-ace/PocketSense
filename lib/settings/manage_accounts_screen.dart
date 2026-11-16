@@ -216,13 +216,12 @@ class _AccountFormState extends State<_AccountForm> {
                 validator: (v) => (v ?? '').trim().isEmpty ? l.enterDescription : null,
               ),
               const SizedBox(height: 16),
-              Text(l.accountKindLabel, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
-              const SizedBox(height: 6),
-              SegmentedButton<String>(
-                segments: [for (final k in Account.kinds) ButtonSegment(value: k, label: Text(l.accountKind(k)))],
-                selected: {_kind},
-                showSelectedIcon: false,
-                onSelectionChanged: (s) => setState(() => _kind = s.first),
+              // A dropdown, not a segmented row: five types don't fit across a phone.
+              DropdownButtonFormField<String>(
+                initialValue: _kind,
+                decoration: InputDecoration(labelText: l.accountKindLabel),
+                items: [for (final k in Account.kinds) DropdownMenuItem(value: k, child: Text(l.accountKind(k)))],
+                onChanged: (k) => setState(() => _kind = k ?? _kind),
               ),
               const SizedBox(height: 16),
               TextFormField(
