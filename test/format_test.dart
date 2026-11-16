@@ -130,6 +130,7 @@ void main() {
         expect(c.decimals, lessThanOrEqualTo(3), reason: c.code);
       }
       expect(currencies.map((c) => c.code).toSet(), hasLength(currencies.length));
+      expect(currencies, hasLength(100), reason: 'the README and store text say 100');
     });
 
     test('every currency on offer has a name in each language, not just its code', () {

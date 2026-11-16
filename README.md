@@ -9,7 +9,7 @@
 ![Platforms: Android, Linux, Windows](https://img.shields.io/badge/platforms-Android%20%7C%20Linux%20%7C%20Windows-green)
 ![No internet](https://img.shields.io/badge/network-local%20only-lightgrey)
 
-A private personal finance tracker for Android, Linux and Windows. It works fully offline, in English and Arabic, in any of 69 currencies.
+A private personal finance tracker for Android, Linux and Windows. It works fully offline, in English and Arabic, in any of 100 currencies.
 
 There is no sign-up and no server. Your data stays in an encrypted database on your device. It leaves only as a backup or CSV file you export (backups are encrypted unless you choose otherwise), or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
@@ -72,7 +72,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **CSV files:** **Settings → Data → Export Transactions** saves every entry as a spreadsheet file (date, type, amount, description, category, merchant, account), and **Import Transactions** adds entries from one in the same layout. Before anything is saved, a preview shows each row as new, duplicate (already there, so skipped) or rejected (with the reason), and the counts at the top filter the list. A **File layout** card explains the columns with an example; it opens by itself when rows were rejected. Amounts use a decimal point: `12,5` is rejected rather than read as 125. Categories and Merchants have **Import CSV** and **Export CSV** in their ⋮ menu, with the same preview: a name you already have, in any letter case, is a duplicate. Importing only ever adds; nothing is replaced. The layouts are in [`docs/formats.md`](docs/formats.md).
 
 **Your currency, in English or Arabic**
-- **Currency:** any of 69, picked on the welcome screen or in **Settings → General → Currency**, with a search by name or code: Arab currencies first (JOD, SAR, AED, EGP…), then USD, EUR, INR, MXN and more. Each keeps its usual decimals: **JOD 12.500**, **USD 12.50**, **JPY 1,250**. In Arabic the symbol follows the amount (**12.500 د.أ**), with Latin digits in both languages. Amount fields also accept Arabic-Indic digits.
+- **Currency:** any of 100, picked on the welcome screen or in **Settings → General → Currency**, with a search by name or code: Arab currencies first (JOD, SAR, AED, EGP…), then USD, EUR, INR, MXN, LKR and more. Each keeps its usual decimals: **JOD 12.500**, **USD 12.50**, **JPY 1,250**. In Arabic the symbol follows the amount (**12.500 د.أ**), with Latin digits in both languages. Amount fields also accept Arabic-Indic digits.
   - It's one currency for all your data, with no exchange rates, so the app stays offline. Switching relabels amounts; it doesn't convert them.
   - Backups carry the currency, and importing one switches to it. Two devices sync only when they use the same currency.
 - **English and Arabic:** Arabic is laid out right to left. The app follows the system language, or English if that's neither, and **Settings → Language** overrides it. The starter categories follow the language too, unless you've renamed them.

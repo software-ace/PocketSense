@@ -42,7 +42,13 @@ const currencies = [
   Currency('TRY'), Currency('HUF'), Currency('CLP'), Currency('PHP'), Currency('MYR'), Currency('RON'), //
   Currency('RUB'), Currency('COP'), Currency('PEN'), Currency('ARS'), Currency('BGN'), Currency('NGN'), //
   Currency('ISK'), Currency('VND'), Currency('PKR'), Currency('BDT'), Currency('UAH'), Currency('KES'), //
-  Currency('RSD'), Currency('ALL'), Currency('BAM'), Currency('MKD'), Currency('MDL'), Currency('BYN'),
+  Currency('RSD'), Currency('ALL'), Currency('BAM'), Currency('MKD'), Currency('MDL'), Currency('BYN'), //
+  Currency('LKR'), Currency('NPR'), Currency('MVR'), Currency('AFN'), Currency('MMK'), Currency('KHR'), //
+  Currency('LAK'), Currency('MNT'), Currency('BND'), Currency('MOP'), Currency('KZT'), Currency('UZS'), //
+  Currency('KGS'), Currency('TJS'), Currency('AZN'), Currency('GEL'), Currency('AMD'), Currency('ETB'), //
+  Currency('UGX'), Currency('TZS'), Currency('RWF'), Currency('GHS'), Currency('XOF'), Currency('XAF'), //
+  Currency('ZMW'), Currency('MUR'), Currency('DOP'), Currency('GTQ'), Currency('CRC'), Currency('UYU'), //
+  Currency('BOB'),
 ];
 
 /// What amounts are shown in. AppSettings sets it before the app starts.
