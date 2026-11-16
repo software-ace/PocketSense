@@ -8,4 +8,14 @@
     <string name="quick_add_widget_description">Add an expense, income or voice entry</string>
     <string name="shortcut_add_expense">Add expense</string>
     <string name="shortcut_add_income">Add income</string>
+    <!-- Balance widgets: their names and previews in the widget picker, and
+         what they show before the app has sent anything. -->
+    <string name="overview_widget_label">Overview</string>
+    <string name="overview_widget_description">Total balance and spending</string>
+    <string name="account_widget_label">Account balance</string>
+    <string name="account_widget_description">One account\'s balance</string>
+    <string name="balance_widget_open">Open Pocket Sense</string>
+    <string name="balance_widget_hidden">Amount hidden</string>
+    <!-- The receipt style's rubber stamp over hidden amounts. -->
+    <string name="balance_widget_stamp">Hidden</string>
 </resources>

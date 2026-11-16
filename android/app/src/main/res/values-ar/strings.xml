@@ -6,4 +6,11 @@
     <string name="quick_add_widget_description">أضف مصروفًا أو دخلًا أو إدخالًا صوتيًا</string>
     <string name="shortcut_add_expense">إضافة مصروف</string>
     <string name="shortcut_add_income">إضافة دخل</string>
+    <string name="overview_widget_label">نظرة عامة</string>
+    <string name="overview_widget_description">الرصيد الإجمالي والمصروف</string>
+    <string name="account_widget_label">رصيد حساب</string>
+    <string name="account_widget_description">رصيد حساب واحد</string>
+    <string name="balance_widget_open">افتح Pocket Sense</string>
+    <string name="balance_widget_hidden">المبلغ مخفي</string>
+    <string name="balance_widget_stamp">مخفي</string>
 </resources>

@@ -1936,6 +1936,49 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض المبالغ في إشعارات تذكير المتكررة والقروض';
 
   @override
+  String get widgetAmounts => 'المبالغ في الأدوات';
+
+  @override
+  String get widgetAmountsSubtitle =>
+      'عرض الأرصدة والمصروف في أدوات الشاشة الرئيسية. يراها كل من يرى شاشتك الرئيسية.';
+
+  @override
+  String widgetSpentOn(String date) {
+    return 'المصروف في $date';
+  }
+
+  @override
+  String get widgetChooseAccount => 'اضغط لاختيار حساب';
+
+  @override
+  String get widgetAmountsHint => 'اعرض المبالغ من الإعدادات ← الأمان';
+
+  @override
+  String get widgetStyle => 'نمط الأدوات';
+
+  @override
+  String get widgetStamp => 'مخفي';
+
+  @override
+  String get widgetAmountHidden => 'المبلغ مخفي';
+
+  @override
+  String widgetStyleName(String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'leather': 'محفظة جلدية',
+      'coins': 'قيلولة العملات',
+      'lcd': 'شاشة الجيب',
+      'receipt': 'إيصال',
+      'plain': 'بسيط',
+      'other': '$style',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get widgetChooseTitle => 'حساب هذه الأداة';
+
+  @override
   String get cashAccount => 'نقد';
 
   @override

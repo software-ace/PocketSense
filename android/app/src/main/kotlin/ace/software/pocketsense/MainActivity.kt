@@ -1,5 +1,6 @@
 package ace.software.pocketsense
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -24,6 +25,10 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingQuickAdd: String? = null
     private var quickAddChannel: MethodChannel? = null
 
+    // An Account widget tapped before it had an account (BalanceWidgets):
+    // Dart takes the one from launch, and is sent later ones.
+    private var pendingWidgetChoice: Int? = null
+
     // Keeps balances out of the recent-apps preview, screenshots and screen
     // recordings, as banking apps do. On from the start; Settings → Security
     // can turn it off (pocketsense/window below).
@@ -31,12 +36,16 @@ class MainActivity : FlutterFragmentActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         super.onCreate(savedInstanceState)
         // Not again when Android recreates the activity with the same intent.
-        if (savedInstanceState == null) pendingQuickAdd = quickAdd(intent)
+        if (savedInstanceState == null) {
+            pendingQuickAdd = quickAdd(intent)
+            pendingWidgetChoice = widgetChoice(intent)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        widgetChoice(intent)?.let { id -> BalanceWidgets.channel?.invokeMethod("choose", id) ?: run { pendingWidgetChoice = id } }
         val action = quickAdd(intent) ?: return
         quickAddChannel?.invokeMethod("open", action) ?: run { pendingQuickAdd = action }
     }
@@ -81,6 +90,30 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
         backgroundChannel(flutterEngine)
+        widgetsChannel(flutterEngine)
+    }
+
+    private fun widgetsChannel(flutterEngine: FlutterEngine) {
+        BalanceWidgets.channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "pocketsense/widgets").apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "ids" -> result.success(BalanceWidgets.ids(applicationContext))
+                    "show" -> {
+                        BalanceWidgets.show(applicationContext, call.arguments as Map<*, *>)
+                        result.success(null)
+                    }
+                    "clear" -> {
+                        BalanceWidgets.clear(applicationContext)
+                        result.success(null)
+                    }
+                    "take" -> {
+                        result.success(pendingWidgetChoice)
+                        pendingWidgetChoice = null
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
     }
 
     // Reminders: some makers stop apps' alarms unless allowed in their own
@@ -100,6 +133,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         quickAddChannel = null
+        BalanceWidgets.channel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
@@ -121,5 +155,10 @@ class MainActivity : FlutterFragmentActivity() {
             ACTION_ADD_VOICE -> "voice"
             else -> null
         }
+
+        // As [quickAdd]: not again when reopened from recent apps.
+        fun widgetChoice(intent: Intent?): Int? =
+            if (intent == null || intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0 || intent.action != BalanceWidgets.ACTION_CHOOSE_ACCOUNT) null
+            else intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID).takeIf { it != AppWidgetManager.INVALID_APPWIDGET_ID }
     }
 }

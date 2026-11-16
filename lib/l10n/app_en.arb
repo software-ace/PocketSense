@@ -1130,6 +1130,27 @@
   },
   "reminderAmounts": "Amounts in reminders",
   "reminderAmountsSubtitle": "Show amounts in recurring and loan reminder notifications",
+  "widgetAmounts": "Amounts on widgets",
+  "widgetAmountsSubtitle": "Show balances and spending on home-screen widgets. Anyone who sees your home screen sees them.",
+  "widgetSpentOn": "Spent on {date}",
+  "@widgetSpentOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "widgetChooseAccount": "Tap to choose an account",
+  "widgetAmountsHint": "Show amounts in Settings →\u00A0Security",
+  "widgetStyle": "Widget style",
+  "widgetStamp": "Hidden",
+  "@widgetStamp": {"description": "The Receipt widget style's rubber stamp over hidden amounts."},
+  "widgetAmountHidden": "Amount hidden",
+  "widgetStyleName": "{style, select, leather{Leather wallet} coins{Coin nap} lcd{Pocket LCD} receipt{Receipt} plain{Plain} other{{style}}}",
+  "@widgetStyleName": {
+    "placeholders": {
+      "style": {"type": "String"}
+    }
+  },
+  "widgetChooseTitle": "Account for this widget",
   "cashAccount": "Cash",
   "account": "Account",
   "accounts": "Accounts",

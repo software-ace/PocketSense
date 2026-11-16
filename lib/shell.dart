@@ -14,6 +14,7 @@ import 'screens/loans_screen.dart';
 import 'screens/recurring_screen.dart';
 import 'l10n/l10n.dart';
 import 'security/lock_gate.dart';
+import 'utils/home_widgets.dart';
 import 'utils/reminder_notifications.dart';
 import 'utils/platform.dart';
 import 'widgets/whats_new.dart';
@@ -45,17 +46,23 @@ class _ShellState extends State<Shell> {
     ReminderNotifications.start().ignore();
     ReminderNotifications.pending.addListener(_onReminderTap);
     LockGate.unlocked.addListener(_onReminderTap);
+    HomeWidgets.start().ignore();
+    HomeWidgets.choosing.addListener(_onWidgetTap);
+    LockGate.unlocked.addListener(_onWidgetTap);
     // After the first frame, when there's a context to show a dialog from.
     // With a PIN set it opens under the lock screen, seen once unlocked.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) showWhatsNewIfUpdated(context);
       _onReminderTap();
+      _onWidgetTap();
     });
     _lifecycle = AppLifecycleListener(onResume: () {
       AutoBackup.runIfDue();
       SyncService.instance.resumed().ignore();
       // Time has passed: the 90-day window moves, and Linux shows what's due.
       ReminderNotifications.refresh().ignore();
+      // Spending's day may have changed while the app was away.
+      HomeWidgets.refresh().ignore();
     });
     _arrivals = SyncService.instance.arrivals.stream.listen((a) {
       if (!mounted) return;
@@ -71,6 +78,9 @@ class _ShellState extends State<Shell> {
     ReminderNotifications.stop();
     ReminderNotifications.pending.removeListener(_onReminderTap);
     LockGate.unlocked.removeListener(_onReminderTap);
+    HomeWidgets.stop();
+    HomeWidgets.choosing.removeListener(_onWidgetTap);
+    LockGate.unlocked.removeListener(_onWidgetTap);
     super.dispose();
   }
 
@@ -92,6 +102,30 @@ class _ShellState extends State<Shell> {
     } else if (kind == 'circle' && id != null) {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => CircleScreen(circleId: id, pay: create)));
     }
+  }
+
+  /// An Account widget without an account, tapped: once unlocked, asks which
+  /// of the open accounts it shows.
+  Future<void> _onWidgetTap() async {
+    final id = HomeWidgets.choosing.value;
+    if (id == null || !LockGate.unlocked.value || !mounted) return;
+    HomeWidgets.choosing.value = null;
+    final accounts = [for (final a in await FinanceRepo().accounts()) if (!a.closed) a];
+    if (!mounted) return;
+    final uid = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(ctx.l10n.widgetChooseTitle),
+        children: [
+          for (final a in accounts)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, a.uid),
+              child: Row(children: [accountAvatar(a.kind, radius: 16), const SizedBox(width: 12), Expanded(child: Text(a.name))]),
+            ),
+        ],
+      ),
+    );
+    if (uid != null) await HomeWidgets.setAccount(id, uid);
   }
 
   Future<void> _post(int recurringId) async {

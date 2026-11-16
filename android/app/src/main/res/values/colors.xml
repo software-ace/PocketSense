@@ -10,4 +10,7 @@
     <color name="quick_add_income_fg">#FF0F3D16</color>
     <color name="quick_add_voice_bg">#FFE1E0FF</color>
     <color name="quick_add_voice_fg">#FF23218A</color>
+    <!-- Plain widget style: text on the quick add widget's background. -->
+    <color name="balance_widget_fg">#FF1B1B21</color>
+    <color name="balance_widget_muted">#FF5E5D67</color>
 </resources>

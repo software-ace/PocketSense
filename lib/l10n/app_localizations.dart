@@ -2930,6 +2930,66 @@ abstract class AppLocalizations {
   /// **'Show amounts in recurring and loan reminder notifications'**
   String get reminderAmountsSubtitle;
 
+  /// No description provided for @widgetAmounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts on widgets'**
+  String get widgetAmounts;
+
+  /// No description provided for @widgetAmountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show balances and spending on home-screen widgets. Anyone who sees your home screen sees them.'**
+  String get widgetAmountsSubtitle;
+
+  /// No description provided for @widgetSpentOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent on {date}'**
+  String widgetSpentOn(String date);
+
+  /// No description provided for @widgetChooseAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose an account'**
+  String get widgetChooseAccount;
+
+  /// No description provided for @widgetAmountsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts in Settings → Security'**
+  String get widgetAmountsHint;
+
+  /// No description provided for @widgetStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget style'**
+  String get widgetStyle;
+
+  /// The Receipt widget style's rubber stamp over hidden amounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get widgetStamp;
+
+  /// No description provided for @widgetAmountHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount hidden'**
+  String get widgetAmountHidden;
+
+  /// No description provided for @widgetStyleName.
+  ///
+  /// In en, this message translates to:
+  /// **'{style, select, leather{Leather wallet} coins{Coin nap} lcd{Pocket LCD} receipt{Receipt} plain{Plain} other{{style}}}'**
+  String widgetStyleName(String style);
+
+  /// No description provided for @widgetChooseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account for this widget'**
+  String get widgetChooseTitle;
+
   /// No description provided for @cashAccount.
   ///
   /// In en, this message translates to:

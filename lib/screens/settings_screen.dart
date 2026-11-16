@@ -213,6 +213,26 @@ Future<void> _pickTheme(BuildContext context) async {
   if (picked != null) await AppSettings.setTheme(picked);
 }
 
+Future<void> _pickWidgetStyle(BuildContext context) async {
+  final l = context.l10n;
+  final picked = await showDialog<WidgetStyle>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: Text(l.widgetStyle),
+      children: [
+        RadioGroup<WidgetStyle>(
+          groupValue: AppSettings.widgetStyle.value,
+          onChanged: (v) => Navigator.pop(ctx, v),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (final s in WidgetStyle.values) RadioListTile<WidgetStyle>(value: s, title: Text(l.widgetStyleName(s.name))),
+          ]),
+        ),
+      ],
+    ),
+  );
+  if (picked != null) await AppSettings.setWidgetStyle(picked);
+}
+
 /// App lock on/off, change PIN, and (Android) biometric unlock. Changes to
 /// an existing lock ask for the current PIN first.
 class _SecuritySection extends StatefulWidget {
@@ -332,6 +352,27 @@ class _SecuritySectionState extends State<_SecuritySection> {
           onChanged: AppSettings.setReminderAmounts,
         ),
       ),
+      if (defaultTargetPlatform == TargetPlatform.android)
+        ValueListenableBuilder(
+          valueListenable: AppSettings.widgetAmounts,
+          builder: (context, on, _) => SwitchListTile(
+            secondary: const Icon(Icons.widgets_outlined),
+            title: Text(l.widgetAmounts),
+            subtitle: Text(l.widgetAmountsSubtitle),
+            value: on,
+            onChanged: AppSettings.setWidgetAmounts,
+          ),
+        ),
+      if (defaultTargetPlatform == TargetPlatform.android)
+        ValueListenableBuilder(
+          valueListenable: AppSettings.widgetStyle,
+          builder: (context, style, _) => ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(l.widgetStyle),
+            subtitle: Text(l.widgetStyleName(style.name)),
+            onTap: () => _pickWidgetStyle(context),
+          ),
+        ),
     ]);
   }
 }

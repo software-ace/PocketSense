@@ -1889,6 +1889,49 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show amounts in recurring and loan reminder notifications';
 
   @override
+  String get widgetAmounts => 'Amounts on widgets';
+
+  @override
+  String get widgetAmountsSubtitle =>
+      'Show balances and spending on home-screen widgets. Anyone who sees your home screen sees them.';
+
+  @override
+  String widgetSpentOn(String date) {
+    return 'Spent on $date';
+  }
+
+  @override
+  String get widgetChooseAccount => 'Tap to choose an account';
+
+  @override
+  String get widgetAmountsHint => 'Show amounts in Settings → Security';
+
+  @override
+  String get widgetStyle => 'Widget style';
+
+  @override
+  String get widgetStamp => 'Hidden';
+
+  @override
+  String get widgetAmountHidden => 'Amount hidden';
+
+  @override
+  String widgetStyleName(String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'leather': 'Leather wallet',
+      'coins': 'Coin nap',
+      'lcd': 'Pocket LCD',
+      'receipt': 'Receipt',
+      'plain': 'Plain',
+      'other': '$style',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get widgetChooseTitle => 'Account for this widget';
+
+  @override
   String get cashAccount => 'Cash';
 
   @override

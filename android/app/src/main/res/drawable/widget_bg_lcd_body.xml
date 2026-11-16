@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quick add, Pocket LCD: the console's body, no screen. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape><solid android:color="#FFA9A498" />
+            <corners android:topLeftRadius="22dp" android:topRightRadius="22dp" android:bottomLeftRadius="22dp" android:bottomRightRadius="30dp" /></shape>
+    </item>
+    <item android:bottom="4dp">
+        <shape><solid android:color="#FFC8C4BA" />
+            <corners android:topLeftRadius="22dp" android:topRightRadius="22dp" android:bottomLeftRadius="22dp" android:bottomRightRadius="30dp" /></shape>
+    </item>
+</layer-list>

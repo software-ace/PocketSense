@@ -63,6 +63,20 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/quick_add_widget_info"/>
         </receiver>
+        <!-- Widgets with amounts (BalanceWidgets.kt): ••• unless Settings →
+             Amounts on widgets is on, and nothing saved for them. -->
+        <receiver android:name=".OverviewWidget" android:exported="false" android:label="@string/overview_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/overview_widget_info"/>
+        </receiver>
+        <receiver android:name=".AccountWidget" android:exported="false" android:label="@string/account_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/account_widget_info"/>
+        </receiver>
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <!-- A reminder's Dismiss button, which closes it without opening the app. -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />

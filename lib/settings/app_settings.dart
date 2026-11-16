@@ -11,6 +11,9 @@ import '../utils/format.dart';
 /// background: AMOLED screens leave those pixels off.
 enum AppTheme { system, light, dark, black }
 
+/// How the Android home-screen widgets look (BalanceWidgets.kt has the same names).
+enum WidgetStyle { leather, coins, lcd, receipt, plain }
+
 /// App-wide preferences that aren't financial data (those live in the
 /// encrypted database). Stored with shared_preferences.
 class AppSettings {
@@ -26,6 +29,8 @@ class AppSettings {
   static const _privateScreenKey = 'privateScreen';
   static const _hideAmountsKey = 'hideAmounts';
   static const _reminderAmountsKey = 'reminderAmounts';
+  static const _widgetAmountsKey = 'widgetAmounts';
+  static const _widgetStyleKey = 'widgetStyle';
   static const _homeOrderKey = 'homeOrder';
   static const _defaultAccountKey = 'defaultAccount';
   static const _homeHiddenKey = 'homeHidden';
@@ -64,6 +69,10 @@ class AppSettings {
   /// Amounts in reminder notifications: off, as they show outside the app.
   static final reminderAmounts = ValueNotifier(false);
 
+  /// Android: home-screen widgets show amounts, not •••. Off by default.
+  static final widgetAmounts = ValueNotifier(false);
+  static final widgetStyle = ValueNotifier(WidgetStyle.leather);
+
   /// The account new entries go into on this device, by uid; null is Cash
   /// (or the first open account). Per device: two people sharing data can
   /// each keep their own.
@@ -100,6 +109,8 @@ class AppSettings {
       privateScreen.value = await _prefs.getBool(_privateScreenKey) ?? true;
       hideAmounts.value = await _prefs.getBool(_hideAmountsKey) ?? true;
       reminderAmounts.value = await _prefs.getBool(_reminderAmountsKey) ?? false;
+      widgetAmounts.value = await _prefs.getBool(_widgetAmountsKey) ?? false;
+      widgetStyle.value = WidgetStyle.values.asNameMap()[await _prefs.getString(_widgetStyleKey)] ?? WidgetStyle.leather;
       defaultAccount.value = await _prefs.getString(_defaultAccountKey);
       homeLayout.value = homeLayoutFrom(await _prefs.getStringList(_homeOrderKey), await _prefs.getStringList(_homeHiddenKey));
       currency.value = appCurrency = Currency.byCode(await _prefs.getString(_currencyKey)) ?? currencies.first;
@@ -191,6 +202,16 @@ class AppSettings {
   static Future<void> setReminderAmounts(bool on) async {
     reminderAmounts.value = on;
     await _prefs.setBool(_reminderAmountsKey, on);
+  }
+
+  static Future<void> setWidgetAmounts(bool on) async {
+    widgetAmounts.value = on;
+    await _prefs.setBool(_widgetAmountsKey, on);
+  }
+
+  static Future<void> setWidgetStyle(WidgetStyle value) async {
+    widgetStyle.value = value;
+    await _prefs.setString(_widgetStyleKey, value.name);
   }
 
   static Future<void> _applyPrivateScreen() async {
