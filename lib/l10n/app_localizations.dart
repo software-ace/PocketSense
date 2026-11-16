@@ -692,6 +692,18 @@ abstract class AppLocalizations {
   /// **'Tap Add to record your first entry.'**
   String get noTransactionsHint;
 
+  /// No description provided for @noMatchingTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches'**
+  String get noMatchingTransactions;
+
+  /// No description provided for @noMatchingTransactionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try other words, or clear a filter.'**
+  String get noMatchingTransactionsHint;
+
   /// No description provided for @deleteTransactionTitle.
   ///
   /// In en, this message translates to:

@@ -322,6 +322,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noTransactionsHint => 'اضغط «إضافة» لتسجيل أول معاملة.';
 
   @override
+  String get noMatchingTransactions => 'لا شيء مطابق';
+
+  @override
+  String get noMatchingTransactionsHint =>
+      'جرّب كلمات أخرى، أو أزل أحد المرشّحات.';
+
+  @override
   String get deleteTransactionTitle => 'حذف المعاملة؟';
 
   @override

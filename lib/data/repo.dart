@@ -141,6 +141,8 @@ class FinanceRepo {
     int? loanId,
     int? circleId,
     int? accountId,
+    int? categoryId,
+    String? merchant,
     int limit = 200,
   }) async {
     final store = await _db;
@@ -173,6 +175,16 @@ class FinanceRepo {
     if (accountId != null) {
       where.add('account_id = ?');
       args.add(accountId);
+    }
+    if (categoryId != null) {
+      where.add('category_id = ?');
+      args.add(categoryId);
+    }
+    // Exactly that merchant, in any letter case (as the merchant list matches
+    // names), unlike q, which finds text anywhere.
+    if (merchant != null) {
+      where.add('merchant = ? COLLATE NOCASE');
+      args.add(merchant);
     }
     final w = where.isEmpty ? null : where.join(' AND ');
     // Newest first, sorted and cut by SQLite: Home wants 8 and Activity 200

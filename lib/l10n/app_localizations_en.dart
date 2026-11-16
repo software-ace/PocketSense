@@ -322,6 +322,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTransactionsHint => 'Tap Add to record your first entry.';
 
   @override
+  String get noMatchingTransactions => 'Nothing matches';
+
+  @override
+  String get noMatchingTransactionsHint =>
+      'Try other words, or clear a filter.';
+
+  @override
   String get deleteTransactionTitle => 'Delete transaction?';
 
   @override

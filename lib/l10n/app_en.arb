@@ -141,6 +141,8 @@
   "searchTransactions": "Search transactions…",
   "search": "Search…",
   "noTransactionsHint": "Tap Add to record your first entry.",
+  "noMatchingTransactions": "Nothing matches",
+  "noMatchingTransactionsHint": "Try other words, or clear a filter.",
   "deleteTransactionTitle": "Delete transaction?",
   "addFailed": "Failed to add: {error}",
   "@addFailed": {

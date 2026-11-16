@@ -16,6 +16,7 @@ import '../widgets/data_aware.dart';
 import '../widgets/merchant_field.dart';
 import '../utils/voice_parser.dart';
 import '../widgets/voice_entry_sheet.dart';
+import 'accounts_screen.dart' show accountAvatar;
 import 'loans_screen.dart' show DateField;
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -30,17 +31,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   final _repo = FinanceRepo();
   final _searchCtrl = TextEditingController();
   String? _typeFilter; // null=all, 'income', 'expense'
+  // Exact filters beside the type, each combinable with search: one
+  // category, merchant and account. Kept whole, so the chip can name it.
+  Category? _category;
+  // Kept by id: entries store the name, which a rename changes.
+  Merchant? _merchant;
+  Account? _account;
+  // The Account filter shows once there's more than one, as in the form.
+  List<Account> _accounts = const [];
   List<Transaction> _items = [];
   Object? _error;
   bool _loading = true;
 
+  // Picks first, so a renamed merchant is filtered by its new name.
   @override
-  void onDataChanged() => _load();
+  void onDataChanged() => _refreshPicks().catchError((_) {}).whenComplete(_load);
 
   @override
   void initState() {
     super.initState();
     _load();
+    _refreshPicks();
     // A request from launch is already waiting; later ones arrive while running.
     QuickAddRequests.pending.addListener(_onQuickAdd);
     LockGate.unlocked.addListener(_onQuickAdd);
@@ -97,7 +108,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     // No spinner here: it shows only before the first load, not per keystroke.
     if (_error != null) setState(() => _error = null);
     try {
-      final items = await _repo.transactions(type: _typeFilter, q: _searchCtrl.text.trim(), limit: _limit);
+      final items = await _repo.transactions(
+          type: _typeFilter, q: _searchCtrl.text.trim(), categoryId: _category?.id, merchant: _merchant?.name, accountId: _account?.id, limit: _limit);
       if (!mounted || load != _loads) return;
       setState(() {
         _items = items;
@@ -111,6 +123,91 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       });
     }
   }
+
+  /// After a change anywhere (a rename, a delete, sync): each picked filter
+  /// follows its item's new name, and one that's gone is cleared.
+  Future<void> _refreshPicks() async {
+    final accounts = await _repo.accounts();
+    final categories = _category == null ? null : await _repo.categories();
+    final merchants = _merchant == null ? null : await _repo.merchants();
+    if (!mounted) return;
+    setState(() {
+      _accounts = accounts;
+      _account = accounts.where((a) => a.id == _account?.id).firstOrNull;
+      _category = categories?.where((c) => c.id == _category?.id).firstOrNull;
+      _merchant = merchants?.where((m) => m.id == _merchant?.id).firstOrNull;
+    });
+  }
+
+  bool get _filtered =>
+      _typeFilter != null || _searchCtrl.text.trim().isNotEmpty || _category != null || _merchant != null || _account != null;
+
+  void _setType(String? type) {
+    setState(() {
+      _typeFilter = type;
+      // An expense category under Income would only ever show nothing.
+      if (type != null && _category?.type != type) _category = null;
+    });
+    _load();
+  }
+
+  void _setFilter(VoidCallback change) {
+    setState(change);
+    _load();
+  }
+
+  /// Category, Merchant and (with more than one) Account: each opens a list
+  /// to pick one from; a picked one shows its name and an ✕ to clear it.
+  Widget _filters() {
+    final l = context.l10n;
+    Widget chip(String label, String? picked, IconData icon, Future<void> Function() pick, VoidCallback clear) => picked == null
+        ? ActionChip(avatar: Icon(icon, size: 18), label: Text(label), onPressed: pick)
+        : InputChip(avatar: Icon(icon, size: 18), label: Text(picked), selected: true, onPressed: pick, onDeleted: () => _setFilter(clear));
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Wrap(spacing: 8, runSpacing: 8, children: [
+        chip(l.category, _category?.name, Icons.category_outlined, _pickCategory, () => _category = null),
+        chip(l.merchant, _merchant?.name, Icons.storefront_outlined, _pickMerchant, () => _merchant = null),
+        if (_accounts.length > 1 || _account != null)
+          chip(l.account, _account?.name, Icons.account_balance_wallet_outlined, _pickAccount, () => _account = null),
+      ]),
+    );
+  }
+
+  Future<void> _pickCategory() async {
+    // Only the chosen type's categories: the others would match nothing.
+    final cats = [for (final c in await _repo.categories()) if (_typeFilter == null || c.type == _typeFilter) c];
+    if (!mounted) return;
+    final picked = await _pickFrom<Category>(context.l10n.category, [
+      for (final c in cats)
+        (label: c.name, value: c, leading: CircleAvatar(radius: 7, backgroundColor: parseHex(c.color) ?? Colors.grey)),
+    ]);
+    if (picked != null) _setFilter(() => _category = picked);
+  }
+
+  Future<void> _pickMerchant() async {
+    final merchants = await _repo.merchants();
+    if (!mounted) return;
+    final picked = await _pickFrom<Merchant>(context.l10n.merchant, [
+      for (final m in merchants) (label: m.name, value: m, leading: null),
+    ]);
+    if (picked != null) _setFilter(() => _merchant = picked);
+  }
+
+  Future<void> _pickAccount() async {
+    final l = context.l10n;
+    final picked = await _pickFrom<Account>(l.account, [
+      for (final a in _accounts) (label: a.closed ? l.accountClosedName(a.name) : a.name, value: a, leading: accountAvatar(a.kind, radius: 14)),
+    ]);
+    if (picked != null) _setFilter(() => _account = picked);
+  }
+
+  Future<T?> _pickFrom<T>(String title, List<_Option<T>> options) => showModalBottomSheet<T>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (_) => _FilterPicker<T>(title: title, options: options),
+      );
 
   Future<void> _addTransaction({String type = 'expense'}) => addTransaction(context, type: type);
 
@@ -238,13 +335,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
             SegmentedButton<String>(
               segments: _typeSegments(l),
               selected: {_typeFilter ?? ''},
-              onSelectionChanged: (s) {
-                setState(() => _typeFilter = s.first.isEmpty ? null : s.first);
-                _load();
-              },
+              onSelectionChanged: (s) => _setType(s.first.isEmpty ? null : s.first),
             ),
           ]),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          _filters(),
+          const SizedBox(height: 12),
           Expanded(child: _buildBody(theme, desktop: true)),
         ]),
       ),
@@ -276,12 +372,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
           child: SegmentedButton<String>(
             segments: _typeSegments(l),
             selected: {_typeFilter ?? ''},
-            onSelectionChanged: (s) {
-              setState(() => _typeFilter = s.first.isEmpty ? null : s.first);
-              _load();
-            },
+            onSelectionChanged: (s) => _setType(s.first.isEmpty ? null : s.first),
           ),
         ),
+        Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: _filters()),
         Expanded(child: _buildBody(theme, desktop: false)),
       ]),
     );
@@ -290,6 +384,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
   Widget _buildBody(ThemeData theme, {required bool desktop}) {
     if (_loading) return const LoadingView();
     if (_error != null) return ErrorView(message: _error.toString(), onRetry: _load);
+    if (_items.isEmpty && _filtered) {
+      return EmptyView(icon: Icons.search_off, title: context.l10n.noMatchingTransactions, subtitle: context.l10n.noMatchingTransactionsHint);
+    }
     if (_items.isEmpty) return EmptyView(icon: Icons.receipt_long, title: context.l10n.noTransactionsYet, subtitle: context.l10n.noTransactionsHint);
 
     if (desktop) return _dataTable(theme);
@@ -599,6 +696,59 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           ]),
         ),
       )),
+    );
+  }
+}
+
+typedef _Option<T> = ({String label, T value, Widget? leading});
+
+/// A list to pick one filter value from, with a search box once it's long.
+class _FilterPicker<T> extends StatefulWidget {
+  const _FilterPicker({super.key, required this.title, required this.options});
+  final String title;
+  final List<_Option<T>> options;
+
+  @override
+  State<_FilterPicker<T>> createState() => _FilterPickerState<T>();
+}
+
+class _FilterPickerState<T> extends State<_FilterPicker<T>> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final q = _query.trim().toLowerCase();
+    final shown = [for (final o in widget.options) if (q.isEmpty || o.label.toLowerCase().contains(q)) o];
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text(widget.title, style: Theme.of(context).textTheme.titleMedium),
+          ),
+          if (widget.options.length > 8)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: TextField(
+                autofocus: true,
+                decoration: InputDecoration(hintText: l.search, isDense: true, prefixIcon: const Icon(Icons.search), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                onChanged: (v) => setState(() => _query = v),
+              ),
+            ),
+          if (widget.options.isEmpty || shown.isEmpty)
+            Padding(padding: const EdgeInsets.all(24), child: Text(l.noMatchingTransactions, textAlign: TextAlign.center))
+          else
+            Flexible(
+              child: ListView(shrinkWrap: true, children: [
+                for (final o in shown) ListTile(leading: o.leading, title: Text(o.label), onTap: () => Navigator.pop(context, o.value)),
+              ]),
+            ),
+          const SizedBox(height: 8),
+        ]),
+      ),
     );
   }
 }

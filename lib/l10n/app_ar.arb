@@ -99,6 +99,8 @@
   "searchTransactions": "ابحث في المعاملات…",
   "search": "بحث…",
   "noTransactionsHint": "اضغط «إضافة» لتسجيل أول معاملة.",
+  "noMatchingTransactions": "لا شيء مطابق",
+  "noMatchingTransactionsHint": "جرّب كلمات أخرى، أو أزل أحد المرشّحات.",
   "deleteTransactionTitle": "حذف المعاملة؟",
   "addFailed": "فشلت الإضافة: {error}",
   "updateFailed": "فشل التحديث: {error}",

@@ -56,7 +56,7 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 
 **Tracking money**
 - **Home:** this month's income, spending and net, spending so far this year, a 30-day daily spending chart, breakdowns by category and by merchant (the top 5, the rest as Other) and the income and spending of a month, each for a month you pick, income vs spending for the last 6 months, this month's spending against last month's by the same day, the average spent on each weekday, and recent entries. **Settings → Home page** puts them in the order you want and hides what you don't need, except the Loans and Savings circles cards, which are the way into them on a phone. On the desktop, Loans, Savings circles and Accounts are tabs in the side rail instead of cards on Home.
-- **Activity:** income and expenses with a date, description, merchant and category. Search, filter by type, tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
+- **Activity:** income and expenses with a date, description, merchant and category. Search by description or merchant, filter by type and by one category, merchant or account (each picked from a list, and combinable with search), tap to edit, swipe to delete, long-press for more. On the desktop it's a table with edit and delete buttons on each row.
 - **Add by voice:** tap 🎤 and say *"Spent 3.5 on lunch at Reem yesterday"*. The form opens filled in for you to check and save. Voice entry understands English, in either app language.
   - On Android it uses the phone's speech recognizer.
   - On Linux it runs an offline model ([sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), about 45 MB, downloaded once on first use).
