@@ -833,7 +833,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get exportData => 'تصدير نسخة احتياطية';
 
   @override
-  String get exportDataSubtitle => 'حفظ كل البيانات في ملف مشفّر';
+  String get exportDataSubtitle => 'حفظ كل البيانات في ملف';
+
+  @override
+  String get encryptBackupTitle => 'تشفير هذه النسخة الاحتياطية؟';
+
+  @override
+  String get encryptBackupBody =>
+      'يُنصح به. بدون كلمة مرور، يستطيع أي شخص يحصل على الملف قراءة كل ما فيه.';
+
+  @override
+  String get encryptAction => 'تشفير';
+
+  @override
+  String get dontEncryptAction => 'بدون تشفير';
 
   @override
   String get importData => 'استيراد نسخة احتياطية';

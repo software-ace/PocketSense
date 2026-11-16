@@ -12,16 +12,31 @@ import '../settings/app_settings.dart';
 import '../utils/format.dart';
 
 /// Settings → Backup: export to / import from a file the user picks. Exports
-/// are always encrypted with the backup password; imports read old plain
-/// files too.
+/// are encrypted with the backup password unless the user opts out (to read
+/// the file with their own tools); imports read either.
 
 Future<void> exportBackup(BuildContext context) async {
   final l = context.l10n;
-  final password = await ensureBackupPassword(context);
-  if (password == null || !context.mounted) return;
+  // null: cancelled.
+  final encrypt = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(l.encryptBackupTitle),
+      content: Text(l.encryptBackupBody),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.cancel)),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.dontEncryptAction)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.encryptAction)),
+      ],
+    ),
+  );
+  if (encrypt == null || !context.mounted) return;
+  final password = encrypt ? await ensureBackupPassword(context) : null;
+  if ((encrypt && password == null) || !context.mounted) return;
   try {
     _toast(context, l.preparingBackup);
-    final sealed = await Backup.encrypt(await Backup.export(await LocalStore.instance()), password);
+    final json = await Backup.export(await LocalStore.instance());
+    final sealed = password == null ? json : await Backup.encrypt(json, password);
     if (!context.mounted) return;
     final saved = await FilePicker.saveFile(
       fileName: 'pocketsense-${DateFormat('yyyy-MM-dd', 'en').format(DateTime.now())}.json',

@@ -1331,8 +1331,32 @@ abstract class AppLocalizations {
   /// No description provided for @exportDataSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Save everything to an encrypted file'**
+  /// **'Save everything to a file'**
   String get exportDataSubtitle;
+
+  /// No description provided for @encryptBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt this backup?'**
+  String get encryptBackupTitle;
+
+  /// No description provided for @encryptBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended. Without a password, anyone who gets the file can read everything in it.'**
+  String get encryptBackupBody;
+
+  /// No description provided for @encryptAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt'**
+  String get encryptAction;
+
+  /// No description provided for @dontEncryptAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t encrypt'**
+  String get dontEncryptAction;
 
   /// No description provided for @importData.
   ///

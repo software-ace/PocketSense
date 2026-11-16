@@ -819,7 +819,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportData => 'Export Backup';
 
   @override
-  String get exportDataSubtitle => 'Save everything to an encrypted file';
+  String get exportDataSubtitle => 'Save everything to a file';
+
+  @override
+  String get encryptBackupTitle => 'Encrypt this backup?';
+
+  @override
+  String get encryptBackupBody =>
+      'Recommended. Without a password, anyone who gets the file can read everything in it.';
+
+  @override
+  String get encryptAction => 'Encrypt';
+
+  @override
+  String get dontEncryptAction => 'Don\'t encrypt';
 
   @override
   String get importData => 'Import Backup';

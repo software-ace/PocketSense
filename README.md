@@ -11,7 +11,7 @@
 
 A private personal finance tracker for Android, Linux and Windows. It works fully offline, in English and Arabic, in any of 69 currencies.
 
-There is no sign-up and no server. Your data stays in an encrypted database on your device. It leaves only as an encrypted backup you make or turn on, or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
+There is no sign-up and no server. Your data stays in an encrypted database on your device. It leaves only as a backup or CSV file you export (backups are encrypted unless you choose otherwise), or, if you turn on sync, encrypted to your own paired devices on your Wi-Fi.
 
 ## Screenshots
 
@@ -111,9 +111,9 @@ The screenshots use the demo data in [`docs/demo-backup.json`](docs/demo-backup.
 - **App lock:** **Settings → Security** sets a 4–6 digit PIN. It's asked for at launch and after 30 seconds in the background, and on Android you can also use a fingerprint or face. After 5 wrong PINs you have to wait, 30 seconds at first and then longer.
   - The quick add widget and the app-icon shortcuts open the app through the lock like any launch, and the form waits until it's unlocked. The widget itself shows no amounts.
 - **A forgotten PIN can't be recovered.** The lock screen offers to erase everything, after which you can import a backup with your backup password.
-- **Backups:** **Settings → Backup** exports everything to a file encrypted with a backup password (AES-256-GCM, key from PBKDF2), and imports it back. [`docs/formats.md`](docs/formats.md) describes the file and its encryption, so your own scripts can read it. **Automatic backup** writes one a day to a folder you pick (on Android, inside Documents or Download) and keeps the last 10.
+- **Backups:** **Settings → Backup** exports everything to a file, encrypted with a backup password by default (AES-256-GCM, key from PBKDF2), and imports it back. You can choose not to encrypt it, for example to read it with your own scripts; [`docs/formats.md`](docs/formats.md) describes the file and the encryption. **Automatic backup** writes one a day to a folder you pick (on Android, inside Documents or Download) and keeps the last 10.
   - The app remembers the backup password on the device, so automatic backups need no input. You'll need it to restore anywhere else; **if you forget it, your backups can't be opened.**
-  - Import also reads older, unencrypted backup files. Every import is fully checked first, and a bad file or wrong password changes nothing.
+  - Import reads both encrypted and unencrypted backup files. Every import is fully checked first, and a bad file or wrong password changes nothing.
   - Erasing all data also forgets the backup password and turns automatic backup off.
   - Android's own system backup is off, because a restored database can't be opened without its Keystore key.
 - **Found a security problem?** Please report it privately, not in an issue: see [SECURITY.md](SECURITY.md).

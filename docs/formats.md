@@ -99,7 +99,7 @@ A transaction's `merchant` is plain text. The `merchants` table is the list the 
 
 ## Encrypted backup
 
-Backups the app makes, including automatic ones, are encrypted. An encrypted file wraps the backup JSON above:
+Export asks whether to encrypt, and recommends it. Automatic backups are always encrypted. An encrypted file wraps the backup JSON above:
 
 ```json
 {

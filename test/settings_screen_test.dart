@@ -143,8 +143,18 @@ void main() {
     expect(find.widgetWithText(ListTile, 'Export Backup'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Import Backup'), findsOneWidget);
 
-    // No backup password yet: export asks for one before writing anything.
+    // Export first asks whether to encrypt; cancelling there writes nothing.
     await tester.tap(find.widgetWithText(ListTile, 'Export Backup'));
+    await tester.pumpAndSettle();
+    expect(find.text('Encrypt this backup?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Encrypt this backup?'), findsNothing);
+
+    // Encrypting with no backup password yet asks for one before writing anything.
+    await tester.tap(find.widgetWithText(ListTile, 'Export Backup'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Encrypt'));
     await tester.pumpAndSettle();
     expect(find.text('Choose a backup password'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'short');
