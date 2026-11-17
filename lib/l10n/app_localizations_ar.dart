@@ -2471,4 +2471,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get showOlderEntries => 'عرض قيود أقدم';
+
+  @override
+  String get recurringViewItems => 'العناصر';
+
+  @override
+  String get recurringViewCalendar => 'التقويم';
+
+  @override
+  String get stillComingIn => 'المتبقي لك';
+
+  @override
+  String get stillGoingOut => 'المتبقي عليك';
+
+  @override
+  String get calendarOverdue => 'متأخر';
+
+  @override
+  String calendarOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'متأخر · $count عنصر',
+      many: 'متأخر · $count عنصرًا',
+      few: 'متأخر · $count عناصر',
+      two: 'متأخر · عنصران',
+      one: 'متأخر · عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get calendarPaid => 'مدفوع';
+
+  @override
+  String get calendarReceived => 'مقبوض';
+
+  @override
+  String get calendarNothingDue => 'لا شيء مستحق في هذا اليوم';
+
+  @override
+  String calendarDayItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر مستحق',
+      many: '$count عنصرًا مستحقًا',
+      few: '$count عناصر مستحقة',
+      two: 'عنصران مستحقان',
+      one: 'عنصر واحد مستحق',
+      zero: 'لا شيء مستحق',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarToday(String date) {
+    return 'اليوم · $date';
+  }
 }

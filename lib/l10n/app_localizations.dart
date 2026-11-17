@@ -3673,6 +3673,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show older entries'**
   String get showOlderEntries;
+
+  /// No description provided for @recurringViewItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get recurringViewItems;
+
+  /// The Recurring screen's month view: recurring items, loan due dates and circle rounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get recurringViewCalendar;
+
+  /// What's still to be received in the month on screen, from today on.
+  ///
+  /// In en, this message translates to:
+  /// **'Still coming in'**
+  String get stillComingIn;
+
+  /// No description provided for @stillGoingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Still going out'**
+  String get stillGoingOut;
+
+  /// No description provided for @calendarOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get calendarOverdue;
+
+  /// No description provided for @calendarOverdueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Overdue · 1 item} other{Overdue · {count} items}}'**
+  String calendarOverdueCount(int count);
+
+  /// No description provided for @calendarPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get calendarPaid;
+
+  /// No description provided for @calendarReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get calendarReceived;
+
+  /// No description provided for @calendarNothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due this day'**
+  String get calendarNothingDue;
+
+  /// Read by screen readers after a calendar day's date.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{nothing due} =1{1 item due} other{{count} items due}}'**
+  String calendarDayItems(int count);
+
+  /// No description provided for @calendarToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today · {date}'**
+  String calendarToday(String date);
 }
 
 class _AppLocalizationsDelegate

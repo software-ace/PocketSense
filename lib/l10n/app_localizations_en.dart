@@ -2403,4 +2403,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showOlderEntries => 'Show older entries';
+
+  @override
+  String get recurringViewItems => 'Items';
+
+  @override
+  String get recurringViewCalendar => 'Calendar';
+
+  @override
+  String get stillComingIn => 'Still coming in';
+
+  @override
+  String get stillGoingOut => 'Still going out';
+
+  @override
+  String get calendarOverdue => 'Overdue';
+
+  @override
+  String calendarOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Overdue · $count items',
+      one: 'Overdue · 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get calendarPaid => 'Paid';
+
+  @override
+  String get calendarReceived => 'Received';
+
+  @override
+  String get calendarNothingDue => 'Nothing due this day';
+
+  @override
+  String calendarDayItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items due',
+      one: '1 item due',
+      zero: 'nothing due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarToday(String date) {
+    return 'Today · $date';
+  }
 }

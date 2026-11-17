@@ -15,6 +15,7 @@ import '../widgets/account_field.dart';
 import '../widgets/merchant_field.dart';
 import '../widgets/reminder_countdown.dart';
 import '../widgets/reminder_field.dart';
+import 'recurring_calendar.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -28,6 +29,10 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
   final _repo = FinanceRepo();
   List<RecurringExpense> _items = [];
   List<Category> _cats = [];
+  // For the calendar, which also shows loan due dates and circle rounds.
+  List<Loan> _loans = [];
+  List<Circle> _circles = [];
+  bool _calendar = false;
   Object? _error;
   bool _loading = true;
 
@@ -42,15 +47,18 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
 
   Future<void> _load() async {
     setState(() {
-      _loading = true;
+      // The spinner only on the first load or a retry: a reload would replace the calendar and lose its month.
+      _loading = _loading || _error != null;
       _error = null;
     });
     try {
-      final results = await Future.wait([_repo.recurring(), _repo.categories()]);
+      final results = await Future.wait([_repo.recurring(), _repo.categories(), _repo.loans(), _repo.circles()]);
       if (!mounted) return;
       setState(() {
         _items = results[0] as List<RecurringExpense>;
         _cats = results[1] as List<Category>;
+        _loans = results[2] as List<Loan>;
+        _circles = results[3] as List<Circle>;
         _loading = false;
       });
     } catch (e) {
@@ -118,6 +126,27 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             : _error != null
                 ? ErrorView(message: _error.toString(), onRetry: _load)
                 : Column(children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 8, PlatformUi.hPadding(context), 0),
+                      child: SegmentedButton<bool>(
+                        segments: [
+                          ButtonSegment(value: false, icon: const Icon(Icons.view_agenda_outlined), label: Text(l.recurringViewItems)),
+                          ButtonSegment(value: true, icon: const Icon(Icons.calendar_month_outlined), label: Text(l.recurringViewCalendar)),
+                        ],
+                        selected: {_calendar},
+                        onSelectionChanged: (s) => setState(() => _calendar = s.first),
+                      ),
+                    ),
+                    if (_calendar)
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 600),
+                            child: RecurringCalendar(recurring: _items, loans: _loans, circles: _circles, onEdit: _edit),
+                          ),
+                        ),
+                      )
+                    else ...[
                     if (desktop)
                       Padding(
                         padding: EdgeInsets.fromLTRB(PlatformUi.hPadding(context), 8, PlatformUi.hPadding(context), 0),
@@ -137,6 +166,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
                                   itemBuilder: (_, i) => _mobileCard(theme, _items[i]),
                                 ),
                     ),
+                    ],
                   ]),
       ),
     );

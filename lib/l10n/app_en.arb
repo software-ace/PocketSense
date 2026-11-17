@@ -1512,5 +1512,44 @@
     }
   },
   "deleteTransferTitle": "Delete this transfer?",
-  "showOlderEntries": "Show older entries"
+  "showOlderEntries": "Show older entries",
+  "recurringViewItems": "Items",
+  "recurringViewCalendar": "Calendar",
+  "@recurringViewCalendar": {
+    "description": "The Recurring screen's month view: recurring items, loan due dates and circle rounds."
+  },
+  "stillComingIn": "Still coming in",
+  "@stillComingIn": {
+    "description": "What's still to be received in the month on screen, from today on."
+  },
+  "stillGoingOut": "Still going out",
+  "calendarOverdue": "Overdue",
+  "calendarOverdueCount": "{count, plural, =1{Overdue · 1 item} other{Overdue · {count} items}}",
+  "@calendarOverdueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarPaid": "Paid",
+  "calendarReceived": "Received",
+  "calendarNothingDue": "Nothing due this day",
+  "calendarDayItems": "{count, plural, =0{nothing due} =1{1 item due} other{{count} items due}}",
+  "@calendarDayItems": {
+    "description": "Read by screen readers after a calendar day's date.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarToday": "Today · {date}",
+  "@calendarToday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

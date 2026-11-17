@@ -595,5 +595,16 @@
   "countdownSeparator": "، ",
   "nextReminderIn": "تذكيرك القادم بعد: {time}",
   "deleteTransferTitle": "حذف هذا التحويل؟",
-  "showOlderEntries": "عرض قيود أقدم"
+  "showOlderEntries": "عرض قيود أقدم",
+  "recurringViewItems": "العناصر",
+  "recurringViewCalendar": "التقويم",
+  "stillComingIn": "المتبقي لك",
+  "stillGoingOut": "المتبقي عليك",
+  "calendarOverdue": "متأخر",
+  "calendarOverdueCount": "{count, plural, =1{متأخر · عنصر واحد} =2{متأخر · عنصران} few{متأخر · {count} عناصر} many{متأخر · {count} عنصرًا} other{متأخر · {count} عنصر}}",
+  "calendarPaid": "مدفوع",
+  "calendarReceived": "مقبوض",
+  "calendarNothingDue": "لا شيء مستحق في هذا اليوم",
+  "calendarDayItems": "{count, plural, =0{لا شيء مستحق} =1{عنصر واحد مستحق} =2{عنصران مستحقان} few{{count} عناصر مستحقة} many{{count} عنصرًا مستحقًا} other{{count} عنصر مستحق}}",
+  "calendarToday": "اليوم · {date}"
 }
