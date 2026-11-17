@@ -5,15 +5,18 @@ import '../security/app_lock.dart';
 import '../security/biometrics.dart';
 import '../security/pin_flows.dart';
 import '../settings/app_settings.dart';
+import '../settings/app_style.dart';
 import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
 import '../utils/format.dart';
 import '../widgets/whats_new.dart';
 import 'backup_actions.dart';
 
-/// First run: 1) import a backup or start fresh, 2) set a PIN, then offer
-/// biometric unlock where available. Each step is saved as it completes
-/// ([AppSettings.onboardingStep]), so quitting part-way resumes there.
+/// First run: 1) import a backup or start fresh, 2) pick the app's style,
+/// 3) set a PIN, then offer biometric unlock where available. Steps 1 and 3
+/// are saved as they complete ([AppSettings.onboardingStep]), so quitting
+/// part-way resumes there; the style applies as it's tapped, so it needs no
+/// step of its own (and installs from before it never see it).
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, required this.onDone, this.importer});
 
@@ -29,6 +32,8 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   late int _step = AppSettings.onboardingStep.clamp(0, 1);
   bool _offerBiometrics = false;
+  // Between the data and security steps, in this run only.
+  bool _pickingStyle = false;
   bool _busy = false;
 
   Future<void> _run(Future<void> Function() action) async {
@@ -41,14 +46,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  Future<void> _toSecurity() async {
+  Future<void> _toStyle() async {
     await AppSettings.setOnboardingStep(1);
-    if (mounted) setState(() => _step = 1);
+    if (mounted) {
+      setState(() {
+        _step = 1;
+        _pickingStyle = true;
+      });
+    }
   }
 
   Future<void> _import() => _run(() async {
         final importer = widget.importer ?? (c) => importBackup(c, confirmReplace: false);
-        if (await importer(context)) await _toSecurity();
+        if (await importer(context)) await _toStyle();
       });
 
   Future<void> _setPin() => _run(() async {
@@ -79,8 +89,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final Widget body = switch ((_step, _offerBiometrics)) {
-      (0, _) => _Page(
+    // The page shown: data, style, then security (with its biometrics offer).
+    final shown = _step == 0 ? 0 : (_pickingStyle ? 1 : 2);
+    final Widget body = switch ((_step, _pickingStyle, _offerBiometrics)) {
+      (0, _, _) => _Page(
           icon: Icons.account_balance_wallet_rounded,
           title: l.welcomeTitle,
           body: l.welcomeBody,
@@ -114,11 +126,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               icon: Icons.add_circle_outline,
               title: l.startFresh,
               subtitle: l.startFreshSubtitle,
-              onTap: _busy ? null : () => _run(_toSecurity),
+              onTap: _busy ? null : () => _run(_toStyle),
             ),
           ],
         ),
-      (_, false) => _Page(
+      (_, true, _) => _Page(
+          icon: Icons.palette_outlined,
+          title: l.styleTitle,
+          body: l.styleBody,
+          hint: l.styleLaterHint,
+          children: [
+            Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: ValueListenableBuilder(
+                valueListenable: AppSettings.appStyle,
+                builder: (context, style, _) => RadioGroup<WidgetStyle>(
+                  groupValue: style,
+                  // Applies at once, so the page itself shows the look.
+                  onChanged: (v) => AppSettings.setAppStyle(v!),
+                  child: Column(children: [
+                    for (final s in appStyles) RadioListTile<WidgetStyle>(value: s, title: Text(l.widgetStyleName(s.name)), secondary: StyleSwatch(s)),
+                  ]),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: () => setState(() => _pickingStyle = false), child: Text(l.continueAction)),
+          ],
+        ),
+      (_, _, false) => _Page(
           icon: Icons.lock_outline,
           title: l.secureTitle,
           body: l.secureBody,
@@ -129,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             TextButton(onPressed: _busy ? null : () => _run(_finish), child: Text(l.skipForNow)),
           ],
         ),
-      (_, true) => _Page(
+      (_, _, true) => _Page(
           icon: Icons.fingerprint,
           title: l.biometricOfferTitle,
           body: l.biometricOfferBody,
@@ -148,24 +185,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Text(l.onboardingStep(_step + 1, 2),
+                Text(l.onboardingStep(shown + 1, 3),
                     textAlign: TextAlign.center, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.outline)),
                 const SizedBox(height: 8),
-                // Two short bars, like a page indicator.
+                // Short bars, like a page indicator.
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  for (var i = 0; i < 2; i++)
+                  for (var i = 0; i < 3; i++)
                     Container(
                       width: 32,
                       height: 4,
                       margin: const EdgeInsets.symmetric(horizontal: 3),
                       decoration: BoxDecoration(
-                        color: i <= _step ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
+                        color: i <= shown ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                 ]),
                 const SizedBox(height: 32),
-                AnimatedSwitcher(duration: const Duration(milliseconds: 200), child: KeyedSubtree(key: ValueKey((_step, _offerBiometrics)), child: body)),
+                AnimatedSwitcher(duration: const Duration(milliseconds: 200), child: KeyedSubtree(key: ValueKey((_step, _pickingStyle, _offerBiometrics)), child: body)),
               ]),
             ),
           ),

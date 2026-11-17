@@ -48,7 +48,7 @@ class ErrorView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.cloud_off, size: 56, color: Colors.redAccent),
+          Icon(Icons.cloud_off, size: 56, color: Theme.of(context).colorScheme.error),
           const SizedBox(height: 16),
           Text(context.l10n.couldNotLoad, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),

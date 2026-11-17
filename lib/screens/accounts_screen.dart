@@ -10,6 +10,7 @@ import '../utils/format.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/data_aware.dart';
 import '../widgets/state_views.dart';
+import '../settings/app_style.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 import 'transactions_screen.dart';
@@ -195,13 +196,13 @@ class _AccountScreenState extends State<AccountScreen> with DataAware {
           date: t.date,
           tile: ListTile(
             leading: CircleAvatar(
-              backgroundColor: t.type == 'income' ? Colors.green.withValues(alpha: 0.15) : theme.colorScheme.surfaceContainerHighest,
-              child: Icon(t.type == 'income' ? Icons.arrow_upward : Icons.arrow_downward, size: 18, color: t.type == 'income' ? Colors.green : null),
+              backgroundColor: t.type == 'income' ? Theme.of(context).income.withValues(alpha: 0.15) : theme.colorScheme.surfaceContainerHighest,
+              child: Icon(t.type == 'income' ? Icons.arrow_upward : Icons.arrow_downward, size: 18, color: t.type == 'income' ? Theme.of(context).income : null),
             ),
             title: Text(t.description.isEmpty ? (t.merchant ?? (t.type == 'income' ? l.income : l.expense)) : t.description),
             subtitle: Text([?t.merchant, DateFormat.MMMd().format(t.date)].join(' · ')),
             trailing: Text(formatMoney(t.type == 'income' ? t.amountFils : -t.amountFils, showSign: t.type == 'income'),
-                style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)),
+                style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Theme.of(context).income : null)),
           ),
         ),
       for (final t in _transfers)
@@ -230,7 +231,7 @@ class _AccountScreenState extends State<AccountScreen> with DataAware {
               Text(formatMoney(a.balanceFils), style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _figure(theme, l.incomeThisMonth, formatMoney(_month.income), Colors.green)),
+                Expanded(child: _figure(theme, l.incomeThisMonth, formatMoney(_month.income), Theme.of(context).income)),
                 Expanded(child: _figure(theme, l.spentThisMonth, formatMoney(_month.expense), null)),
               ]),
               if (open) ...[

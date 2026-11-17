@@ -1551,5 +1551,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "appearance": "Appearance",
+  "appStyle": "App style",
+  "@appStyle": {
+    "description": "The app's look: the same five styles as the home-screen widgets."
+  },
+  "themeOnlyPlain": "Light and dark apply to the Plain style",
+  "styleTitle": "Pick a style",
+  "styleBody": "Tap one to see it on this page.",
+  "styleLaterHint": "You can change it any time in Settings → Appearance."
 }

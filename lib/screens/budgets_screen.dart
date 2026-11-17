@@ -77,7 +77,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
         content: Text(ctx.l10n.deleteBudgetBody),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
         ],
       ),
     );
@@ -146,11 +146,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                               Text(_periodLabel(l, p.budget.period, p.start, p.end), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
                                             ]),
                                           ),
-                                          Text('${formatMoney(spent)} / ${formatMoney(b.limitFils)}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: over ? const Color(0xFFFF5252) : null)),
+                                          Text('${formatMoney(spent)} / ${formatMoney(b.limitFils)}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: over ? theme.colorScheme.error : null)),
                                           if (desktop) ...[
                                             const SizedBox(width: 4),
                                             IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: l.edit, visualDensity: VisualDensity.compact, onPressed: () => _edit(b)),
-                                            IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), tooltip: l.delete, visualDensity: VisualDensity.compact, onPressed: () => _delete(b)),
+                                            IconButton(icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error), tooltip: l.delete, visualDensity: VisualDensity.compact, onPressed: () => _delete(b)),
                                           ],
                                         ]),
                                         const SizedBox(height: 12),
@@ -160,12 +160,12 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                             minHeight: desktop ? 10 : 8,
                                             value: ratio.clamp(0.0, 1.0),
                                             backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                                            color: over ? Colors.redAccent : color,
+                                            color: over ? theme.colorScheme.error : color,
                                           ),
                                         ),
                                         const SizedBox(height: 6),
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                          Text(over ? l.overBudgetBy(formatMoney(spent - b.limitFils)) : l.amountRemaining(formatMoney(b.limitFils - spent)), style: theme.textTheme.bodySmall?.copyWith(color: over ? Colors.redAccent : theme.colorScheme.outline)),
+                                          Text(over ? l.overBudgetBy(formatMoney(spent - b.limitFils)) : l.amountRemaining(formatMoney(b.limitFils - spent)), style: theme.textTheme.bodySmall?.copyWith(color: over ? theme.colorScheme.error : theme.colorScheme.outline)),
                                           // The real share: ratio is capped for the bar only.
                                           Text('${b.limitFils > 0 ? spent * 100 ~/ b.limitFils : 0}%', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
                                         ]),

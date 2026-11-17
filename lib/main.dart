@@ -12,6 +12,7 @@ import 'security/amount_privacy.dart';
 import 'security/lock_gate.dart';
 import 'security/vault_gate.dart';
 import 'settings/app_settings.dart';
+import 'settings/app_style.dart';
 import 'shell.dart';
 import 'sync/sync_service.dart';
 import 'utils/quick_add.dart';
@@ -29,14 +30,22 @@ Future<void> main() async {
   runApp(const PocketSenseApp());
 }
 
-ThemeData appTheme(Brightness brightness, {bool black = false}) {
-  final scheme = ColorScheme.fromSeed(
+ThemeData appTheme(Brightness brightness, {bool black = false, WidgetStyle style = WidgetStyle.plain}) {
+  // Arabic glyphs come from the bundled font; Latin text keeps the
+  // platform font.
+  const fallback = ['NotoSansArabic'];
+  // The other styles are one look whatever the brightness.
+  if (style != WidgetStyle.plain) return styledTheme(style, fontFamilyFallback: fallback);
+  var scheme = ColorScheme.fromSeed(
     seedColor: brightness == Brightness.light ? const Color(0xFF4F46E5) : const Color(0xFF818CF8),
     brightness: brightness,
     // Only the background goes black; cards, sheets and dialogs keep their
     // lifted surfaces so they still stand out against it.
     surface: black ? Colors.black : null,
   );
+  // Muted text uses outline; the seeded tone is 4.0:1 on light cards, so it
+  // moves halfway to onSurfaceVariant for 4.5:1.
+  if (brightness == Brightness.light) scheme = scheme.copyWith(outline: Color.lerp(scheme.outline, scheme.onSurfaceVariant, 0.5));
   return ThemeData(
     colorScheme: scheme,
     // Dropdown menus paint with canvasColor, which is the background by
@@ -46,9 +55,8 @@ ThemeData appTheme(Brightness brightness, {bool black = false}) {
     bottomNavigationBarTheme: black ? BottomNavigationBarThemeData(backgroundColor: scheme.surface) : null,
     useMaterial3: true,
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    // Arabic glyphs come from the bundled font; Latin text keeps the
-    // platform font.
-    fontFamilyFallback: const ['NotoSansArabic'],
+    fontFamilyFallback: fallback,
+    extensions: [styleColors(WidgetStyle.plain, brightness)],
   );
 }
 
@@ -73,7 +81,7 @@ class PocketSenseApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([AppSettings.locale, AppSettings.theme]),
+      listenable: Listenable.merge([AppSettings.locale, AppSettings.theme, AppSettings.appStyle]),
       builder: (context, _) => MaterialApp(
         onGenerateTitle: (c) => c.l10n.appTitle,
         debugShowCheckedModeBanner: false,
@@ -95,11 +103,14 @@ class PocketSenseApp extends StatelessWidget {
           AppTheme.light => ThemeMode.light,
           AppTheme.dark || AppTheme.black => ThemeMode.dark,
         },
-        theme: appTheme(Brightness.light),
-        darkTheme: appTheme(Brightness.dark, black: AppSettings.theme.value == AppTheme.black),
+        theme: appTheme(Brightness.light, style: AppSettings.appStyle.value),
+        darkTheme: appTheme(Brightness.dark, black: AppSettings.theme.value == AppTheme.black, style: AppSettings.appStyle.value),
         // Above the Navigator, so the lock covers every route and dialog. The
         // vault (Linux without a keyring) opens first: the lock's PIN is in it.
-        builder: (context, child) => VaultGate(onErase: _eraseAndRestart, child: LockGate(onEraseAll: _eraseAndRestart, child: child!)),
+        builder: (context, child) => StyleFrame(
+          style: AppSettings.appStyle.value,
+          child: VaultGate(onErase: _eraseAndRestart, child: LockGate(onEraseAll: _eraseAndRestart, child: child!)),
+        ),
         home: ValueListenableBuilder<int>(
           valueListenable: _generation,
           builder: (_, generation, _) => Boot(key: ValueKey(generation)),

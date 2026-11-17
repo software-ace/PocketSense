@@ -138,7 +138,7 @@ void main() {
 
     expectPicked(old);
     // Slice labels are painted, not widgets: read them off the chart.
-    expect(tester.widget<PieChart>(find.byType(PieChart).last).data.sections.map((x) => x.title), ['JOD\n7.000', 'JOD\n9.500']);
+    expect(tester.widget<PieChart>(find.byType(PieChart).last).data.sections.map((x) => x.title), ['+JOD\n7.000', 'JOD\n9.500'], reason: '+ marks income on the slice, not only its colour');
     expect(find.text('Expense: JOD\u00A09.500'), findsOneWidget, reason: 'and in the legend');
   });
 

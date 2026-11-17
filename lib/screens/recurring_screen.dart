@@ -15,6 +15,7 @@ import '../widgets/account_field.dart';
 import '../widgets/merchant_field.dart';
 import '../widgets/reminder_countdown.dart';
 import '../widgets/reminder_field.dart';
+import '../settings/app_style.dart';
 import 'recurring_calendar.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -98,7 +99,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
         content: Text(ctx.l10n.deleteRecurringBody),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
         ],
       ),
     );
@@ -203,7 +204,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
               ])),
               DataCell(Text(formatFrequency(l, r.frequency), style: const TextStyle(fontSize: 13))),
               DataCell(Text(r.categoryName ?? '—', style: const TextStyle(fontSize: 13))),
-              DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)))),
+              DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _isIncome(r) ? Theme.of(context).income : null)))),
               DataCell(Text(r.active ? DateFormat.yMMMd().format(next) : '—', style: const TextStyle(fontSize: 13))),
               DataCell(r.active
                   ? Container(
@@ -225,7 +226,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                 IconButton(icon: const Icon(Icons.play_arrow_rounded, size: 20), tooltip: l.postAsTransaction, visualDensity: VisualDensity.compact, onPressed: () => _post(r)),
                 IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: l.edit, visualDensity: VisualDensity.compact, onPressed: () => _edit(r)),
-                IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), tooltip: l.delete, visualDensity: VisualDensity.compact, onPressed: () => _delete(r)),
+                IconButton(icon: Icon(Icons.delete_outline, size: 18, color: Theme.of(context).colorScheme.error), tooltip: l.delete, visualDensity: VisualDensity.compact, onPressed: () => _delete(r)),
               ])),
             ]);
           }).toList(),
@@ -260,11 +261,11 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
             ReminderCountdown(item: r, compact: true),
           ]),
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Colors.green : null)),
+            Text(formatMoney(r.amountFils, showSign: _isIncome(r)), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: _isIncome(r) ? Theme.of(context).income : null)),
             if (r.active)
               Text(
                 overdue ? l.overdueDays(-days) : (days == 0 ? l.dueToday : l.dueInDays(days)),
-                style: theme.textTheme.bodySmall?.copyWith(color: overdue ? Colors.redAccent : theme.colorScheme.outline),
+                style: theme.textTheme.bodySmall?.copyWith(color: overdue ? theme.colorScheme.error : theme.colorScheme.outline),
               )
             else
               Text(l.paused, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
@@ -281,7 +282,7 @@ class _RecurringScreenState extends State<RecurringScreen> with DataAware {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(leading: const Icon(Icons.play_arrow_rounded), title: Text(ctx.l10n.postAsTransaction), subtitle: Text(ctx.l10n.postAsTransactionHint), onTap: () { Navigator.pop(ctx); _post(r); }),
           ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), onTap: () { Navigator.pop(ctx); _edit(r); }),
-          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(r); }),
+          ListTile(leading: Icon(Icons.delete_outline, color: Theme.of(ctx).colorScheme.error), title: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error)), onTap: () { Navigator.pop(ctx); _delete(r); }),
         ]),
       ),
     );

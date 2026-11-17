@@ -16,6 +16,8 @@ import '../widgets/data_aware.dart';
 import '../widgets/merchant_field.dart';
 import '../utils/voice_parser.dart';
 import '../widgets/voice_entry_sheet.dart';
+import '../settings/app_settings.dart';
+import '../settings/app_style.dart';
 import 'accounts_screen.dart' show accountAvatar;
 import 'loans_screen.dart' show DateField;
 import 'settings_screen.dart';
@@ -420,8 +422,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
               DataCell(Text(t.description.isNotEmpty ? t.description : (t.merchant ?? context.l10n.transactionFallback), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis, maxLines: 1)),
               DataCell(Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: _catColor(t).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)), child: Text(t.categoryName ?? l.uncategorized, style: TextStyle(fontSize: 12, color: _catColor(t))))),
               DataCell(Text(t.merchant ?? '—', style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis, maxLines: 1)),
-              DataCell(Text(t.type == 'income' ? l.income : l.expense, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Colors.green : Colors.redAccent))),
-              DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)))),
+              DataCell(Text(t.type == 'income' ? l.income : l.expense, style: TextStyle(fontSize: 12, color: t.type == 'income' ? Theme.of(context).income : Theme.of(context).expense))),
+              DataCell(Align(alignment: AlignmentDirectional.centerEnd, child: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.type == 'income' ? Theme.of(context).income : null)))),
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                 IconButton(icon: const Icon(Icons.edit_outlined, size: 18), tooltip: l.edit, onPressed: () => _editTransaction(t), visualDensity: VisualDensity.compact),
                 IconButton(icon: const Icon(Icons.delete_outline, size: 18), tooltip: l.delete, onPressed: () => _delete(t), visualDensity: VisualDensity.compact),
@@ -459,7 +461,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
             leading: CircleAvatar(radius: 18, backgroundColor: _catColor(t).withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: _catColor(t)))),
             title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? context.l10n.transactionFallback)),
             subtitle: Text(formatDate(t.date)),
-            trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Colors.green : null)),
+            trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, color: t.type == 'income' ? Theme.of(context).income : null)),
           ),
         );
       },
@@ -472,13 +474,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
       builder: (ctx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), onTap: () { Navigator.pop(ctx); _editTransaction(t); }),
-          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), onTap: () { Navigator.pop(ctx); _delete(t); }),
+          ListTile(leading: Icon(Icons.delete_outline, color: Theme.of(ctx).colorScheme.error), title: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error)), onTap: () { Navigator.pop(ctx); _delete(t); }),
         ]),
       ),
     );
   }
 
-  Color _catColor(Transaction t) => parseHex(t.categoryColor) ?? Theme.of(context).colorScheme.primary;
+  // LCD has one ink: category colours vanish on its green screen.
+  Color _catColor(Transaction t) =>
+      (AppSettings.appStyle.value == WidgetStyle.lcd ? null : parseHex(t.categoryColor)) ?? Theme.of(context).colorScheme.primary;
 
   Future<_TxDraft?> _showForm(BuildContext context, Transaction? existing, {String? type}) async {
     final result = await showModalBottomSheet<_TxDraft>(

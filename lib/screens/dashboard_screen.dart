@@ -14,6 +14,7 @@ import '../utils/platform.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
 import '../settings/manage_accounts_screen.dart';
+import '../settings/app_style.dart';
 import 'accounts_screen.dart';
 import 'circles_screen.dart';
 import 'loans_screen.dart';
@@ -276,8 +277,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       crossAxisSpacing: 12,
       childAspectRatio: desktop ? 2.4 : 1.8,
       children: [
-        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, Colors.green),
-        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, Colors.redAccent),
+        _statCard(theme, l.statIncomeMonth, formatMoney(_month?.income ?? 0), Icons.arrow_upward, theme.income),
+        _statCard(theme, l.statSpentMonth, formatMoney(_month?.expense ?? 0), Icons.arrow_downward, theme.expense),
         _statCard(theme, l.statNetMonth, formatMoney((_month?.income ?? 0) - (_month?.expense ?? 0)), Icons.balance, Colors.blue),
         _statCard(theme, l.statYearTotal, formatMoney(_year?.expense ?? 0), Icons.calendar_month, theme.colorScheme.primary),
       ],
@@ -407,7 +408,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             Text(t.$1, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
             _fit(Text(formatMoney(t.$2),
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: good && t.$2 > 0 ? Colors.green : null))),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: good && t.$2 > 0 ? theme.income : null))),
           ]),
         );
     return Card(
@@ -508,12 +509,12 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             isCurved: true,
             // Without this the spline dips below $0 next to a spike.
             preventCurveOverShooting: true,
-            color: const Color(0xFF4F46E5),
+            color: _indigo,
             barWidth: 3,
             dotData: FlDotData(show: false),
             belowBarData: BarAreaData(show: true, gradient: LinearGradient(
               begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              colors: [const Color(0x334F46E5), const Color(0x054F46E5)],
+              colors: [_indigo.withValues(alpha: 0.2), _indigo.withValues(alpha: 0.02)],
             )),
           ),
         ],
@@ -521,7 +522,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     ));
   }
 
-  static const _indigo = Color(0xFF4F46E5);
+  // The style's accent: indigo in Plain.
+  Color get _indigo => Theme.of(context).colorScheme.primary;
 
   // Shared by the trend charts: amounts on the left, [label] under each x.
   FlTitlesData _axes(double step, String Function(int x) label, {double interval = 1}) => FlTitlesData(
@@ -582,7 +584,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             maxY: _maxY(maxFils, step),
             barGroups: [
               for (final (i, m) in _monthly.indexed)
-                BarChartGroupData(x: i, barsSpace: 4, barRods: [rod(m.income, Colors.green), rod(m.expense, Colors.redAccent)]),
+                BarChartGroupData(x: i, barsSpace: 4, barRods: [rod(m.income, Theme.of(context).income), rod(m.expense, Theme.of(context).expense)]),
             ],
             gridData: _grid(step),
             borderData: FlBorderData(show: false),
@@ -592,7 +594,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         ),
       ),
       const SizedBox(height: 8),
-      _legend([(l.income, Colors.green), (l.expense, Colors.redAccent)]),
+      _legend([(l.income, Theme.of(context).income), (l.expense, Theme.of(context).expense)]),
     ]);
   }
 
@@ -602,27 +604,28 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     final (:income, :expense) = _pickedTotals;
     final total = income + expense;
     if (total == 0) return Center(child: Text(l.noData));
-    PieChartSectionData slice(int fils, Color color) => PieChartSectionData(
+    PieChartSectionData slice(int fils, Color color, {bool income = false}) => PieChartSectionData(
           value: fils.toDouble(),
           color: color,
           radius: 54,
           // Too thin a slice has no room: the legend has its amount too.
           showTitle: fils / total > 0.12,
           // Code and number on two lines, so the amount fits in the ring.
-          title: formatMoney(fils).replaceFirst('\u00A0', '\n'),
+          // + marks income, so the slices don't rely on colour alone.
+          title: formatMoney(fils, showSign: income).replaceFirst('\u00A0', '\n'),
           titleStyle: TextStyle(
               fontSize: 10, fontWeight: FontWeight.w600, color: color.computeLuminance() > 0.2 ? Colors.black87 : Colors.white),
         );
     return Column(children: [
       Expanded(
         child: PieChart(PieChartData(
-          sections: [if (income > 0) slice(income, Colors.green), if (expense > 0) slice(expense, Colors.redAccent)],
+          sections: [if (income > 0) slice(income, Theme.of(context).income, income: true), if (expense > 0) slice(expense, Theme.of(context).expense)],
           centerSpaceRadius: 30,
           sectionsSpace: 2,
         )),
       ),
       const SizedBox(height: 8),
-      _legend([('${l.income}: ${formatMoney(income)}', Colors.green), ('${l.expense}: ${formatMoney(expense)}', Colors.redAccent)]),
+      _legend([('${l.income}: ${formatMoney(income)}', Theme.of(context).income), ('${l.expense}: ${formatMoney(expense)}', Theme.of(context).expense)]),
     ]);
   }
 
@@ -819,7 +822,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.15), child: Text(t.categoryName?.isNotEmpty == true ? t.categoryName![0].toUpperCase() : '•', style: TextStyle(color: color, fontSize: 14))),
       title: Text(t.description.isNotEmpty ? t.description : (t.merchant ?? context.l10n.transactionFallback), style: const TextStyle(fontSize: 14)),
       subtitle: Text(_when(t), style: const TextStyle(fontSize: 12)),
-      trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: t.type == 'income' ? Colors.green : null)),
+      trailing: Text(formatMoney(t.amountFils, showSign: t.type == 'income'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: t.type == 'income' ? theme.income : null)),
     );
   }
 }

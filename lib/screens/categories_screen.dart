@@ -87,7 +87,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
         content: Text(ctx.l10n.deleteCategoryBody),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
         ],
       ),
     );
@@ -194,7 +194,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
                   },
                   itemBuilder: (ctx) => [
                     PopupMenuItem(value: 'edit', child: ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), contentPadding: EdgeInsets.zero)),
-                    PopupMenuItem(value: 'delete', child: ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), contentPadding: EdgeInsets.zero)),
+                    PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete_outline, color: Theme.of(ctx).colorScheme.error), title: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error)), contentPadding: EdgeInsets.zero)),
                   ],
                 ),
               ]),

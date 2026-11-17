@@ -12,6 +12,7 @@ import '../widgets/data_aware.dart';
 import '../widgets/reminder_countdown.dart';
 import '../widgets/reminder_field.dart';
 import '../widgets/state_views.dart';
+import '../settings/app_style.dart';
 import 'loans_screen.dart' show AmountDateSheet, DateField, NetLabel, TotalTile;
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -312,7 +313,7 @@ class _CircleScreenState extends State<CircleScreen> with DataAware {
           child: LinearProgressIndicator(
             minHeight: 8,
             value: (c.paidFils / c.potFils).clamp(0, 1),
-            color: c.done ? theme.colorScheme.outline : Colors.green,
+            color: c.done ? theme.colorScheme.outline : Theme.of(context).income,
             backgroundColor: theme.colorScheme.surfaceContainerHighest,
           ),
         ),
@@ -329,7 +330,7 @@ class _CircleScreenState extends State<CircleScreen> with DataAware {
         ],
         if (c.received) ...[
           const SizedBox(height: 4),
-          Text(l.circlePayoutReceived(formatMoney(c.receivedFils)), style: theme.textTheme.bodySmall?.copyWith(color: Colors.green)),
+          Text(l.circlePayoutReceived(formatMoney(c.receivedFils)), style: theme.textTheme.bodySmall?.copyWith(color: Theme.of(context).income)),
         ],
         const SizedBox(height: 16),
         NetLabel(net: -c.positionFils, toYou: l.circleOwesYou, byYou: l.youOweCircle, large: true),
@@ -372,7 +373,7 @@ class _CircleScreenState extends State<CircleScreen> with DataAware {
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: paid
-          ? const Icon(Icons.check_circle, color: Colors.green)
+          ? Icon(Icons.check_circle, color: Theme.of(context).income)
           : Icon(partly ? Icons.timelapse : (late ? Icons.error_outline : Icons.radio_button_unchecked),
               color: late ? scheme.error : scheme.outline),
       title: Text(formatDate(due), style: late ? TextStyle(color: scheme.error) : null),
@@ -382,7 +383,7 @@ class _CircleScreenState extends State<CircleScreen> with DataAware {
         if (turn) l.circlePayoutOf(formatMoney(c.potFils)),
       ].join(' · ')),
       // Your turn: a flag, green once the payout is in.
-      trailing: turn ? Icon(Icons.flag, color: c.received ? Colors.green : scheme.primary) : null,
+      trailing: turn ? Icon(Icons.flag, color: c.received ? Theme.of(context).income : scheme.primary) : null,
     );
   }
 }

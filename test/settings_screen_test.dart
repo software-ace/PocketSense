@@ -8,6 +8,7 @@ import 'package:pocket_sense/data/local_store.dart';
 import 'package:pocket_sense/main.dart' show appTheme;
 import 'package:pocket_sense/screens/settings_screen.dart';
 import 'package:pocket_sense/settings/app_settings.dart';
+import 'package:pocket_sense/settings/app_style.dart';
 import 'package:pocket_sense/utils/format.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -20,6 +21,7 @@ void main() {
     FlutterSecureStorage.setMockInitialValues({});
     AppSettings.locale.value = null;
     AppSettings.theme.value = AppTheme.system;
+    AppSettings.appStyle.value = WidgetStyle.plain;
   });
 
   Future<void> openSettings(WidgetTester tester, {Locale locale = const Locale('en')}) async {
@@ -206,5 +208,85 @@ void main() {
     AppSettings.hideAmounts.value = true;
     await AppSettings.load();
     expect(AppSettings.hideAmounts.value, isFalse, reason: 'read back from storage');
+  });
+
+  testWidgets('Appearance: a style is kept, and Light / Dark only applies to Plain', (tester) async {
+    await openSettings(tester);
+    await tester.tap(find.widgetWithText(ListTile, 'App style'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Receipt'));
+    await tester.pumpAndSettle();
+
+    expect(AppSettings.appStyle.value, WidgetStyle.receipt);
+    expect(tester.widget<ListTile>(find.widgetWithText(ListTile, 'Theme')).enabled, isFalse);
+    AppSettings.appStyle.value = WidgetStyle.plain;
+    await AppSettings.load();
+    expect(AppSettings.appStyle.value, WidgetStyle.receipt, reason: 'read back from storage');
+  });
+
+  for (final style in appStyles) {
+    testWidgets('the ${style.name} style draws its cards and frame', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        theme: appTheme(Brightness.light, style: style),
+        builder: (context, child) => StyleFrame(style: style, child: child!),
+        home: const Scaffold(body: Column(children: [Card(child: ListTile(title: Text('Rent'))), Card(child: SizedBox(width: 333, height: 40))])),
+      ));
+      expect(tester.takeException(), isNull);
+      expect(Theme.of(tester.element(find.text('Rent'))).income, styleColors(style).income);
+    });
+  }
+
+  testWidgets('the LCD frame takes its own height off the keyboard, so nothing gaps above it', (tester) async {
+    late MediaQueryData inside;
+    await tester.pumpWidget(MediaQuery(
+      data: const MediaQueryData(size: Size(400, 800), padding: EdgeInsets.only(top: 24, bottom: 24), viewInsets: EdgeInsets.only(bottom: 300)),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: StyleFrame(style: WidgetStyle.lcd, child: Builder(builder: (context) {
+          inside = MediaQuery.of(context);
+          return const SizedBox();
+        })),
+      ),
+    ));
+    // 24 gesture bar + 6 plastic + 14 bezel sit under the app already.
+    expect(inside.viewInsets.bottom, 300 - 44);
+    expect(inside.padding, EdgeInsets.zero);
+  });
+
+  test('every style reads at WCAG contrast: 4.5:1 for text, 3:1 for chart marks', () {
+    double ratio(Color a, Color b) {
+      final la = a.computeLuminance(), lb = b.computeLuminance();
+      return la > lb ? (la + 0.05) / (lb + 0.05) : (lb + 0.05) / (la + 0.05);
+    }
+
+    final themes = {
+      for (final s in appStyles) s.name: appTheme(Brightness.light, style: s),
+      'plain dark': appTheme(Brightness.dark),
+      'plain black': appTheme(Brightness.dark, black: true),
+    };
+    for (final MapEntry(key: name, value: t) in themes.entries) {
+      final c = t.colorScheme;
+      final card = t.cardTheme.color ?? c.surfaceContainerLow;
+      final pairs = {
+        'text on page': (c.onSurface, c.surface, 4.5),
+        'text on card': (c.onSurface, card, 4.5),
+        'muted text on card': (c.onSurfaceVariant, card, 4.5),
+        'outline text on page': (c.outline, c.surface, 4.5),
+        'outline text on card': (c.outline, card, 4.5),
+        'primary on page': (c.primary, c.surface, 4.5),
+        'primary on card': (c.primary, card, 4.5),
+        'button text': (c.onPrimary, c.primary, 4.5),
+        'selected tab': (c.onSecondaryContainer, c.secondaryContainer, 4.5),
+        'error on page': (c.error, c.surface, 4.5),
+        'error on card': (c.error, card, 4.5),
+        'overdue tile': (c.onErrorContainer, c.errorContainer, 4.5),
+        'income on card': (t.income, card, 4.5),
+        'expense mark on card': (t.expense, card, 3.0),
+        'snackbar': (c.onInverseSurface, c.inverseSurface, 4.5),
+      };
+      for (final MapEntry(key: what, value: (fg, bg, need)) in pairs.entries) {
+        expect(ratio(fg, bg), greaterThanOrEqualTo(need), reason: '$name: $what');
+      }
+    }
   });
 }

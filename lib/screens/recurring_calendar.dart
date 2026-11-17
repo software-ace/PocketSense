@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../utils/calendar.dart';
 import '../utils/format.dart';
 import '../utils/recurring.dart';
+import '../settings/app_style.dart';
 import 'circles_screen.dart';
 import 'loans_screen.dart';
 
@@ -38,7 +39,7 @@ class _RecurringCalendarState extends State<RecurringCalendar> {
   Color _color(ColorScheme scheme, CalendarItem i) => i.overdue
       ? scheme.error
       : i.incoming
-      ? Colors.green
+      ? Theme.of(context).income
       : i.loan != null
       ? Colors.orange
       : i.circle != null
@@ -85,7 +86,7 @@ class _RecurringCalendarState extends State<RecurringCalendar> {
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _tile(theme, l.stillComingIn, formatMoney(due.coming, showSign: true), Colors.green)),
+            Expanded(child: _tile(theme, l.stillComingIn, formatMoney(due.coming, showSign: true), Theme.of(context).income)),
             const SizedBox(width: 8),
             Expanded(child: _tile(theme, l.stillGoingOut, formatMoney(due.going), null)),
           ],
@@ -242,7 +243,7 @@ class _RecurringCalendarState extends State<RecurringCalendar> {
         : (Icons.groups_outlined, i.payout ? l.circlePayoutFrom(c!.name) : l.circlePaymentTo(c!.name), l.circleRoundOf(i.round!, c.rounds));
     final days = daysUntil(i.date);
     final (String? status, Color? statusColor) = i.paid
-        ? (i.payout ? l.calendarReceived : l.calendarPaid, Colors.green)
+        ? (i.payout ? l.calendarReceived : l.calendarPaid, Theme.of(context).income)
         : i.overdue
         ? (l.calendarOverdue, scheme.error)
         : days >= 0
@@ -261,7 +262,7 @@ class _RecurringCalendarState extends State<RecurringCalendar> {
           children: [
             Text(
               formatMoney(i.amountFils, showSign: i.incoming),
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: i.incoming ? Colors.green : null),
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: i.incoming ? Theme.of(context).income : null),
             ),
             if (status != null) Text(status, style: theme.textTheme.bodySmall?.copyWith(color: statusColor)),
           ],

@@ -14,6 +14,7 @@ void main() {
   setUp(() {
     SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
     AppSettings.onboardingStep = 0;
+    AppSettings.appStyle.value = WidgetStyle.plain;
     AppLock.instance = AppLock(store: MemorySecretStore(), iterations: 1000);
     done = 0;
   });
@@ -28,16 +29,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('step 1 offers import or a fresh start; step 2 can be skipped', (tester) async {
+  testWidgets('step 1 offers import or a fresh start; step 2 picks a style; step 3 can be skipped', (tester) async {
     await pump(tester);
-    expect(find.text('Step 1 of 2'), findsOneWidget);
+    expect(find.text('Step 1 of 3'), findsOneWidget);
     expect(find.text('Import a backup'), findsOneWidget);
     expect(find.text('Start fresh'), findsOneWidget);
 
     await tester.tap(find.text('Start fresh'));
     await settle(tester);
-    expect(find.text('Step 2 of 2'), findsOneWidget);
+    expect(find.text('Step 2 of 3'), findsOneWidget);
     expect(AppSettings.onboardingStep, 1, reason: 'saved, so a restart resumes here');
+
+    // A style applies as it's tapped, and is kept.
+    await tester.tap(find.text('Leather wallet'));
+    await settle(tester);
+    expect(AppSettings.appStyle.value, WidgetStyle.leather);
+    await tester.ensureVisible(find.text('Continue'));
+    await tester.tap(find.text('Continue'));
+    await settle(tester);
+    expect(find.text('Step 3 of 3'), findsOneWidget);
 
     await tester.tap(find.text('Skip for now'));
     await settle(tester);
@@ -71,12 +81,12 @@ void main() {
 
     await tester.tap(find.text('Import a backup'));
     await settle(tester);
-    expect(find.text('Step 1 of 2'), findsOneWidget);
+    expect(find.text('Step 1 of 3'), findsOneWidget);
 
     succeed = true;
     await tester.tap(find.text('Import a backup'));
     await settle(tester);
-    expect(find.text('Step 2 of 2'), findsOneWidget);
+    expect(find.text('Step 2 of 3'), findsOneWidget);
   });
 
   testWidgets('resumes at the security step after a restart', (tester) async {

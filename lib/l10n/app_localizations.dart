@@ -3739,6 +3739,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today · {date}'**
   String calendarToday(String date);
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// The app's look: the same five styles as the home-screen widgets.
+  ///
+  /// In en, this message translates to:
+  /// **'App style'**
+  String get appStyle;
+
+  /// No description provided for @themeOnlyPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Light and dark apply to the Plain style'**
+  String get themeOnlyPlain;
+
+  /// No description provided for @styleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a style'**
+  String get styleTitle;
+
+  /// No description provided for @styleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap one to see it on this page.'**
+  String get styleBody;
+
+  /// No description provided for @styleLaterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change it any time in Settings → Appearance.'**
+  String get styleLaterHint;
 }
 
 class _AppLocalizationsDelegate

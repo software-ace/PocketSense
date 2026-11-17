@@ -64,7 +64,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
         content: Text(ctx.l10n.deleteMerchantBody),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
-          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent))),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
         ],
       ),
     );
@@ -138,7 +138,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
                                       },
                                       itemBuilder: (ctx) => [
                                         PopupMenuItem(value: 'edit', child: ListTile(leading: const Icon(Icons.edit_outlined), title: Text(ctx.l10n.edit), contentPadding: EdgeInsets.zero)),
-                                        PopupMenuItem(value: 'delete', child: ListTile(leading: const Icon(Icons.delete_outline, color: Colors.redAccent), title: Text(ctx.l10n.delete, style: const TextStyle(color: Colors.redAccent)), contentPadding: EdgeInsets.zero)),
+                                        PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete_outline, color: Theme.of(ctx).colorScheme.error), title: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error)), contentPadding: EdgeInsets.zero)),
                                       ],
                                     ),
                                   ),

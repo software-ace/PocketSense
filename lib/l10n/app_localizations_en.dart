@@ -2455,4 +2455,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String calendarToday(String date) {
     return 'Today · $date';
   }
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get appStyle => 'App style';
+
+  @override
+  String get themeOnlyPlain => 'Light and dark apply to the Plain style';
+
+  @override
+  String get styleTitle => 'Pick a style';
+
+  @override
+  String get styleBody => 'Tap one to see it on this page.';
+
+  @override
+  String get styleLaterHint =>
+      'You can change it any time in Settings → Appearance.';
 }

@@ -31,6 +31,7 @@ class AppSettings {
   static const _reminderAmountsKey = 'reminderAmounts';
   static const _widgetAmountsKey = 'widgetAmounts';
   static const _widgetStyleKey = 'widgetStyle';
+  static const _appStyleKey = 'appStyle';
   static const _homeOrderKey = 'homeOrder';
   static const _defaultAccountKey = 'defaultAccount';
   static const _homeHiddenKey = 'homeHidden';
@@ -72,6 +73,8 @@ class AppSettings {
   /// Android: home-screen widgets show amounts, not •••. Off by default.
   static final widgetAmounts = ValueNotifier(false);
   static final widgetStyle = ValueNotifier(WidgetStyle.leather);
+  /// The app's own look; the same five as the widgets, Plain by default.
+  static final appStyle = ValueNotifier(WidgetStyle.plain);
 
   /// The account new entries go into on this device, by uid; null is Cash
   /// (or the first open account). Per device: two people sharing data can
@@ -111,6 +114,7 @@ class AppSettings {
       reminderAmounts.value = await _prefs.getBool(_reminderAmountsKey) ?? false;
       widgetAmounts.value = await _prefs.getBool(_widgetAmountsKey) ?? false;
       widgetStyle.value = WidgetStyle.values.asNameMap()[await _prefs.getString(_widgetStyleKey)] ?? WidgetStyle.leather;
+      appStyle.value = WidgetStyle.values.asNameMap()[await _prefs.getString(_appStyleKey)] ?? WidgetStyle.plain;
       defaultAccount.value = await _prefs.getString(_defaultAccountKey);
       homeLayout.value = homeLayoutFrom(await _prefs.getStringList(_homeOrderKey), await _prefs.getStringList(_homeHiddenKey));
       currency.value = appCurrency = Currency.byCode(await _prefs.getString(_currencyKey)) ?? currencies.first;
@@ -212,6 +216,11 @@ class AppSettings {
   static Future<void> setWidgetStyle(WidgetStyle value) async {
     widgetStyle.value = value;
     await _prefs.setString(_widgetStyleKey, value.name);
+  }
+
+  static Future<void> setAppStyle(WidgetStyle value) async {
+    appStyle.value = value;
+    await _prefs.setString(_appStyleKey, value.name);
   }
 
   static Future<void> _applyPrivateScreen() async {

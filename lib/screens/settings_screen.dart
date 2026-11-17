@@ -12,6 +12,7 @@ import '../security/pin_flows.dart';
 import '../settings/home_layout_screen.dart';
 import '../settings/manage_accounts_screen.dart';
 import '../settings/app_settings.dart';
+import '../settings/app_style.dart';
 import '../settings/currency_picker.dart';
 import '../settings/language_picker.dart';
 import '../utils/format.dart';
@@ -48,15 +49,6 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => pickLanguage(context),
             ),
           ),
-          ValueListenableBuilder<AppTheme>(
-            valueListenable: AppSettings.theme,
-            builder: (context, theme, _) => ListTile(
-              leading: const Icon(Icons.dark_mode_outlined),
-              title: Text(l.theme),
-              subtitle: Text(l.themeName(theme.name)),
-              onTap: () => _pickTheme(context),
-            ),
-          ),
           ValueListenableBuilder<Currency>(
             valueListenable: AppSettings.currency,
             builder: (context, currency, _) => ListTile(
@@ -76,6 +68,8 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeLayoutScreen())),
           ),
+          header(l.appearance),
+          const _AppearanceSection(),
           header(l.security),
           const _SecuritySection(),
           header(l.settingsData),
@@ -213,6 +207,26 @@ Future<void> _pickTheme(BuildContext context) async {
   if (picked != null) await AppSettings.setTheme(picked);
 }
 
+Future<void> _pickAppStyle(BuildContext context) async {
+  final l = context.l10n;
+  final picked = await showDialog<WidgetStyle>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: Text(l.appStyle),
+      children: [
+        RadioGroup<WidgetStyle>(
+          groupValue: AppSettings.appStyle.value,
+          onChanged: (v) => Navigator.pop(ctx, v),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (final s in appStyles) RadioListTile<WidgetStyle>(value: s, title: Text(l.widgetStyleName(s.name)), secondary: StyleSwatch(s)),
+          ]),
+        ),
+      ],
+    ),
+  );
+  if (picked != null) await AppSettings.setAppStyle(picked);
+}
+
 Future<void> _pickWidgetStyle(BuildContext context) async {
   final l = context.l10n;
   final picked = await showDialog<WidgetStyle>(
@@ -231,6 +245,46 @@ Future<void> _pickWidgetStyle(BuildContext context) async {
     ),
   );
   if (picked != null) await AppSettings.setWidgetStyle(picked);
+}
+
+/// The app's style, light or dark (Plain only: the other styles are one
+/// look each), and on Android the widgets' style.
+class _AppearanceSection extends StatelessWidget {
+  const _AppearanceSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return ListenableBuilder(
+      listenable: Listenable.merge([AppSettings.appStyle, AppSettings.theme, AppSettings.widgetStyle]),
+      builder: (context, _) {
+        final plain = AppSettings.appStyle.value == WidgetStyle.plain;
+        return Column(children: [
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(l.appStyle),
+            subtitle: Text(l.widgetStyleName(AppSettings.appStyle.value.name)),
+            trailing: StyleSwatch(AppSettings.appStyle.value),
+            onTap: () => _pickAppStyle(context),
+          ),
+          ListTile(
+            enabled: plain,
+            leading: const Icon(Icons.dark_mode_outlined),
+            title: Text(l.theme),
+            subtitle: Text(plain ? l.themeName(AppSettings.theme.value.name) : l.themeOnlyPlain),
+            onTap: () => _pickTheme(context),
+          ),
+          if (defaultTargetPlatform == TargetPlatform.android)
+            ListTile(
+              leading: const Icon(Icons.widgets_outlined),
+              title: Text(l.widgetStyle),
+              subtitle: Text(l.widgetStyleName(AppSettings.widgetStyle.value.name)),
+              onTap: () => _pickWidgetStyle(context),
+            ),
+        ]);
+      },
+    );
+  }
 }
 
 /// App lock on/off, change PIN, and (Android) biometric unlock. Changes to
@@ -361,16 +415,6 @@ class _SecuritySectionState extends State<_SecuritySection> {
             subtitle: Text(l.widgetAmountsSubtitle),
             value: on,
             onChanged: AppSettings.setWidgetAmounts,
-          ),
-        ),
-      if (defaultTargetPlatform == TargetPlatform.android)
-        ValueListenableBuilder(
-          valueListenable: AppSettings.widgetStyle,
-          builder: (context, style, _) => ListTile(
-            leading: const Icon(Icons.palette_outlined),
-            title: Text(l.widgetStyle),
-            subtitle: Text(l.widgetStyleName(style.name)),
-            onTap: () => _pickWidgetStyle(context),
           ),
         ),
     ]);

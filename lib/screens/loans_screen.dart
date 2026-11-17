@@ -12,6 +12,7 @@ import '../widgets/data_aware.dart';
 import '../widgets/reminder_countdown.dart';
 import '../widgets/reminder_field.dart';
 import '../widgets/state_views.dart';
+import '../settings/app_style.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
 
@@ -188,7 +189,7 @@ class NetLabel extends StatelessWidget {
     final theme = Theme.of(context);
     final label = net > 0 ? toYou : (net < 0 ? byYou : context.l10n.loanEven);
     final style = (large ? theme.textTheme.headlineSmall : theme.textTheme.bodyLarge)
-        ?.copyWith(fontWeight: FontWeight.w600, color: net > 0 ? Colors.green : null);
+        ?.copyWith(fontWeight: FontWeight.w600, color: net > 0 ? Theme.of(context).income : null);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: large ? CrossAxisAlignment.start : CrossAxisAlignment.end,
@@ -217,7 +218,7 @@ class TotalTile extends StatelessWidget {
           Text(label, style: theme.textTheme.bodySmall),
           const SizedBox(height: 6),
           Text(formatMoney(fils),
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: good && fils > 0 ? Colors.green : null)),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: good && fils > 0 ? Theme.of(context).income : null)),
         ]),
       ),
     );
@@ -328,7 +329,7 @@ class _LoanCard extends StatelessWidget {
               Row(children: [
                 Expanded(child: Text(l.amountRepaid(formatMoney(loan.repaidFils)), style: theme.textTheme.bodySmall)),
                 Text(l.amountLeft(formatMoney(loan.remainingFils)),
-                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: loan.lent ? Colors.green : null)),
+                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: loan.lent ? Theme.of(context).income : null)),
               ]),
               if (loan.dueDate != null) ...[
                 const SizedBox(height: 4),
@@ -356,7 +357,7 @@ class _Progress extends StatelessWidget {
       child: LinearProgressIndicator(
         minHeight: 8,
         value: loan.amountFils == 0 ? 1 : (loan.repaidFils / loan.amountFils).clamp(0, 1),
-        color: loan.open ? Colors.green : scheme.outline,
+        color: loan.open ? Theme.of(context).income : scheme.outline,
         backgroundColor: scheme.surfaceContainerHighest,
       ),
     );
@@ -544,7 +545,7 @@ class _LoanScreenState extends State<LoanScreen> with DataAware {
         Row(children: [
           Expanded(child: Text(l.amountRepaid(formatMoney(loan.repaidFils)), style: theme.textTheme.bodySmall)),
           Text(loan.open ? l.amountLeft(formatMoney(loan.remainingFils)) : l.loansSettled,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: loan.open && loan.lent ? Colors.green : null)),
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: loan.open && loan.lent ? Theme.of(context).income : null)),
         ]),
         const SizedBox(height: 24),
         ReminderCountdown(loan: loan),

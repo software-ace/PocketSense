@@ -665,7 +665,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get language => 'اللغة';
 
   @override
-  String get theme => 'المظهر';
+  String get theme => 'السمة';
 
   @override
   String themeName(String theme) {
@@ -2529,4 +2529,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String calendarToday(String date) {
     return 'اليوم · $date';
   }
+
+  @override
+  String get appearance => 'المظهر';
+
+  @override
+  String get appStyle => 'نمط التطبيق';
+
+  @override
+  String get themeOnlyPlain => 'الفاتح والداكن لنمط «بسيط» فقط';
+
+  @override
+  String get styleTitle => 'اختر نمطًا';
+
+  @override
+  String get styleBody => 'اضغط على أحدها لتراه في هذه الصفحة.';
+
+  @override
+  String get styleLaterHint => 'يمكنك تغييره في أي وقت من الإعدادات ← المظهر.';
 }
