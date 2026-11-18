@@ -1,0 +1,5 @@
+• New: subcategories, such as Fuel and Taxi under Transport, with starters on new installs.
+• New: five app styles, balance widgets, and a calendar on Recurring.
+• New: filter Activity by category, merchant or account; add from Home; E-Wallet accounts; 100 currencies; unencrypted backups.
+• Fixed: deleting a budget on a phone; New account no longer wraps on narrow phones.
+• Update all your paired devices: sync needs the same version on each.
