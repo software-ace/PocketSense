@@ -26,7 +26,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
 
   static const _filters = {'all', 'expense', 'income'};
 
-  List<Category> get _filtered => _filter == 'all' ? _cats : _cats.where((c) => c.type == _filter).toList();
+  // Each parent followed by its subcategories (always of its type).
+  List<Category> get _filtered => Category.tree(_filter == 'all' ? _cats : _cats.where((c) => c.type == _filter).toList());
+
+  String? _parentName(Category c) => _cats.where((p) => p.id == c.parentId).firstOrNull?.name;
+
+  /// What a list shows under a category's name: its parent for a
+  /// subcategory, its type for the rest.
+  String _subtitle(Category c) {
+    final parent = _parentName(c);
+    if (parent != null) return context.l10n.subcategoryOf(parent);
+    return c.type == 'income' ? context.l10n.income : context.l10n.expense;
+  }
 
   static const _swatches = [
     '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -77,7 +88,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
   }
 
   Future<void> _edit(Category? existing) async {
-    await showDialog<bool>(context: context, builder: (_) => _CategoryDialog(existing: existing));
+    await showDialog<bool>(context: context, builder: (_) => _CategoryDialog(existing: existing, cats: _cats));
   }
 
   Future<bool> _confirmDelete(Category c) async {
@@ -85,7 +96,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.deleteNamedTitle(c.name)),
-        content: Text(ctx.l10n.deleteCategoryBody),
+        content: Text(switch (_parentName(c)) {
+          final String parent => ctx.l10n.deleteSubcategoryBody(parent),
+          null when _cats.any((s) => s.parentId == c.id) => ctx.l10n.deleteParentCategoryBody,
+          null => ctx.l10n.deleteCategoryBody,
+        }),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.cancel)),
           FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(ctx.l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error))),
@@ -184,7 +199,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(c.name, style: theme.textTheme.titleSmall, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
-                    Text(c.type == 'income' ? context.l10n.income : context.l10n.expense, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline)),
+                    Text(_subtitle(c), style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline), overflow: TextOverflow.ellipsis),
                   ]),
                 ),
                 PopupMenuButton<String>(
@@ -224,9 +239,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
           },
           child: ListTile(
             onTap: () => _edit(c),
+            // A subcategory sits in under its parent.
+            contentPadding: EdgeInsetsDirectional.only(start: c.parentId != null && _parentName(c) != null ? 40 : 16, end: 24),
             leading: CircleAvatar(radius: 18, backgroundColor: color.withValues(alpha: 0.2), child: Icon(Icons.tag, color: color)),
             title: Text(c.name),
-            subtitle: Text(c.type == 'income' ? context.l10n.income : context.l10n.expense),
+            subtitle: Text(_subtitle(c)),
             trailing: Container(width: 14, height: 14, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           ),
         );
@@ -237,7 +254,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> with SingleTickerPr
 
 class _CategoryDialog extends StatefulWidget {
   final Category? existing;
-  const _CategoryDialog({this.existing});
+  final List<Category> cats;
+  const _CategoryDialog({this.existing, required this.cats});
 
   @override
   State<_CategoryDialog> createState() => _CategoryDialogState();
@@ -247,6 +265,9 @@ class _CategoryDialogState extends State<_CategoryDialog> {
   late final _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
   late String _type = widget.existing?.type ?? 'expense';
   late String _color = widget.existing?.color ?? _CategoriesScreenState._swatches[0];
+  late int? _parentId = widget.existing?.parentId;
+  // A new subcategory starts in its parent's colour, until one is tapped.
+  late bool _colorPicked = widget.existing != null;
   bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   // Errors show only after a save attempt, then update as the user types.
@@ -269,9 +290,9 @@ class _CategoryDialogState extends State<_CategoryDialog> {
     try {
       final repo = FinanceRepo();
       if (widget.existing == null) {
-        await repo.insertCategory(name: name, type: _type, color: _color);
+        await repo.insertCategory(name: name, type: _type, color: _color, parentId: _parentId);
       } else {
-        await repo.updateCategory(widget.existing!.id, name: name, type: _type, color: _color);
+        await repo.updateCategory(widget.existing!.id, name: name, type: _type, color: _color, parentId: _parentId);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -286,6 +307,12 @@ class _CategoryDialogState extends State<_CategoryDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l = context.l10n;
+    final id = widget.existing?.id;
+    // Two levels only: a parent is top-level and not this one, and one with
+    // subcategories can't become one.
+    final parents = [for (final c in widget.cats) if (c.parentId == null && c.id != id) c];
+    final hasSubs = id != null && widget.cats.any((c) => c.parentId == id);
+    final parent = parents.where((c) => c.id == _parentId).firstOrNull;
     return AlertDialog(
       title: Text(widget.existing == null ? l.newCategory : l.editCategory),
       content: SingleChildScrollView(
@@ -301,13 +328,31 @@ class _CategoryDialogState extends State<_CategoryDialog> {
             onFieldSubmitted: (_) => _save(),
           ),
           const SizedBox(height: 16),
+          DropdownButtonFormField<int?>(
+            initialValue: parent?.id,
+            isExpanded: true,
+            decoration: InputDecoration(labelText: l.parentCategoryOptional, helperText: hasSubs ? l.hasSubcategoriesHint : null, helperMaxLines: 2),
+            items: [
+              DropdownMenuItem(value: null, child: Text(l.noParentCategory, overflow: TextOverflow.ellipsis)),
+              for (final c in parents) DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis)),
+            ],
+            onChanged: hasSubs
+                ? null
+                : (v) => setState(() {
+                      _parentId = v;
+                      final p = parents.where((c) => c.id == v).firstOrNull;
+                      if (p != null && !_colorPicked) _color = p.color;
+                    }),
+          ),
+          const SizedBox(height: 16),
+          // A subcategory is its parent's type.
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'expense', label: Text(l.expense)),
               ButtonSegment(value: 'income', label: Text(l.income)),
             ],
-            selected: {_type},
-            onSelectionChanged: (s) => setState(() => _type = s.first),
+            selected: {parent?.type ?? _type},
+            onSelectionChanged: parent != null ? null : (s) => setState(() => _type = s.first),
           ),
           const SizedBox(height: 16),
           Text(l.color, style: theme.textTheme.labelLarge),
@@ -315,7 +360,10 @@ class _CategoryDialogState extends State<_CategoryDialog> {
           Wrap(spacing: 8, runSpacing: 8, children: [
             for (final sw in _CategoriesScreenState._swatches)
               GestureDetector(
-                onTap: () => setState(() => _color = sw),
+                onTap: () => setState(() {
+                  _color = sw;
+                  _colorPicked = true;
+                }),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 120),
                   width: 32,

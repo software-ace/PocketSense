@@ -40,7 +40,7 @@ void main() {
     final json = await Backup.export(store, now: DateTime.utc(2026, 9, 29));
     final doc = decode(json);
     expect(doc['format'], 'pocketsense-backup');
-    expect(doc['version'], 4);
+    expect(doc['version'], Backup.version);
     expect(doc['currency'], 'JOD');
     expect(doc['exported_at'], '2026-09-29T00:00:00.000Z');
 
@@ -64,7 +64,11 @@ void main() {
   // The README screenshots are taken with this file; it must keep importing.
   test('the demo backup in docs/ imports', () async {
     final summary = await Backup.import(store, File('docs/demo-backup.json').readAsStringSync());
-    expect(summary, (categories: 17, merchants: 37, loans: 4, circles: 2, transactions: 699, budgets: 6, recurring: 8, currency: Currency.byCode('JOD')!));
+    expect(summary, (categories: 32, merchants: 37, loans: 4, circles: 2, transactions: 699, budgets: 7, recurring: 8, currency: Currency.byCode('JOD')!));
+    // The starter subcategories, with a year of entries in them.
+    final cats = {for (final c in await repo.categories()) c.name: c};
+    expect(cats['Fuel']!.parentId, cats['Transport']!.id);
+    expect(await repo.transactions(categoryId: cats['Fuel']!.id, limit: 1000), hasLength(58));
     // Ahmad 70 and Lina 40 owe you; you owe Omar 125; Sara is settled.
     expect(loanTotals(await repo.loans()), (owedToYou: 110000, youOwe: 125000));
     // Family circle: 6 rounds paid, payout of 1,000 taken in round 3, so you
@@ -122,7 +126,7 @@ void main() {
 
     test('corrupt JSON', () => expectProblem('{"format": "pocketsense-b', BackupProblem.notJson));
     test('some other JSON file', () => expectProblem('{"hello": "world"}', BackupProblem.notABackup));
-    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = 5), BackupProblem.tooNew));
+    test('a newer backup version', () => expectProblem(jsonEncode(valid()..['version'] = Backup.version + 1), BackupProblem.tooNew));
     test('a currency the app doesn\'t offer', () => expectProblem(jsonEncode(valid()..['currency'] = 'XYZ'), BackupProblem.wrongCurrency));
 
     test('an export says which currency its amounts are in', () async {

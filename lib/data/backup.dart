@@ -98,11 +98,12 @@ class Backup {
   static Future<List<int>> _key(String password, List<int> salt, int iterations) =>
       Isolate.run(() => pbkdf2Sha256(utf8.encode(password), salt, iterations, 32));
 
-  /// 2 added loans, 3 accounts and transfers, 4 savings circles. An older
+  /// 2 added loans, 3 accounts and transfers, 4 savings circles, 5
+  /// subcategories (a category's parent_id). An older
   /// file still imports (its entries go into one Cash account, as on
   /// upgrade); an older app refuses a newer file rather than drop what it
   /// can't hold.
-  static const version = 4;
+  static const version = 5;
 
   // Parents first: this is the insert order, and reversed the delete order.
   static const _tables = ['categories', 'merchants', 'loans', 'circles', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
@@ -124,7 +125,7 @@ class Backup {
   static const _intColumns = {
     'id', 'amount_fils', 'limit_fils', 'category_id', 'loan_id', 'active', 'due_time', 'reminder_days', //
     'account_id', 'from_account_id', 'to_account_id', 'opening_fils', 'closed', //
-    'circle_id', 'contribution_fils', 'rounds', 'payout_round',
+    'circle_id', 'contribution_fils', 'rounds', 'payout_round', 'parent_id',
   };
 
   static Map<String, Object?> _row(String table, Object? r, Set<String> columns) {
@@ -246,6 +247,8 @@ class Backup {
           }
           await batch.commit(noResult: true);
         }
+        // A hand-edited file can link categories any way; the app keeps two levels.
+        await store.normalizeCategoriesIn(txn);
       });
     } catch (e) {
       // Constraint failures (duplicate ids, a budget for a missing category,

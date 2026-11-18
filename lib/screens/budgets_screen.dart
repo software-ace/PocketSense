@@ -261,8 +261,9 @@ class _BudgetDialogState extends State<_BudgetDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // Only expense categories make sense for budgets.
-    final expenseCats = widget.cats.where((c) => c.type == 'expense').toList();
+    // Only expense categories make sense for budgets. A parent's counts its
+    // subcategories too; a subcategory's, only its own.
+    final expenseCats = Category.tree([for (final c in widget.cats) if (c.type == 'expense') c]);
     final l = context.l10n;
     return AlertDialog(
       title: Text(widget.existing == null ? l.newBudget : l.editBudget),
@@ -275,7 +276,14 @@ class _BudgetDialogState extends State<_BudgetDialog> {
             initialValue: _catId,
             decoration: InputDecoration(labelText: l.category),
             validator: (v) => v == null ? l.chooseCategory : null,
-            items: expenseCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+            items: [
+              for (final c in expenseCats)
+                DropdownMenuItem(value: c.id, child: Padding(padding: EdgeInsetsDirectional.only(start: c.parentId == null ? 0 : 16), child: Text(c.name, overflow: TextOverflow.ellipsis))),
+            ],
+            // The dialog's width, not the longest name's: a long subcategory would overflow it.
+            isExpanded: true,
+            // Not indented once picked.
+            selectedItemBuilder: (_) => [for (final c in expenseCats) Text(c.name, overflow: TextOverflow.ellipsis)],
             onChanged: (v) => setState(() => _catId = v),
           ),
           const SizedBox(height: 16),

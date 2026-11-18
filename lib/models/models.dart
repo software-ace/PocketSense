@@ -9,11 +9,16 @@ class Category {
   final String type; // 'income' | 'expense'
   final String color;
 
+  /// The category this one is a subcategory of; null for a top-level one.
+  /// Two levels only: a parent is always top-level.
+  final int? parentId;
+
   Category({
     required this.id,
     required this.name,
     required this.type,
     required this.color,
+    this.parentId,
   });
 
   factory Category.fromMap(Map<String, dynamic> m) => Category(
@@ -21,7 +26,19 @@ class Category {
         name: m['name'] as String? ?? '',
         type: m['type'] as String? ?? 'expense',
         color: m['color'] as String? ?? '#6366f1',
+        parentId: m['parent_id'] as int?,
       );
+
+  /// [cats] (sorted by name) as lists show them: each top-level category
+  /// followed by its subcategories.
+  static List<Category> tree(List<Category> cats) {
+    final ids = {for (final c in cats) c.id};
+    // One whose parent isn't in [cats] (filtered out, or a sync mid-way) stands alone.
+    bool top(Category c) => c.parentId == null || !ids.contains(c.parentId);
+    return [
+      for (final p in cats.where(top)) ...[p, ...cats.where((c) => c.parentId == p.id)],
+    ];
+  }
 }
 
 class Merchant {

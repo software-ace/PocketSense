@@ -2547,4 +2547,85 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get styleLaterHint => 'يمكنك تغييره في أي وقت من الإعدادات ← المظهر.';
+
+  @override
+  String get parentCategoryOptional => 'الفئة الرئيسية (اختياري)';
+
+  @override
+  String get noParentCategory => 'لا شيء: فئة رئيسية';
+
+  @override
+  String get hasSubcategoriesHint => 'لها فئات فرعية، فلا يمكن أن تكون فرعية.';
+
+  @override
+  String subcategoryOf(String name) {
+    return 'ضمن $name';
+  }
+
+  @override
+  String allOfCategory(String name) {
+    return 'كل $name';
+  }
+
+  @override
+  String deleteSubcategoryBody(String parent) {
+    return 'ستنتقل معاملاتها وعناصرها المتكررة إلى $parent، وستُحذف ميزانيتها. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get deleteParentCategoryBody =>
+      'ستصبح فئاتها الفرعية فئات رئيسية، وستصبح المعاملات المصنّفة بها بلا فئة، وستُحذف ميزانياتها. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get csvProblemParent =>
+      'يجب أن تكون الفئة الرئيسية من النوع نفسه وغير فرعية: موجودة لديك، أو يضيفها هذا الملف.';
+
+  @override
+  String get csvRuleParent =>
+      'parent: اختياري، اسم الفئة الرئيسية التي تندرج تحتها هذه الفئة، من النوع نفسه.';
+
+  @override
+  String get catFuel => 'وقود';
+
+  @override
+  String get catTaxi => 'تاكسي';
+
+  @override
+  String get catParking => 'مواقف';
+
+  @override
+  String get catCarMaintenance => 'صيانة السيارة';
+
+  @override
+  String get catRent => 'إيجار';
+
+  @override
+  String get catHomeMaintenance => 'صيانة المنزل';
+
+  @override
+  String get catElectricity => 'كهرباء';
+
+  @override
+  String get catWater => 'مياه';
+
+  @override
+  String get catInternet => 'إنترنت';
+
+  @override
+  String get catPhone => 'هاتف';
+
+  @override
+  String get catDoctor => 'طبيب';
+
+  @override
+  String get catPharmacy => 'صيدلية';
+
+  @override
+  String get catClothes => 'ملابس';
+
+  @override
+  String get catElectronics => 'إلكترونيات';
+
+  @override
+  String get catBonus => 'مكافآت';
 }

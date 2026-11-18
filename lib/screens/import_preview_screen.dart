@@ -234,6 +234,7 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
               : l.csvProblemAmount,
       'name' => l.csvProblemName,
       'color' => l.csvProblemColor,
+      'parent' => l.csvProblemParent,
       _ => null,
     };
 
@@ -260,7 +261,10 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
           final hex = r['color'];
           final color = parseHex(hex);
           return <Widget>[
-            Text(r['name'].isEmpty ? '—' : r['name'], style: bold),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(r['name'].isEmpty ? '—' : r['name'], style: bold),
+              if (r['parent'].isNotEmpty) Text(l.subcategoryOf(r['parent']), style: theme.textTheme.bodySmall?.copyWith(color: scheme.outline)),
+            ]),
             Text(type == 'income' ? l.income : (type == 'expense' ? l.expense : (r['type'].isEmpty ? '—' : r['type']))),
             Row(children: [
               if (color != null) ...[
@@ -308,10 +312,11 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
               '2026-11-01,income,"1,250",October salary,Salary,,Arab Bank'
         ),
       CsvKind.categories => (
-          [l.csvRuleName, l.csvRuleType, l.csvRuleColor],
-          'name,type,color\n'
-              'Groceries,expense,#16a34a\n'
-              'Freelance,income,'
+          [l.csvRuleName, l.csvRuleType, l.csvRuleColor, l.csvRuleParent],
+          'name,type,color,parent\n'
+              'Groceries,expense,#16a34a,\n'
+              'Fruit,expense,#16a34a,Groceries\n'
+              'Freelance,income,,'
         ),
       CsvKind.merchants => (
           [l.csvRuleMerchant],

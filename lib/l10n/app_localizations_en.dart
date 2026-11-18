@@ -2474,4 +2474,86 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get styleLaterHint =>
       'You can change it any time in Settings → Appearance.';
+
+  @override
+  String get parentCategoryOptional => 'Parent category (optional)';
+
+  @override
+  String get noParentCategory => 'None: a top-level category';
+
+  @override
+  String get hasSubcategoriesHint =>
+      'It has subcategories, so it can\'t be one.';
+
+  @override
+  String subcategoryOf(String name) {
+    return 'In $name';
+  }
+
+  @override
+  String allOfCategory(String name) {
+    return 'All $name';
+  }
+
+  @override
+  String deleteSubcategoryBody(String parent) {
+    return 'Its transactions and recurring items move to $parent. Its budget will be removed. This cannot be undone.';
+  }
+
+  @override
+  String get deleteParentCategoryBody =>
+      'Its subcategories become top-level categories. Transactions tagged with it will become uncategorized, and its budgets will be removed. This cannot be undone.';
+
+  @override
+  String get csvProblemParent =>
+      'The parent must be a main category of the same type: one you have, or one this file adds.';
+
+  @override
+  String get csvRuleParent =>
+      'parent: optional, the main category this one goes under, by name, of the same type.';
+
+  @override
+  String get catFuel => 'Fuel';
+
+  @override
+  String get catTaxi => 'Taxi';
+
+  @override
+  String get catParking => 'Parking';
+
+  @override
+  String get catCarMaintenance => 'Car Maintenance';
+
+  @override
+  String get catRent => 'Rent';
+
+  @override
+  String get catHomeMaintenance => 'Home Maintenance';
+
+  @override
+  String get catElectricity => 'Electricity';
+
+  @override
+  String get catWater => 'Water';
+
+  @override
+  String get catInternet => 'Internet';
+
+  @override
+  String get catPhone => 'Phone';
+
+  @override
+  String get catDoctor => 'Doctor';
+
+  @override
+  String get catPharmacy => 'Pharmacy';
+
+  @override
+  String get catClothes => 'Clothes';
+
+  @override
+  String get catElectronics => 'Electronics';
+
+  @override
+  String get catBonus => 'Bonus';
 }

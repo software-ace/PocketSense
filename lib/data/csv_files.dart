@@ -1,3 +1,4 @@
+import '../models/models.dart';
 import '../utils/csv.dart';
 import '../utils/format.dart';
 import 'local_store.dart';
@@ -64,7 +65,7 @@ typedef ImportSummary = ({int added, int duplicates, int rejected, int categorie
 abstract final class CsvFiles {
   static const columns = {
     CsvKind.transactions: ['date', 'type', 'amount', 'description', 'category', 'merchant', 'account'],
-    CsvKind.categories: ['name', 'type', 'color'],
+    CsvKind.categories: ['name', 'type', 'color', 'parent'],
     CsvKind.merchants: ['name'],
   };
   static const _required = {
@@ -103,7 +104,12 @@ abstract final class CsvFiles {
                 [_iso(t.date), t.type, amountToInput(t.amountFils), t.description, t.categoryName ?? '', t.merchant ?? '', accounts[t.accountId] ?? ''],
             ];
           }(),
-        CsvKind.categories => [for (final c in await repo.categories()) [c.name, c.type, c.color]],
+        CsvKind.categories => await () async {
+            final cats = await repo.categories();
+            final names = {for (final c in cats) c.id: c.name};
+            // Parents first, so the file reads like the list.
+            return [for (final c in Category.tree(cats)) [c.name, c.type, c.color, names[c.parentId] ?? '']];
+          }(),
         CsvKind.merchants => [for (final m in await repo.merchants()) [m.name]],
       },
     ]);
@@ -123,7 +129,19 @@ abstract final class CsvFiles {
     ];
     return CsvPreview(kind, switch (kind) {
       CsvKind.transactions => await _transactions(rows),
-      CsvKind.categories => await _names(rows, {for (final c in await FinanceRepo().categories()) c.name}, _category),
+      CsvKind.categories => await () async {
+          final cats = await FinanceRepo().categories();
+          final have = {for (final c in cats) c.name.toLowerCase()};
+          // Who can be a parent (lower-case name → type): a main category you
+          // have, or a main-category row this file adds, even further down.
+          // Anything else would import differently from what the preview says.
+          final parents = {for (final c in cats) if (c.parentId == null) c.name.toLowerCase(): c.type};
+          for (final r in rows) {
+            final (problem, insert) = _category(r, const {});
+            if (problem == null && !have.contains(r['name']!.toLowerCase())) parents.putIfAbsent(r['name']!.toLowerCase(), () => insert!['type'] as String);
+          }
+          return _names(rows, {for (final c in cats) c.name}, (r) => _category(r, parents));
+        }(),
       CsvKind.merchants => await _names(rows, {for (final m in await FinanceRepo().merchants()) m.name}, _merchant),
     });
   }
@@ -212,13 +230,22 @@ abstract final class CsvFiles {
 
   static final _color = RegExp(r'^#[0-9a-fA-F]{6}$');
 
-  static (String?, Map<String, Object?>?) _category(Map<String, String> r) {
-    final name = r['name']!, type = r['type']!.toLowerCase(), color = r['color'] ?? '';
+  /// [parents]: the categories a row may name as its parent, lower-case
+  /// name → type. A row with a parent is never one: two levels only.
+  static (String?, Map<String, Object?>?) _category(Map<String, String> r, Map<String, String> parents) {
+    final name = r['name']!, type = r['type']!.toLowerCase(), color = r['color'] ?? '', parent = r['parent'] ?? '';
     if (name.isEmpty) return ('name', null);
     if (!_types.contains(type)) return ('type', null);
     if (color.isNotEmpty && !_color.hasMatch(color)) return ('color', null);
-    return (null, {'name': name, 'type': type, 'color': color.isEmpty ? _defaultCategoryColor : color.toLowerCase()});
+    if (parent.isNotEmpty && (parent.toLowerCase() == name.toLowerCase() || parents[parent.toLowerCase()] != type)) return ('parent', null);
+    return (null, {
+      'name': name, 'type': type, 'color': color.isEmpty ? _defaultCategoryColor : color.toLowerCase(),
+      if (parent.isNotEmpty) _parentKey: parent,
+    });
   }
+
+  // In a category's insert: its parent's name, linked once every row is in.
+  static const _parentKey = 'parent';
 
   static (String?, Map<String, Object?>?) _merchant(Map<String, String> r) =>
       r['name']!.isEmpty ? ('name', null) : (null, {'name': r['name']});
@@ -239,11 +266,24 @@ abstract final class CsvFiles {
     if (add.isNotEmpty) {
       final store = await LocalStore.instance();
       await store.write((txn) async {
+        final parents = <int, String>{};
         for (final r in add) {
-          await store.insertIn(txn, table, r.insert!);
+          final row = {...r.insert!}, parent = row.remove(_parentKey) as String?;
+          final id = await store.insertIn(txn, table, row);
+          if (parent != null) parents[id] = parent;
         }
         for (final name in newMerchants.values) {
           await store.insertIn(txn, 'merchants', {'name': name});
+        }
+        // Parents second: a subcategory's row can come before its parent's.
+        if (parents.isNotEmpty) {
+          final ids = {for (final c in await txn.query('categories', columns: ['id', 'name'])) (c['name'] as String).toLowerCase(): c['id'] as int};
+          for (final MapEntry(key: id, value: parent) in parents.entries) {
+            await store.updateIn(txn, 'categories', id, {'parent_id': ids[parent.toLowerCase()]});
+          }
+          // A parent that's a subcategory itself, or of the other type: the
+          // same fixes as after a sync.
+          await store.normalizeCategoriesIn(txn);
         }
       });
     }

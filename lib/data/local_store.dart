@@ -37,7 +37,7 @@ class LocalStore {
   void notifyChanged() => changes.value++;
 
   static const fileName = 'pocketsense.db';
-  static const schemaVersion = 8;
+  static const schemaVersion = 9;
 
   /// Tables whose rows sync between paired devices, parents first.
   static const syncedTables = ['categories', 'merchants', 'loans', 'circles', 'accounts', 'transactions', 'budgets', 'recurring_expenses', 'transfers'];
@@ -210,12 +210,23 @@ class LocalStore {
     if (seed) await _seedCategories(db, categoryNames);
     // A new database goes through the same upgrade as an old one, so there
     // is one schema, not two that could drift apart.
-    await _upgradeToV2(db, {for (final c in defaultCategories) c.key: {(categoryNames[c.key] ?? c.name).toLowerCase()}});
+    await _upgradeToV2(db, {
+      for (final c in defaultCategories) c.key: {(categoryNames[c.key] ?? c.name).toLowerCase()},
+      for (final c in defaultSubcategories) c.key: {(categoryNames[c.key] ?? c.name).toLowerCase()},
+    });
     // Seeding already made the loan categories, or the caller wants none.
     await _upgradeToV4(db, categoryNames, addCategories: false);
     await _upgradeToV6(db);
     await _upgradeToV7(db, categoryNames[cashNameKey] ?? 'Cash');
     await _upgradeToV8(db, categoryNames, addCategories: false);
+    await _upgradeToV9(db);
+    // Seeded before v9 made parent_id. Unstamped: every new database links
+    // its starter rows the same way, as it names them.
+    if (seed) {
+      for (final s in defaultSubcategories) {
+        await db.rawUpdate("UPDATE categories SET parent_id = (SELECT id FROM categories WHERE uid = 'default:${s.parent}') WHERE uid = 'default:${s.key}'");
+      }
+    }
   }
 
   /// [categoryNames]: as for [open]; names the categories v4 adds.
@@ -227,6 +238,15 @@ class LocalStore {
     if (from < 6) await _upgradeToV6(db);
     if (from < 7) await _upgradeToV7(db, categoryNames[cashNameKey] ?? 'Cash');
     if (from < 8) await _upgradeToV8(db, categoryNames);
+    if (from < 9) await _upgradeToV9(db);
+  }
+
+  /// v9 adds subcategories: a category's parent_id, synced as parent_uid.
+  /// No foreign key: rows arrive in any order (a sync batch, a backup), and
+  /// [normalizeCategoriesIn] keeps the links sound instead. Safe to run twice.
+  static Future<void> _upgradeToV9(sq.Database db) async {
+    final columns = {for (final c in await db.rawQuery('PRAGMA table_info(categories)')) c['name']};
+    if (!columns.contains('parent_id')) await db.execute('ALTER TABLE categories ADD COLUMN parent_id INTEGER');
   }
 
   /// v8 adds savings circles, built like loans (v4): a circle holds its
@@ -473,6 +493,10 @@ class LocalStore {
     for (final c in defaultCategories) {
       batch.insert('categories', {'name': names[c.key] ?? c.name, 'type': c.type, 'color': c.color});
     }
+    for (final s in defaultSubcategories) {
+      final parent = defaultCategories.firstWhere((c) => c.key == s.parent);
+      batch.insert('categories', {'name': names[s.key] ?? s.name, 'type': parent.type, 'color': parent.color});
+    }
     await batch.commit(noResult: true);
   }
 
@@ -585,19 +609,22 @@ class LocalStore {
     await updateIn(txn, 'accounts', to, {'opening_fils': target + opening});
   }
 
-  /// What the foreign keys do when a category is deleted (entries and
-  /// recurring items uncategorized, budgets deleted), but as stamped
-  /// changes. A silent cascade would leave this device disagreeing with a
-  /// peer where the category came back through a later edit.
+  /// What happens to a deleted category's children, as stamped changes (a
+  /// silent cascade would leave this device disagreeing with a peer where
+  /// the category came back through a later edit): its entries and
+  /// recurring items move up to its parent, or are uncategorized if it's
+  /// top-level; its budgets are deleted; its subcategories become top-level.
   ///
   /// A child with a newer version in [incoming] (uid → hlc, from the batch
   /// being merged) is changed without a stamp: that version replaces it
   /// right after, and a stamp would wrongly outrank it.
   Future<void> releaseCategory(sq.Transaction txn, int categoryId, {Map<String, String> incoming = const {}}) async {
     bool replaced(Map<String, Object?> r) => (incoming[r['uid']] ?? '').compareTo(r['hlc'] as String) > 0;
+    final parentId = (await txn.query('categories', columns: ['parent_id'], where: 'id = ?', whereArgs: [categoryId])).firstOrNull?['parent_id'];
+    final parent = parentId == null ? null : (await txn.query('categories', columns: ['id'], where: 'id = ?', whereArgs: [parentId])).firstOrNull?['id'];
     for (final t in ['transactions', 'recurring_expenses']) {
       for (final r in await txn.query(t, columns: ['id', 'uid', 'hlc'], where: 'category_id = ?', whereArgs: [categoryId])) {
-        await txn.update(t, {'category_id': null, if (!replaced(r)) ...stamp()}, where: 'id = ?', whereArgs: [r['id']]);
+        await txn.update(t, {'category_id': parent, if (!replaced(r)) ...stamp()}, where: 'id = ?', whereArgs: [r['id']]);
       }
     }
     for (final b in await txn.query('budgets', columns: ['uid', 'hlc'], where: 'category_id = ?', whereArgs: [categoryId])) {
@@ -605,6 +632,37 @@ class LocalStore {
       await txn.insert('tombstones', {'tbl': 'budgets', 'uid': b['uid'], ...stamp()}, conflictAlgorithm: sq.ConflictAlgorithm.replace);
     }
     await txn.delete('budgets', where: 'category_id = ?', whereArgs: [categoryId]);
+    for (final c in await txn.query('categories', columns: ['id', 'uid', 'hlc'], where: 'parent_id = ?', whereArgs: [categoryId])) {
+      await txn.update('categories', {'parent_id': null, if (!replaced(c)) ...stamp()}, where: 'id = ?', whereArgs: [c['id']]);
+    }
+  }
+
+  /// Keeps subcategories two levels deep and typed like their parent after
+  /// changes from elsewhere (a sync batch, an import), which no form
+  /// checked: two phones can each put one category under the other. Fixes
+  /// are stamped so peers agree, and decided on one snapshot, so devices
+  /// holding the same rows make the same ones: a category whose parent is
+  /// gone, is itself, or is a subcategory (a cycle, or a third level)
+  /// becomes top-level; a subcategory takes its parent's type. Returns how
+  /// many it changed.
+  Future<int> normalizeCategoriesIn(sq.Transaction txn) async {
+    final rows = await txn.query('categories', columns: ['id', 'type', 'parent_id']);
+    final byId = {for (final r in rows) r['id']: r};
+    var changed = 0;
+    for (final r in rows) {
+      final pid = r['parent_id'];
+      if (pid == null) continue;
+      final parent = byId[pid];
+      if (parent == null || pid == r['id'] || parent['parent_id'] != null) {
+        await updateIn(txn, 'categories', r['id'] as int, {'parent_id': null});
+      } else if (parent['type'] != r['type']) {
+        await updateIn(txn, 'categories', r['id'] as int, {'type': parent['type']});
+      } else {
+        continue;
+      }
+      changed++;
+    }
+    return changed;
   }
 
   /// Empties the synced tables without leaving tombstones, so nothing is

@@ -3775,6 +3775,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can change it any time in Settings → Appearance.'**
   String get styleLaterHint;
+
+  /// No description provided for @parentCategoryOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent category (optional)'**
+  String get parentCategoryOptional;
+
+  /// No description provided for @noParentCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'None: a top-level category'**
+  String get noParentCategory;
+
+  /// No description provided for @hasSubcategoriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'It has subcategories, so it can\'t be one.'**
+  String get hasSubcategoriesHint;
+
+  /// No description provided for @subcategoryOf.
+  ///
+  /// In en, this message translates to:
+  /// **'In {name}'**
+  String subcategoryOf(String name);
+
+  /// No description provided for @allOfCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'All {name}'**
+  String allOfCategory(String name);
+
+  /// No description provided for @deleteSubcategoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its transactions and recurring items move to {parent}. Its budget will be removed. This cannot be undone.'**
+  String deleteSubcategoryBody(String parent);
+
+  /// No description provided for @deleteParentCategoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its subcategories become top-level categories. Transactions tagged with it will become uncategorized, and its budgets will be removed. This cannot be undone.'**
+  String get deleteParentCategoryBody;
+
+  /// No description provided for @csvProblemParent.
+  ///
+  /// In en, this message translates to:
+  /// **'The parent must be a main category of the same type: one you have, or one this file adds.'**
+  String get csvProblemParent;
+
+  /// No description provided for @csvRuleParent.
+  ///
+  /// In en, this message translates to:
+  /// **'parent: optional, the main category this one goes under, by name, of the same type.'**
+  String get csvRuleParent;
+
+  /// No description provided for @catFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get catFuel;
+
+  /// No description provided for @catTaxi.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxi'**
+  String get catTaxi;
+
+  /// No description provided for @catParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get catParking;
+
+  /// No description provided for @catCarMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Car Maintenance'**
+  String get catCarMaintenance;
+
+  /// No description provided for @catRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get catRent;
+
+  /// No description provided for @catHomeMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Home Maintenance'**
+  String get catHomeMaintenance;
+
+  /// No description provided for @catElectricity.
+  ///
+  /// In en, this message translates to:
+  /// **'Electricity'**
+  String get catElectricity;
+
+  /// No description provided for @catWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get catWater;
+
+  /// No description provided for @catInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet'**
+  String get catInternet;
+
+  /// No description provided for @catPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get catPhone;
+
+  /// No description provided for @catDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get catDoctor;
+
+  /// No description provided for @catPharmacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacy'**
+  String get catPharmacy;
+
+  /// No description provided for @catClothes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothes'**
+  String get catClothes;
+
+  /// No description provided for @catElectronics.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get catElectronics;
+
+  /// No description provided for @catBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus'**
+  String get catBonus;
 }
 
 class _AppLocalizationsDelegate

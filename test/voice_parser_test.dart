@@ -14,6 +14,12 @@ void main() {
   final now = DateTime(2026, 9, 27, 15); // a Sunday
   VoiceDraft parse(String s) => parseVoiceEntry(s, categories: cats, now: now);
 
+  test('an everyday word picks the starter subcategory when there is one, else its parent', () {
+    final withTaxi = [...cats, Category(id: 20, name: 'Taxi', type: 'expense', color: '#000', parentId: 2)];
+    expect(parseVoiceEntry('spent 5 on uber', categories: withTaxi, now: now).categoryId, 20);
+    expect(parse('spent 5 on uber').categoryId, 2, reason: 'no Taxi: Transport, as before');
+  });
+
   test('full sentence: amount, purpose, merchant, date, category', () {
     final d = parse('Spent 8.50 on coffee at Blue Bottle yesterday');
     expect(d.amountFils, 8500);

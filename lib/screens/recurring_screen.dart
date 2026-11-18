@@ -8,6 +8,7 @@ import '../security/amount_privacy.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/recurring.dart';
+import '../widgets/category_field.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
 import '../widgets/data_aware.dart';
@@ -373,7 +374,6 @@ class _RecurringDialogState extends State<_RecurringDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final typeCats = widget.cats.where((c) => c.type == _type).toList();
     final l = context.l10n;
     return AlertDialog(
       title: Text(widget.existing == null ? l.newRecurringItem : l.editRecurringItem),
@@ -428,14 +428,7 @@ class _RecurringDialogState extends State<_RecurringDialog> {
           const SizedBox(height: 16),
           ReminderField(days: _reminderDays, onChanged: (d) => setState(() => _reminderDays = d)),
           const SizedBox(height: 16),
-          DropdownButtonFormField<int>(
-            // Keyed by type so the field resets when the category list changes.
-            key: ValueKey(_type),
-            initialValue: typeCats.any((c) => c.id == _catId) ? _catId : null,
-            decoration: InputDecoration(labelText: l.categoryOptional),
-            items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-            onChanged: (v) => setState(() => _catId = v),
-          ),
+          CategoryField(cats: widget.cats, type: _type, value: _catId, onChanged: (v) => setState(() => _catId = v)),
           const SizedBox(height: 16),
           MerchantField(controller: _merchCtrl),
           AccountField(value: _accountId, onChanged: (v) => setState(() => _accountId = v)),

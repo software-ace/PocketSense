@@ -8,8 +8,14 @@ void main() {
   test('a new database is seeded with the starter categories', () async {
     final store = await LocalStore.openInMemoryForTest(seed: true);
     final rows = await store.db.query('categories');
-    expect(rows, hasLength(defaultCategories.length));
-    expect(rows.map((r) => r['name']), containsAll(['Groceries', 'Salary']));
+    expect(rows, hasLength(defaultCategories.length + defaultSubcategories.length));
+    expect(rows.map((r) => r['name']), containsAll(['Groceries', 'Salary', 'Fuel']));
+    // Each starter subcategory under its parent, of its type.
+    final byUid = {for (final r in rows) r['uid']: r};
+    for (final s in defaultSubcategories) {
+      final (sub, parent) = (byUid['default:${s.key}']!, byUid['default:${s.parent}']!);
+      expect((sub['parent_id'], sub['type']), (parent['id'], parent['type']), reason: s.key);
+    }
     expect(rows.map((r) => r['id']).toSet(), hasLength(rows.length), reason: 'ids must be unique');
   });
 

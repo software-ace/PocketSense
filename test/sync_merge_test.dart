@@ -42,8 +42,10 @@ class Mesh {
 /// Everything a user can see, keyed by uid and with categories and loans by
 /// uid, so two devices' databases can be compared.
 Future<Map<String, Object>> snapshot(LocalStore s) async {
+  final categories = {for (final r in await s.db.query('categories')) r['id']: r['uid']};
   final uids = {
-    'category_id': {for (final r in await s.db.query('categories')) r['id']: r['uid']},
+    'category_id': categories,
+    'parent_id': categories,
     'loan_id': {for (final r in await s.db.query('loans')) r['id']: r['uid']},
   };
   return {
@@ -95,7 +97,7 @@ void main() {
 
     await Mesh().settle([a, b]);
 
-    expect(await a.db.query('categories'), hasLength(defaultCategories.length));
+    expect(await a.db.query('categories'), hasLength(defaultCategories.length + defaultSubcategories.length));
     expect(await snapshot(a), await snapshot(b));
   });
 
@@ -359,5 +361,121 @@ void main() {
         expect(await snapshot(s), first, reason: 'seed $seed');
       }
     }
+  });
+
+  group('subcategories', () {
+    Future<int> id(LocalStore s, String name) async => (await s.db.query('categories', where: 'name = ?', whereArgs: [name])).single['id'] as int;
+    Future<String?> parentName(LocalStore s, String name) async {
+      final p = (await s.db.query('categories', where: 'name = ?', whereArgs: [name])).single['parent_id'];
+      return p == null ? null : (await s.db.query('categories', where: 'id = ?', whereArgs: [p])).single['name'] as String;
+    }
+    Future<void> under(LocalStore s, String child, String parent) async => s.updateRow('categories', await id(s, child), {'parent_id': await id(s, parent)});
+    // Two levels on every device, whatever the edits.
+    Future<void> expectTwoLevels(LocalStore s) async {
+      final rows = await s.db.query('categories');
+      final byId = {for (final r in rows) r['id']: r};
+      for (final r in rows.where((r) => r['parent_id'] != null)) {
+        expect(byId[r['parent_id']]?['parent_id'], isNull, reason: '${r['name']} is under a subcategory');
+      }
+    }
+
+    test('a subcategory sent before its parent still lands under it', () async {
+      final a = await LocalStore.openInMemoryForTest(), b = await LocalStore.openInMemoryForTest();
+      await category(a, 'Fuel'); // older, so it's sent first
+      await category(a, 'Car');
+      await under(a, 'Fuel', 'Car');
+
+      await Mesh().settle([a, b]);
+
+      expect(await parentName(b, 'Fuel'), 'Car');
+      expect(await snapshot(a), await snapshot(b));
+    });
+
+    test('two phones that put each under the other end with a two-level tree, the same on both', () async {
+      final a = await LocalStore.openInMemoryForTest(), b = await LocalStore.openInMemoryForTest();
+      final mesh = Mesh();
+      await category(a, 'X');
+      await category(a, 'Y');
+      await category(a, 'Z');
+      await mesh.settle([a, b]);
+      await under(a, 'X', 'Y'); // a cycle, made on two phones at once
+      await under(b, 'Y', 'X');
+      await later();
+      await under(a, 'Z', 'X'); // and a third level
+      await mesh.settle([a, b]);
+
+      await expectTwoLevels(a);
+      await expectTwoLevels(b);
+      expect(await snapshot(a), await snapshot(b));
+    });
+
+    test('a parent made on two phones is merged, and both subcategories follow it', () async {
+      final a = await LocalStore.openInMemoryForTest(), b = await LocalStore.openInMemoryForTest();
+      for (final (s, sub) in [(a, 'Fuel'), (b, 'Tolls')]) {
+        await category(s, 'Car');
+        await category(s, sub);
+        await under(s, sub, 'Car');
+      }
+
+      await Mesh().settle([a, b]);
+
+      for (final s in [a, b]) {
+        expect(await parentName(s, 'Fuel'), 'Car');
+        expect(await parentName(s, 'Tolls'), 'Car');
+      }
+      expect(await snapshot(a), await snapshot(b));
+    });
+
+    test("a subcategory's entries move up to its parent when it's deleted, on every device", () async {
+      final a = await LocalStore.openInMemoryForTest(), b = await LocalStore.openInMemoryForTest();
+      final mesh = Mesh();
+      await category(a, 'Car');
+      final fuel = await category(a, 'Fuel');
+      await under(a, 'Fuel', 'Car');
+      await entry(a, categoryId: fuel);
+      await mesh.settle([a, b]);
+      await entry(b, categoryId: await id(b, 'Fuel')); // added there meanwhile
+
+      await a.deleteRow('categories', fuel);
+      await mesh.settle([a, b]);
+
+      for (final s in [a, b]) {
+        expect({for (final t in await s.db.query('transactions')) t['category_id']}, {await id(s, 'Car')});
+      }
+      expect(await snapshot(a), await snapshot(b));
+    });
+
+    test("a subcategory added while its parent's type changed on the other phone takes the new type", () async {
+      final a = await LocalStore.openInMemoryForTest(), b = await LocalStore.openInMemoryForTest();
+      final mesh = Mesh();
+      await category(a, 'Car');
+      await mesh.settle([a, b]);
+      await a.updateRow('categories', await id(a, 'Car'), {'type': 'income'});
+      await category(b, 'Fuel'); // expense, under what b still thinks is expense
+      await under(b, 'Fuel', 'Car');
+
+      await mesh.settle([a, b]);
+
+      for (final s in [a, b]) {
+        expect((await s.db.query('categories', where: "name = 'Fuel'")).single['type'], 'income');
+      }
+      expect(await snapshot(a), await snapshot(b));
+    });
+
+    test('a subcategory added under a parent deleted on the other phone ends top-level', () async {
+      final a = await LocalStore.openInMemoryForTest(), b = await LocalStore.openInMemoryForTest();
+      final mesh = Mesh();
+      await category(a, 'Car');
+      await mesh.settle([a, b]);
+      await a.deleteRow('categories', await id(a, 'Car'));
+      await category(b, 'Tolls');
+      await under(b, 'Tolls', 'Car');
+
+      await mesh.settle([a, b]);
+
+      expect(await a.db.query('categories', where: "name = 'Car'"), isEmpty);
+      expect(await parentName(a, 'Tolls'), isNull);
+      expect(await snapshot(a), await snapshot(b));
+    });
   });
 }

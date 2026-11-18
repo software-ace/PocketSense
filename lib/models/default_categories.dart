@@ -22,3 +22,24 @@ const defaultCategories = <({String key, String name, String type, String color}
   (key: 'loansReceived', name: 'Loans Received', type: 'income', color: '#65a30d'),
   (key: 'circlePayouts', name: 'Circle Payouts', type: 'income', color: '#059669'),
 ];
+
+/// Starter subcategories, under the starter category [parent] (a key
+/// above), with its type and colour. A new database gets them; an older one
+/// keeps the categories its owner made, so v9 doesn't add them.
+const defaultSubcategories = <({String key, String parent, String name})>[
+  (key: 'fuel', parent: 'transport', name: 'Fuel'),
+  (key: 'taxi', parent: 'transport', name: 'Taxi'),
+  (key: 'parking', parent: 'transport', name: 'Parking'),
+  (key: 'carMaintenance', parent: 'transport', name: 'Car Maintenance'),
+  (key: 'rent', parent: 'housing', name: 'Rent'),
+  (key: 'homeMaintenance', parent: 'housing', name: 'Home Maintenance'),
+  (key: 'electricity', parent: 'utilities', name: 'Electricity'),
+  (key: 'water', parent: 'utilities', name: 'Water'),
+  (key: 'internet', parent: 'utilities', name: 'Internet'),
+  (key: 'phone', parent: 'utilities', name: 'Phone'),
+  (key: 'doctor', parent: 'health', name: 'Doctor'),
+  (key: 'pharmacy', parent: 'health', name: 'Pharmacy'),
+  (key: 'clothes', parent: 'shopping', name: 'Clothes'),
+  (key: 'electronics', parent: 'shopping', name: 'Electronics'),
+  (key: 'bonus', parent: 'salary', name: 'Bonus'),
+];

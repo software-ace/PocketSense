@@ -9,6 +9,7 @@ import '../security/lock_gate.dart';
 import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../utils/quick_add.dart';
+import '../widgets/category_field.dart';
 import '../widgets/account_field.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
@@ -181,9 +182,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
     // Only the chosen type's categories: the others would match nothing.
     final cats = [for (final c in await _repo.categories()) if (_typeFilter == null || c.type == _typeFilter) c];
     if (!mounted) return;
+    // Each parent then its subcategories, indented; a parent takes them in.
     final picked = await _pickFrom<Category>(context.l10n.category, [
-      for (final c in cats)
-        (label: c.name, value: c, leading: CircleAvatar(radius: 7, backgroundColor: parseHex(c.color) ?? Colors.grey)),
+      for (final c in Category.tree(cats))
+        (
+          label: c.name,
+          value: c,
+          leading: Padding(
+            padding: EdgeInsetsDirectional.only(start: c.parentId == null ? 0 : 20),
+            child: CircleAvatar(radius: 7, backgroundColor: parseHex(c.color) ?? Colors.grey),
+          ),
+        ),
     ]);
     if (picked != null) _setFilter(() => _category = picked);
   }
@@ -625,7 +634,6 @@ class _TxFormSheetState extends State<_TxFormSheet> {
   @override
   Widget build(BuildContext context) {
     final cats = _cats.cast<Category>();
-    final typeCats = cats.where((c) => c.type == _type).toList();
     final isEdit = widget.existing != null;
     final l = context.l10n;
     return Padding(
@@ -677,15 +685,7 @@ class _TxFormSheetState extends State<_TxFormSheet> {
           const SizedBox(height: 12),
           MerchantField(controller: _merchCtrl),
           const SizedBox(height: 12),
-          DropdownButtonFormField<int>(
-            // Categories load async; only select once the item exists.
-            // Rebuilt when the type flips too, so a cleared selection shows as cleared.
-            key: ValueKey('${cats.length}-$_type'),
-            initialValue: typeCats.any((c) => c.id == _catId) ? _catId : null,
-            decoration: InputDecoration(labelText: l.categoryOptional),
-            items: typeCats.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-            onChanged: (v) => setState(() => _catId = v),
-          ),
+          CategoryField(cats: cats, type: _type, value: _catId, onChanged: (v) => setState(() => _catId = v)),
           AccountField(value: _accountId, onChanged: (v) => setState(() => _accountId = v)),
           const SizedBox(height: 20),
           FilledButton(

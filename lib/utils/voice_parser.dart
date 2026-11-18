@@ -20,10 +20,19 @@ const _mainUnits = r'dinars?|jds?|jod|dollars?|bucks?|euros?|pounds?|riyals?|ria
 const _smallUnits = r'fils|piasters?|piastres?|qirsh|cents?|halalas?|baisas?|centavos?';
 const _weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-// Everyday words → starter categories (by their key in defaultCategories).
-// Only used when the user still has that category, under its English name or
-// the localized name it was created with; their own names always win.
+// Everyday words → starter categories (by their key in defaultCategories or
+// defaultSubcategories). Only used when the user still has that category,
+// under its English name or the localized name it was created with; their
+// own names always win. A subcategory comes before its parent, which keeps
+// the word for databases made before subcategories.
 const _categoryHints = <String, List<String>>{
+  'fuel': ['gas', 'petrol', 'diesel'],
+  'taxi': ['uber', 'careem', 'cab'],
+  'water': ['water bill'],
+  'phone': ['phone bill', 'mobile bill'],
+  'pharmacy': ['medicine'],
+  'doctor': ['dentist', 'clinic'],
+  'clothes': ['shoes'],
   // 'coffee' before 'dining' so, when both starter categories exist, it wins;
   // dining also keeps it for databases created before Coffee was a starter.
   'coffee': ['coffee'],
@@ -127,6 +136,7 @@ VoiceDraft parseVoiceEntry(String input, {required List<Category> categories, Da
         if (RegExp(r'\b' + RegExp.escape(w) + r'\b').hasMatch(lower)) {
           final names = {
             for (final d in defaultCategories.where((d) => d.key == e.key)) d.name.toLowerCase(),
+            for (final d in defaultSubcategories.where((d) => d.key == e.key)) d.name.toLowerCase(),
             if (starterNames[e.key] != null) starterNames[e.key]!.toLowerCase(),
           };
           final match = categories.where((c) => names.contains(c.name.toLowerCase()));

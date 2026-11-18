@@ -1,3 +1,5 @@
+import 'package:sqflite_sqlcipher/sqflite.dart' as sq;
+
 import '../models/models.dart';
 import '../utils/budget_period.dart';
 import '../l10n/app_localizations.dart';
@@ -26,11 +28,39 @@ class FinanceRepo {
     return list;
   }
 
-  Future<int> insertCategory({required String name, required String type, required String color}) async =>
-      (await _db).insertRow('categories', {'name': name, 'type': type, 'color': color});
+  /// [parentId]: makes it a subcategory, of the parent's type whatever [type] says.
+  Future<int> insertCategory({required String name, required String type, required String color, int? parentId}) async {
+    final store = await _db;
+    return store.write((txn) async {
+      final parentType = await _checkParent(txn, null, parentId);
+      return store.insertIn(txn, 'categories', {'name': name, 'type': parentType ?? type, 'color': color, 'parent_id': parentId});
+    });
+  }
 
-  Future<void> updateCategory(int id, {required String name, required String type, required String color}) async =>
-      (await _db).updateRow('categories', id, {'name': name, 'type': type, 'color': color});
+  /// As [insertCategory]. Its subcategories follow a change of type.
+  Future<void> updateCategory(int id, {required String name, required String type, required String color, int? parentId}) async {
+    final store = await _db;
+    await store.write((txn) async {
+      final t = await _checkParent(txn, id, parentId) ?? type;
+      await store.updateIn(txn, 'categories', id, {'name': name, 'type': t, 'color': color, 'parent_id': parentId});
+      for (final c in await txn.query('categories', columns: ['id'], where: 'parent_id = ? AND type != ?', whereArgs: [id, t])) {
+        await store.updateIn(txn, 'categories', c['id'] as int, {'type': t});
+      }
+    });
+  }
+
+  /// Two levels only: [parentId] must be another top-level category, and
+  /// category [id] can't have subcategories of its own. Returns the parent's
+  /// type (null without one). The forms only offer what passes.
+  Future<String?> _checkParent(sq.Transaction txn, int? id, int? parentId) async {
+    if (parentId == null) return null;
+    final p = (await txn.query('categories', columns: ['type', 'parent_id'], where: 'id = ?', whereArgs: [parentId])).firstOrNull;
+    if (p == null || p['parent_id'] != null || parentId == id) throw ArgumentError('$parentId is not a top-level category');
+    if (id != null && (await txn.query('categories', columns: ['id'], where: 'parent_id = ?', whereArgs: [id], limit: 1)).isNotEmpty) {
+      throw ArgumentError('category $id has subcategories');
+    }
+    return p['type'] as String;
+  }
 
   Future<void> deleteCategory(int id) async {
     final store = await _db;
@@ -177,8 +207,9 @@ class FinanceRepo {
       args.add(accountId);
     }
     if (categoryId != null) {
-      where.add('category_id = ?');
-      args.add(categoryId);
+      // A parent takes in its subcategories.
+      where.add('category_id IN (SELECT id FROM categories WHERE id = ? OR parent_id = ?)');
+      args.addAll([categoryId, categoryId]);
     }
     // Exactly that merchant, in any letter case (as the merchant list matches
     // names), unlike q, which finds text anywhere.
@@ -274,12 +305,15 @@ class FinanceRepo {
     final from = windows.values.map((w) => w.start).reduce((a, b) => a.isBefore(b) ? a : b);
     final to = windows.values.map((w) => w.end).reduce((a, b) => a.isAfter(b) ? a : b);
     final txs = await transactions(from: from, to: to, type: 'expense', limit: 1 << 30);
+    // A parent's budget counts its subcategories' spending too.
+    final parentOf = {for (final c in await categories()) c.id: c.parentId};
+    bool inBudget(Transaction t, Budget b) => t.categoryId == b.categoryId || (t.categoryId != null && parentOf[t.categoryId] == b.categoryId);
     return [
       for (final b in active)
         (
           budget: b,
           spentFils: txs
-              .where((t) => t.categoryId == b.categoryId && !t.date.isBefore(windows[b.id]!.start) && !t.date.isAfter(windows[b.id]!.end))
+              .where((t) => inBudget(t, b) && !t.date.isBefore(windows[b.id]!.start) && !t.date.isAfter(windows[b.id]!.end))
               .fold(0, (sum, t) => sum + t.amountFils),
           start: windows[b.id]!.start,
           end: windows[b.id]!.end,
@@ -816,10 +850,13 @@ class FinanceRepo {
   Future<List<({String? label, int fils, String? color})>> spendingByCategory(
       DateTime from, DateTime to) async {
     final txs = await transactions(from: from, to: to, type: 'expense', limit: 1000);
+    // Subcategories count under their parent: the chart shows parents only.
+    final cats = {for (final c in await categories()) c.id: c};
     final map = <int?, ({String? label, int fils, String? color})>{};
     for (final t in txs) {
-      final existing = map[t.categoryId];
-      map[t.categoryId] = (label: t.categoryName, fils: (existing?.fils ?? 0) + t.amountFils, color: t.categoryColor);
+      final c = cats[cats[t.categoryId]?.parentId] ?? cats[t.categoryId];
+      final existing = map[c?.id];
+      map[c?.id] = (label: c?.name, fils: (existing?.fils ?? 0) + t.amountFils, color: c?.color);
     }
     return map.values.toList()..sort((a, b) => b.fils.compareTo(a.fils));
   }

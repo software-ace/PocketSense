@@ -79,6 +79,28 @@ void main() {
     expect(find.text('Groceries'), findsNothing);
   });
 
+  testWidgets("the list offers parents only; a parent's subcategories show as chips, and one files the entry", (tester) async {
+    final fuel = await tester.runAsync(() async {
+      final repo = FinanceRepo();
+      final car = await repo.insertCategory(name: 'Boat', type: 'expense', color: '#000000');
+      return repo.insertCategory(name: 'Mooring', type: 'expense', color: '#000000', parentId: car);
+    });
+    await openAddSheet(tester);
+
+    await openCategories(tester);
+    expect(find.text('Mooring'), findsNothing);
+    await tester.tap(find.text('Boat').last);
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ChoiceChip, 'All Boat'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Mooring'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Amount'), '5');
+    await tester.tap(find.text('Save'));
+    await settleWithDb(tester);
+    expect((await tester.runAsync(() => FinanceRepo().transactions()))!.single.categoryId, fuel);
+  });
+
   testWidgets('Save sits above the navigation bar', (tester) async {
     // 3-button navigation: a 48 dp bar the app is drawn behind (Android 15+).
     tester.view.padding = tester.view.viewPadding = const FakeViewPadding(bottom: 48 * 2.7);

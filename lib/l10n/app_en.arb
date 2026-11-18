@@ -1560,5 +1560,50 @@
   "themeOnlyPlain": "Light and dark apply to the Plain style",
   "styleTitle": "Pick a style",
   "styleBody": "Tap one to see it on this page.",
-  "styleLaterHint": "You can change it any time in Settings → Appearance."
+  "styleLaterHint": "You can change it any time in Settings → Appearance.",
+  "parentCategoryOptional": "Parent category (optional)",
+  "noParentCategory": "None: a top-level category",
+  "hasSubcategoriesHint": "It has subcategories, so it can't be one.",
+  "subcategoryOf": "In {name}",
+  "@subcategoryOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "allOfCategory": "All {name}",
+  "@allOfCategory": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteSubcategoryBody": "Its transactions and recurring items move to {parent}. Its budget will be removed. This cannot be undone.",
+  "@deleteSubcategoryBody": {
+    "placeholders": {
+      "parent": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteParentCategoryBody": "Its subcategories become top-level categories. Transactions tagged with it will become uncategorized, and its budgets will be removed. This cannot be undone.",
+  "csvProblemParent": "The parent must be a main category of the same type: one you have, or one this file adds.",
+  "csvRuleParent": "parent: optional, the main category this one goes under, by name, of the same type.",
+  "catFuel": "Fuel",
+  "catTaxi": "Taxi",
+  "catParking": "Parking",
+  "catCarMaintenance": "Car Maintenance",
+  "catRent": "Rent",
+  "catHomeMaintenance": "Home Maintenance",
+  "catElectricity": "Electricity",
+  "catWater": "Water",
+  "catInternet": "Internet",
+  "catPhone": "Phone",
+  "catDoctor": "Doctor",
+  "catPharmacy": "Pharmacy",
+  "catClothes": "Clothes",
+  "catElectronics": "Electronics",
+  "catBonus": "Bonus"
 }

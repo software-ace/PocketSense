@@ -42,6 +42,7 @@ class Merge {
                 for (final e in r.entries)
                   if (!_localColumns.contains(e.key)) e.key: e.value,
                 if (r.containsKey('category_id')) 'category_uid': catUid[r['category_id']],
+                if (r.containsKey('parent_id')) 'parent_uid': catUid[r['parent_id']],
                 if (r.containsKey('loan_id')) 'loan_uid': loanUid[r['loan_id']],
                 if (r.containsKey('circle_id')) 'circle_uid': circleUid[r['circle_id']],
                 for (final c in _accountColumns)
@@ -56,11 +57,11 @@ class Merge {
       });
 
   // Meaningful on this device only; the uid columns above stand in for them.
-  static const _localColumns = {'id', 'seq', 'category_id', 'loan_id', 'circle_id', ..._accountColumns};
+  static const _localColumns = {'id', 'seq', 'category_id', 'parent_id', 'loan_id', 'circle_id', ..._accountColumns};
 
   // Columns that point at an account, sent as <name>_uid (account_uid…).
   static const _accountColumns = {'account_id', 'from_account_id', 'to_account_id'};
-  static const _uidColumns = {'category_uid', 'loan_uid', 'circle_uid', 'account_uid', 'from_account_uid', 'to_account_uid'};
+  static const _uidColumns = {'category_uid', 'parent_uid', 'loan_uid', 'circle_uid', 'account_uid', 'from_account_uid', 'to_account_uid'};
 
   // Columns that must be present (and not null) in every row from a peer.
   static const _required = {
@@ -156,6 +157,7 @@ class Merge {
         for (final t in _children) {
           await txn.update(t, {'category_id': to, ...store.stamp()}, where: 'category_id = ?', whereArgs: [from]);
         }
+        await txn.update('categories', {'parent_id': to, ...store.stamp()}, where: 'parent_id = ?', whereArgs: [from]);
       }
 
       // Category uid → the uid it was merged into by a name clash in this
@@ -207,6 +209,11 @@ class Merge {
 
       final incomingTombstones = {for (final tb in v.tombstones) '${tb['tbl']}/${tb['uid']}': tb['hlc'] as String};
 
+      // Category uid → its parent's uid, for the categories this batch
+      // wrote: linked once they're all in, since a subcategory can come
+      // before its parent (rows go in id order, a move doesn't change it).
+      final parents = <String, String?>{};
+
       for (final t in LocalStore.syncedTables) {
         for (final r in v.rows[t]!) {
           final uid = r['uid'] as String;
@@ -243,6 +250,8 @@ class Merge {
             // Its category was deleted here. As on delete, a budget goes and
             // an entry or recurring item is uncategorized, both as fresh
             // changes, so the devices that still have the category agree.
+            // shortcut: a deleted subcategory's late entries are uncategorized, not moved to its
+            // parent (the tombstone doesn't say which); put the parent uid in the tombstone if that matters.
             if (cid == null && catUid != null) {
               if (t == 'budgets') {
                 await txn.delete(t, where: 'uid = ?', whereArgs: [uid]);
@@ -306,6 +315,7 @@ class Merge {
                 // then restamp them so peers learn their category's new uid.
                 await txn.update('categories', values, where: 'id = ?', whereArgs: [otherId]);
                 await repoint(otherId, otherId);
+                parents[uid] = r['parent_uid'] as String?;
                 continue;
               }
             }
@@ -341,12 +351,26 @@ class Merge {
           } else {
             await txn.insert(t, values);
           }
+          if (t == 'categories') parents[uid] = r['parent_uid'] as String?;
+        }
+        if (t == 'categories') {
+          for (final MapEntry(key: uid, value: parentUid) in parents.entries) {
+            final pid = await categoryId(parentUid);
+            // Its parent was deleted here (top-level now), or merged into the
+            // one that won a name clash: a fresh change, as for entries, so
+            // the sender's release of the old parent doesn't undo it.
+            final fresh = parentUid != null && (pid == null || alias.containsKey(parentUid));
+            await txn.update('categories', {'parent_id': pid, if (fresh) ...store.stamp()}, where: 'uid = ?', whereArgs: [uid]);
+          }
         }
       }
 
       for (final tb in v.tombstones) {
         await applyTombstone(tb['tbl'] as String, tb['uid'] as String, tb['hlc'] as String);
       }
+      // Edits from two devices can each be sound and still make a cycle or
+      // a third level together.
+      changed += await store.normalizeCategoriesIn(txn);
     });
     if (changed > 0) store.notifyChanged();
     return changed;
