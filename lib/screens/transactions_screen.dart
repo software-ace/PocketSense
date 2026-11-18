@@ -12,6 +12,7 @@ import '../utils/quick_add.dart';
 import '../widgets/account_field.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
+import '../widgets/swipe_delete_background.dart';
 import '../widgets/data_aware.dart';
 import '../widgets/merchant_field.dart';
 import '../utils/voice_parser.dart';
@@ -448,7 +449,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         return Dismissible(
           key: ValueKey(t.id),
           direction: DismissDirection.endToStart,
-          background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
+          background: const SwipeDeleteBackground(),
           // Asked before the row leaves: Cancel keeps it in place.
           confirmDismiss: (_) => _confirmDelete(t),
           onDismissed: (_) {

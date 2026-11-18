@@ -9,6 +9,7 @@ import '../utils/format.dart';
 import '../utils/platform.dart';
 import '../widgets/amount_field.dart';
 import '../widgets/state_views.dart';
+import '../widgets/swipe_delete_background.dart';
 import '../widgets/data_aware.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
@@ -63,13 +64,14 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
   }
 
   Future<void> _edit(Budget? existing) async {
-    await showDialog<bool>(
+    final r = await showDialog<Object>(
       context: context,
       builder: (_) => _BudgetDialog(existing: existing, cats: _cats),
     );
+    if (r == _BudgetDialog.deleteResult && existing != null) await _delete(existing);
   }
 
-  Future<void> _delete(Budget b) async {
+  Future<bool> _confirmDelete(Budget b) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -81,11 +83,18 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
         ],
       ),
     );
-    if (ok != true) return;
+    return ok == true;
+  }
+
+  /// [confirmed]: a swipe already asked (in confirmDismiss).
+  Future<void> _delete(Budget b, {bool confirmed = false}) async {
+    if (!confirmed && !await _confirmDelete(b)) return;
     try {
       await _repo.deleteBudget(b.id);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.deleteFailed('$e'))));
+      await _load(); // brings back a card a swipe took away
     }
   }
 
@@ -128,7 +137,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                 final ratio = b.limitFils > 0 ? (spent / b.limitFils).clamp(0.0, 1.5) : 0.0;
                                 final over = spent > b.limitFils;
 
-                                return Card(
+                                final card = Card(
                                   margin: const EdgeInsets.symmetric(vertical: 6),
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
@@ -173,6 +182,19 @@ class _BudgetsScreenState extends State<BudgetsScreen> with DataAware {
                                     ),
                                   ),
                                 );
+                                if (desktop) return card;
+                                return Dismissible(
+                                  key: ValueKey(b.id),
+                                  direction: DismissDirection.endToStart,
+                                  background: const SwipeDeleteBackground(margin: EdgeInsets.symmetric(vertical: 6), radius: 12),
+                                  // Asked before the card leaves: Cancel keeps it in place.
+                                  confirmDismiss: (_) => _confirmDelete(b),
+                                  onDismissed: (_) {
+                                    setState(() => _budgets.remove(p));
+                                    _delete(b, confirmed: true);
+                                  },
+                                  child: card,
+                                );
                               },
                             ),
                     ),
@@ -190,6 +212,9 @@ class _BudgetDialog extends StatefulWidget {
   final Budget? existing;
   final List<Category> cats;
   const _BudgetDialog({this.existing, required this.cats});
+
+  /// Popped by the Delete button; the screen asks to confirm, then deletes.
+  static const deleteResult = 'delete';
 
   @override
   State<_BudgetDialog> createState() => _BudgetDialogState();
@@ -273,6 +298,13 @@ class _BudgetDialogState extends State<_BudgetDialog> {
         ),
       ),
       actions: [
+        // Mobile only: desktop cards already carry a trash icon.
+        if (widget.existing != null && !PlatformUi.isDesktop(context))
+          TextButton(
+            onPressed: _saving ? null : () => Navigator.pop(context, _BudgetDialog.deleteResult),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            child: Text(l.delete),
+          ),
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l.cancel)),
         FilledButton(
           onPressed: _saving ? null : _save,

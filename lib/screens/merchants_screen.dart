@@ -5,6 +5,7 @@ import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../utils/platform.dart';
 import '../widgets/state_views.dart';
+import '../widgets/swipe_delete_background.dart';
 import '../widgets/data_aware.dart';
 import 'csv_actions.dart';
 
@@ -119,7 +120,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> with DataAware {
                                 return Dismissible(
                                   key: ValueKey(m.id),
                                   direction: DismissDirection.endToStart,
-                                  background: Container(color: Colors.red.shade400, alignment: AlignmentDirectional.centerEnd, padding: const EdgeInsetsDirectional.only(end: 20), child: const Icon(Icons.delete, color: Colors.white)),
+                                  background: const SwipeDeleteBackground(),
                                   // Asked before the row leaves: Cancel keeps it in place.
                                   confirmDismiss: (_) => _confirmDelete(m),
                                   onDismissed: (_) {
