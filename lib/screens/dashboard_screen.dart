@@ -376,13 +376,19 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
         for (final a in open) AccountTile(account: a),
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
-          child: Row(children: [
-            if (open.length > 1) ...[
-              Expanded(child: FilledButton.icon(onPressed: () => showTransferSheet(context), icon: const Icon(Icons.swap_horiz), label: Text(l.transfer))),
-              const SizedBox(width: 8),
-            ],
-            Expanded(child: OutlinedButton.icon(onPressed: () => showAccountForm(context), icon: const Icon(Icons.add), label: Text(l.newAccount))),
-          ]),
+          child: LayoutBuilder(builder: (_, box) {
+            final add = OutlinedButton.icon(onPressed: () => showAccountForm(context), icon: const Icon(Icons.add), label: Text(l.newAccount));
+            if (open.length < 2) return add;
+            final transfer = FilledButton.icon(onPressed: () => showTransferSheet(context), icon: const Icon(Icons.swap_horiz), label: Text(l.transfer));
+            // Side by side only if neither label would wrap in half the row
+            // (#31: a 360-wide phone). 66 is Material 3's padding, icon and
+            // gap around an icon button's label at 1×; less when text is larger.
+            final half = (box.maxWidth - 8) / 2;
+            final fits = [l.transfer, l.newAccount].every((t) => _textWidth(t, theme.textTheme.labelLarge!) + 66 <= half);
+            return fits
+                ? Row(children: [Expanded(child: transfer), const SizedBox(width: 8), Expanded(child: add)])
+                : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [transfer, const SizedBox(height: 8), add]);
+          }),
         ),
       ]),
     );
@@ -693,7 +699,7 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
       // then the one-letter forms.
       String Function(DateTime) name = DateFormat.E().format;
       final slot = (box.maxWidth - 44) / 7 - 4;
-      if (days.any((d) => _textWidth(name(d), 10) > slot)) name = DateFormat('EEEEE').format;
+      if (days.any((d) => _textWidth(name(d), Theme.of(context).textTheme.bodyMedium!.copyWith(fontSize: 10)) > slot)) name = DateFormat('EEEEE').format;
 
       return Directionality(
         textDirection: TextDirection.ltr,
@@ -714,9 +720,11 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
     });
   }
 
-  double _textWidth(String text, double fontSize) {
+  double _textWidth(String text, TextStyle style) {
+    // As Text does: the system's Bold text setting widens every label.
+    if (MediaQuery.boldTextOf(context)) style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
     final painter = TextPainter(
-      text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.copyWith(fontSize: fontSize)),
+      text: TextSpan(text: text, style: style),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     )..layout();

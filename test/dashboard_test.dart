@@ -11,10 +11,10 @@ import 'helpers/screen_with_db.dart';
 void main() {
   setUp(useSeededTestDb);
 
-  Future<void> pumpDashboard(WidgetTester tester, {Locale locale = const Locale('en')}) async {
+  Future<void> pumpDashboard(WidgetTester tester, {Locale locale = const Locale('en'), double width = 540}) async {
     // A 540-wide phone: at the helper's 400, the stat cards overflow by a few
     // pixels in the test font, which is taller than real ones.
-    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.physicalSize = Size(width * 2, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(localizedApp(const DashboardScreen(), locale: locale));
@@ -178,5 +178,18 @@ void main() {
     expect(arrow('Previous year').onPressed, isNull);
     await tap('Next year');
     expectPicked(back(0));
+  });
+
+  // #31: on a 360-wide phone "New account" wrapped to two lines in half a card.
+  testWidgets('Transfer and New account sit side by side when they fit, stacked when not, never wrapped', (tester) async {
+    await tester.runAsync(() => FinanceRepo().insertAccount(name: 'Bank', kind: 'bank'));
+    Rect box(String text) => tester.getRect(find.text(text));
+    for (final (width, stacked) in [(360.0, true), (540.0, false)]) {
+      await pumpDashboard(tester, width: width);
+      await scrollTo(tester, 'New account');
+      final transfer = box('Transfer'), add = box('New account');
+      expect(add.height, transfer.height, reason: 'one line at $width');
+      expect(add.top >= transfer.bottom, stacked, reason: 'stacked at $width');
+    }
   });
 }
