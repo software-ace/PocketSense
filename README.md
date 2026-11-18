@@ -1,6 +1,6 @@
 # Pocket Sense
 
-![Pocket Sense: a private, offline money tracker for Android and Linux, in English and Arabic](fastlane/metadata/android/en-US/images/featureGraphic.png)
+![Pocket Sense: a private, offline money tracker for Android, Linux and Windows, in English and Arabic](fastlane/metadata/android/en-US/images/featureGraphic.png)
 
 [![Sponsor](https://img.shields.io/github/sponsors/software-ace?label=Sponsor&logo=GitHub%20Sponsors&color=ea4aaa)](https://github.com/sponsors/software-ace)
 [![Latest release](https://img.shields.io/github/v/release/software-ace/PocketSense)](../../releases/latest)
