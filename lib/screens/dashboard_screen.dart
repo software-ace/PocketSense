@@ -20,6 +20,7 @@ import 'circles_screen.dart';
 import 'loans_screen.dart';
 import 'settings_screen.dart';
 import 'sync_screen.dart';
+import 'transactions_screen.dart' show AddEntryFab;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -209,6 +210,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
 
     return Scaffold(
       appBar: AppBar(title: Text(desktop ? l.navOverview : l.navHome), centerTitle: false, actions: const [AmountsButton(), SyncButton(), SettingsButton()]),
+      // #32: add from Home too, without going to Activity first.
+      floatingActionButton: desktop ? null : const AddEntryFab(),
       body: RefreshIndicator(
         onRefresh: () => _load(),
         child: CustomScrollView(
@@ -221,7 +224,8 @@ class _DashboardScreenState extends State<DashboardScreen> with DataAware {
             )
           else ...[
             for (final (i, part) in _sections(theme, desktop).indexed) ...[if (i > 0) _gap, ...part],
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            // On a phone, room to scroll the last card out from under the add button.
+            SliverToBoxAdapter(child: SizedBox(height: desktop ? 24 : 88)),
           ],
           ],
         ),

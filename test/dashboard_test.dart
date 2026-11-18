@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:pocket_sense/data/repo.dart';
 import 'package:pocket_sense/screens/dashboard_screen.dart';
+import 'package:pocket_sense/screens/transactions_screen.dart' show AddEntryFab;
 
 import 'helpers/localized_app.dart';
 import 'helpers/screen_with_db.dart';
@@ -62,10 +63,11 @@ void main() {
       await FinanceRepo().insertTransaction(amountFils: 90000, type: 'income', date: today, description: 'y');
     });
     await pumpDashboard(tester);
-    // Home builds its cards lazily, so check each chart once it's in view.
+    // Home builds its cards lazily, so check each chart once it's in view,
+    // in Home's order: scrollTo only scrolls down.
     for (final (title, chart) in [
-      ('Income vs Spending (6 months)', BarChart),
       ('Monthly Income vs Spending', PieChart),
+      ('Income vs Spending (6 months)', BarChart),
       ('This Month vs Last Month', LineChart),
       ('By Weekday (12-week daily average)', BarChart),
     ]) {
@@ -178,6 +180,15 @@ void main() {
     expect(arrow('Previous year').onPressed, isNull);
     await tap('Next year');
     expectPicked(back(0));
+  });
+
+  // #32: adding no longer means going to Activity first.
+  testWidgets('on a phone, Home has the add button, and Add opens the new-entry form', (tester) async {
+    await pumpDashboard(tester);
+    expect(find.byType(AddEntryFab), findsOneWidget);
+    await tester.tap(find.text('Add'));
+    await settleWithDb(tester);
+    expect(find.text('New transaction'), findsOneWidget);
   });
 
   // #31: on a 360-wide phone "New account" wrapped to two lines in half a card.

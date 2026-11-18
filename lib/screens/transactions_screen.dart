@@ -214,34 +214,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
 
   Future<void> _addTransaction({String type = 'expense'}) => addTransaction(context, type: type);
 
-  /// Speak → parse → the normal form, pre-filled, so nothing is saved
-  /// without the user checking it.
-  Future<void> _addByVoice() async {
-    final heard = await showVoiceEntrySheet(context);
-    if (heard == null || !mounted) return;
-    final starterNames = starterCategoryNames(context.l10n);
-    final guess = parseVoiceEntry(heard, categories: await _repo.categories(), starterNames: starterNames);
-    if (!mounted) return;
-    final draft = await showModalBottomSheet<_TxDraft>(
-      context: context,
-      isScrollControlled: true,
-      builder: (c) => _TxFormSheet(voice: guess, heard: heard),
-    );
-    if (draft == null || !mounted) return;
-    try {
-      await _repo.insertTransaction(
-        amountFils: draft.amountFils,
-        type: draft.type,
-        date: draft.date,
-        description: draft.description,
-        merchant: draft.merchant,
-        categoryId: draft.categoryId,
-        accountId: draft.accountId,
-      );
-    } catch (e) {
-      if (mounted) _toast(context.l10n.addFailed('$e'));
-    }
-  }
+  Future<void> _addByVoice() => addByVoice(context);
 
   Future<void> _editTransaction(Transaction t) async {
     final draft = await _showForm(context, t);
@@ -358,9 +331,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with DataAware 
         actions: const [AmountsButton(), SyncButton(), SettingsButton()],
       ),
       // Both ways to add sit in thumb reach; the app bar keeps only status.
-      floatingActionButton: voiceEntrySupported
-          ? _AddSplitFab(onVoice: _addByVoice, onAdd: _addTransaction)
-          : FloatingActionButton.extended(heroTag: null, onPressed: _addTransaction, icon: const Icon(Icons.add), label: Text(l.add)),
+      floatingActionButton: const AddEntryFab(),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -521,14 +492,48 @@ Future<void> addTransaction(BuildContext context, {String type = 'expense', int?
   }
 }
 
-/// Extended-FAB-shaped pill split in two: [ 🎤 | + Add ].
-class _AddSplitFab extends StatelessWidget {
-  final VoidCallback onVoice;
-  final VoidCallback onAdd;
-  const _AddSplitFab({required this.onVoice, required this.onAdd});
+/// Speak → parse → the normal form, pre-filled, so nothing is saved
+/// without the user checking it.
+Future<void> addByVoice(BuildContext context) async {
+  final heard = await showVoiceEntrySheet(context);
+  if (heard == null || !context.mounted) return;
+  final repo = FinanceRepo();
+  final starterNames = starterCategoryNames(context.l10n);
+  final guess = parseVoiceEntry(heard, categories: await repo.categories(), starterNames: starterNames);
+  if (!context.mounted) return;
+  final draft = await showModalBottomSheet<_TxDraft>(
+    context: context,
+    isScrollControlled: true,
+    builder: (c) => _TxFormSheet(voice: guess, heard: heard),
+  );
+  if (draft == null || !context.mounted) return;
+  final l = context.l10n;
+  try {
+    await repo.insertTransaction(
+      amountFils: draft.amountFils,
+      type: draft.type,
+      date: draft.date,
+      description: draft.description,
+      merchant: draft.merchant,
+      categoryId: draft.categoryId,
+      accountId: draft.accountId,
+    );
+  } catch (e) {
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.addFailed('$e'))));
+  }
+}
+
+/// The phone's way to add an entry (Home and Activity): where voice entry
+/// works, a pill split in two, [ 🎤 | + Add ]; elsewhere just + Add.
+class AddEntryFab extends StatelessWidget {
+  const AddEntryFab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // heroTag null: Home's and Activity's live side by side in the tabs.
+    if (!voiceEntrySupported) {
+      return FloatingActionButton.extended(heroTag: null, onPressed: () => addTransaction(context), icon: const Icon(Icons.add), label: Text(context.l10n.add));
+    }
     final scheme = Theme.of(context).colorScheme;
     final fg = scheme.onPrimaryContainer;
     return Material(
@@ -542,13 +547,13 @@ class _AddSplitFab extends StatelessWidget {
           Tooltip(
             message: context.l10n.addByVoice,
             child: InkWell(
-              onTap: onVoice,
+              onTap: () => addByVoice(context),
               child: SizedBox(height: 56, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: Icon(Icons.mic_none, color: fg))),
             ),
           ),
           VerticalDivider(width: 1, thickness: 1, indent: 14, endIndent: 14, color: fg.withValues(alpha: 0.3)),
           InkWell(
-            onTap: onAdd,
+            onTap: () => addTransaction(context),
             child: SizedBox(
               height: 56,
               child: Padding(
